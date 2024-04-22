@@ -63,7 +63,7 @@ The final number of subnets, and their IP addressing will depend on the user-spe
 
 ### Multi-regional deployment
 
-The stage deploys the the infrastructure in two regions. By default, europe-west1 and europe-west4. Regional resources include NVAs (templates, MIGs, LBs) and test VMs.
+The stage deploys the the infrastructure in two regions. By default, us-east4 and us-central1. Regional resources include NVAs (templates, MIGs, LBs) and test VMs.
 This provides enough redundancy to be resilient to regional failures.
 
 ### VPC design
@@ -123,7 +123,7 @@ Minimizing the number of routes (and subnets) in the cloud environment is import
 
 This stage uses a dedicated /11 block (10.64.0.0/11), which should be sized to the own needs. The subnets created in each VPC derive from this range.
 
-The /11 block is evenly split in eight, smaller /16 blocks, assigned to different areas of the GCP network: *landing dmz europe-west1*, *landing dmz europe-west4*, *landing landing europe-west1*, *landing dmz europe-west4*, *development europe-west1*, *development europe-west4*, *production europe-west1*, *production europe-west4*.
+The /11 block is evenly split in eight, smaller /16 blocks, assigned to different areas of the GCP network: *landing dmz us-east4*, *landing dmz us-central1*, *landing landing us-east4*, *landing dmz us-central1*, *development us-east4*, *development us-central1*, *production us-east4*, *production us-central1*.
 
 The first /24 range in every area is allocated for a default subnet, which can be removed or modified as needed. The last three /24 ranges can be used for [PSA (Private Service Access)](https://cloud.google.com/vpc/docs/private-services-access)via the `psa_ranges` variable, or for [Internal Application Load Balancers (L7 LBs)](https://cloud.google.com/load-balancing/docs/l7-internal) subnets via the factory.
 
@@ -131,26 +131,26 @@ This is a summary of the subnets allocated by default in this setup:
 
 | name | description | CIDR |
 |---|---|---|
-| landing-default-ew1 | landing landing subnet - europe-west1 | 10.128.64.0/24 |
-| landing-default-ew4 | landing landing subnet - europe-west4 | 10.128.96.0/24 |
-| dmz-default-ew1 | dmz landing subnet - europe-west1 | 10.128.0.0/24 |
-| dmz-default-ew4 | dmz landing subnet - europe-west4 | 10.128.32.0/24 |
-| dev-default-ew1 | Dev spoke subnet - europe-west1 | 10.68.0.0/24 |
-| dev-default-ew1 | Free (PSA) - europe-west1 | 10.68.253.0/24 |
-| dev-default-ew1 | Free (PSA) - europe-west1 | 10.68.254.0/24 |
-| dev-default-ew1 | Free (L7 ILB) - europe-west1 | 10.68.255.0/24 |
-| dev-default-ew4 | Dev spoke subnet - europe-west4 | 10.84.0.0/24 |
-| dev-default-ew4 | Free (PSA) - europe-west4 | 10.84.253.0/24 |
-| dev-default-ew4 | Free (PSA) - europe-west4 | 10.84.254.0/24 |
-| dev-default-ew4 | Free (L7 ILB) - europe-west4 | 10.84.255.0/24 |
-| prod-default-ew1 | Prod spoke subnet - europe-west1 | 10.72.0.0/24 |
-| prod-default-ew1 | Free (PSA) - europe-west1 | 10.72.253.0/24 |
-| prod-default-ew1 | Free (PSA) - europe-west1 | 10.72.254.0/24 |
-| prod-default-ew1 | Free (L7 ILB) - europe-west1 | 10.72.255.0/24 |
-| prod-default-ew4 | Prod spoke subnet - europe-west4 | 10.88.0.0/24 |
-| prod-default-ew4 | Free (PSA) - europe-west4 | 10.88.253.0/24 |
-| prod-default-ew4 | Free (PSA) - europe-west4 | 10.88.254.0/24 |
-| prod-default-ew4 | Free (L7 ILB) - europe-west4 | 10.88.255.0/24 |
+| landing-default-ew1 | landing landing subnet - us-east4 | 10.128.64.0/24 |
+| landing-default-ew4 | landing landing subnet - us-central1 | 10.128.96.0/24 |
+| dmz-default-ew1 | dmz landing subnet - us-east4 | 10.128.0.0/24 |
+| dmz-default-ew4 | dmz landing subnet - us-central1 | 10.128.32.0/24 |
+| dev-default-ew1 | Dev spoke subnet - us-east4 | 10.68.0.0/24 |
+| dev-default-ew1 | Free (PSA) - us-east4 | 10.68.253.0/24 |
+| dev-default-ew1 | Free (PSA) - us-east4 | 10.68.254.0/24 |
+| dev-default-ew1 | Free (L7 ILB) - us-east4 | 10.68.255.0/24 |
+| dev-default-ew4 | Dev spoke subnet - us-central1 | 10.84.0.0/24 |
+| dev-default-ew4 | Free (PSA) - us-central1 | 10.84.253.0/24 |
+| dev-default-ew4 | Free (PSA) - us-central1 | 10.84.254.0/24 |
+| dev-default-ew4 | Free (L7 ILB) - us-central1 | 10.84.255.0/24 |
+| prod-default-ew1 | Prod spoke subnet - us-east4 | 10.72.0.0/24 |
+| prod-default-ew1 | Free (PSA) - us-east4 | 10.72.253.0/24 |
+| prod-default-ew1 | Free (PSA) - us-east4 | 10.72.254.0/24 |
+| prod-default-ew1 | Free (L7 ILB) - us-east4 | 10.72.255.0/24 |
+| prod-default-ew4 | Prod spoke subnet - us-central1 | 10.88.0.0/24 |
+| prod-default-ew4 | Free (PSA) - us-central1 | 10.88.253.0/24 |
+| prod-default-ew4 | Free (PSA) - us-central1 | 10.88.254.0/24 |
+| prod-default-ew4 | Free (L7 ILB) - us-central1 | 10.88.255.0/24 |
 
 These subnets can be advertised to on-premises as an aggregate /11 range (10.64.0.0/11). Refer to the `var.vpn_onprem_primary_config.router_config` and `var.vpn_onprem_secondary_config.router_config` variables to configure it.
 
@@ -224,7 +224,7 @@ These files contain different resources:
 
 ### VPNs
 
-The connectivity between on-premises and GCP (the landing landing VPC) is implemented with Cloud HA VPN ([`net-vpn`](../../../modules/net-vpn-ha)) and defined in [`vpn-onprem.tf`](./vpn-onprem.tf). The file implements a single logical connection between on-premises and the landing landing VPC, both in `europe-west1` and `europe-west4`. The relevant parameters for its configuration are found in the variables `vpn_onprem_primary_config` and `vpn_onprem_secondary_config`.
+The connectivity between on-premises and GCP (the landing landing VPC) is implemented with Cloud HA VPN ([`net-vpn`](../../../modules/net-vpn-ha)) and defined in [`vpn-onprem.tf`](./vpn-onprem.tf). The file implements a single logical connection between on-premises and the landing landing VPC, both in `us-east4` and `us-central1`. The relevant parameters for its configuration are found in the variables `vpn_onprem_primary_config` and `vpn_onprem_secondary_config`.
 
 ### Routing and BGP
 
@@ -471,7 +471,7 @@ DNS configurations are centralised in the `dns-*.tf` files. Spokes delegate DNS 
 | [gcp_ranges](variables.tf#L136) | GCP address ranges in name => range format. | <code>map&#40;string&#41;</code> |  | <code title="&#123;&#10;  gcp_dev_primary               &#61; &#34;10.68.0.0&#47;16&#34;&#10;  gcp_dev_secondary             &#61; &#34;10.84.0.0&#47;16&#34;&#10;  gcp_landing_landing_primary   &#61; &#34;10.64.0.0&#47;17&#34;&#10;  gcp_landing_landing_secondary &#61; &#34;10.80.0.0&#47;17&#34;&#10;  gcp_dmz_primary               &#61; &#34;10.64.127.0&#47;17&#34;&#10;  gcp_dmz_secondary             &#61; &#34;10.80.127.0&#47;17&#34;&#10;  gcp_prod_primary              &#61; &#34;10.72.0.0&#47;16&#34;&#10;  gcp_prod_secondary            &#61; &#34;10.88.0.0&#47;16&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |  |
 | [outputs_location](variables.tf#L161) | Path where providers and tfvars files for the following stages are written. Leave empty to disable. | <code>string</code> |  | <code>null</code> |  |
 | [psa_ranges](variables.tf#L178) | IP ranges used for Private Service Access (e.g. CloudSQL). Ranges is in name => range format. | <code title="object&#40;&#123;&#10;  dev &#61; optional&#40;list&#40;object&#40;&#123;&#10;    ranges         &#61; map&#40;string&#41;&#10;    export_routes  &#61; optional&#40;bool, false&#41;&#10;    import_routes  &#61; optional&#40;bool, false&#41;&#10;    peered_domains &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  &#125;&#41;&#41;, &#91;&#93;&#41;&#10;  prod &#61; optional&#40;list&#40;object&#40;&#123;&#10;    ranges         &#61; map&#40;string&#41;&#10;    export_routes  &#61; optional&#40;bool, false&#41;&#10;    import_routes  &#61; optional&#40;bool, false&#41;&#10;    peered_domains &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  &#125;&#41;&#41;, &#91;&#93;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |  |
-| [regions](variables.tf#L198) | Region definitions. | <code title="object&#40;&#123;&#10;  primary   &#61; string&#10;  secondary &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  primary   &#61; &#34;europe-west1&#34;&#10;  secondary &#61; &#34;europe-west4&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |  |
+| [regions](variables.tf#L198) | Region definitions. | <code title="object&#40;&#123;&#10;  primary   &#61; string&#10;  secondary &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  primary   &#61; &#34;us-east4&#34;&#10;  secondary &#61; &#34;us-central1&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |  |
 | [service_accounts](variables.tf#L210) | Automation service accounts in name => email format. | <code title="object&#40;&#123;&#10;  data-platform-dev    &#61; string&#10;  data-platform-prod   &#61; string&#10;  gke-dev              &#61; string&#10;  gke-prod             &#61; string&#10;  project-factory-dev  &#61; string&#10;  project-factory-prod &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>null</code> | <code>1-resman</code> |
 | [vpn_onprem_primary_config](variables.tf#L224) | VPN gateway configuration for onprem interconnection in the primary region. | <code title="object&#40;&#123;&#10;  peer_external_gateways &#61; map&#40;object&#40;&#123;&#10;    redundancy_type &#61; string&#10;    interfaces      &#61; list&#40;string&#41;&#10;  &#125;&#41;&#41;&#10;  router_config &#61; object&#40;&#123;&#10;    create    &#61; optional&#40;bool, true&#41;&#10;    asn       &#61; number&#10;    name      &#61; optional&#40;string&#41;&#10;    keepalive &#61; optional&#40;number&#41;&#10;    custom_advertise &#61; optional&#40;object&#40;&#123;&#10;      all_subnets &#61; bool&#10;      ip_ranges   &#61; map&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#10;  tunnels &#61; map&#40;object&#40;&#123;&#10;    bgp_peer &#61; object&#40;&#123;&#10;      address        &#61; string&#10;      asn            &#61; number&#10;      route_priority &#61; optional&#40;number, 1000&#41;&#10;      custom_advertise &#61; optional&#40;object&#40;&#123;&#10;        all_subnets          &#61; bool&#10;        all_vpc_subnets      &#61; bool&#10;        all_peer_vpc_subnets &#61; bool&#10;        ip_ranges            &#61; map&#40;string&#41;&#10;      &#125;&#41;&#41;&#10;    &#125;&#41;&#10;    bgp_session_range               &#61; string&#10;    ike_version                     &#61; optional&#40;number, 2&#41;&#10;    peer_external_gateway_interface &#61; optional&#40;number&#41;&#10;    peer_gateway                    &#61; optional&#40;string, &#34;default&#34;&#41;&#10;    router                          &#61; optional&#40;string&#41;&#10;    shared_secret                   &#61; optional&#40;string&#41;&#10;    vpn_gateway_interface           &#61; number&#10;  &#125;&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>null</code> |  |
 | [vpn_onprem_secondary_config](variables.tf#L267) | VPN gateway configuration for onprem interconnection in the secondary region. | <code title="object&#40;&#123;&#10;  peer_external_gateways &#61; map&#40;object&#40;&#123;&#10;    redundancy_type &#61; string&#10;    interfaces      &#61; list&#40;string&#41;&#10;  &#125;&#41;&#41;&#10;  router_config &#61; object&#40;&#123;&#10;    create    &#61; optional&#40;bool, true&#41;&#10;    asn       &#61; number&#10;    name      &#61; optional&#40;string&#41;&#10;    keepalive &#61; optional&#40;number&#41;&#10;    custom_advertise &#61; optional&#40;object&#40;&#123;&#10;      all_subnets &#61; bool&#10;      ip_ranges   &#61; map&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#10;  tunnels &#61; map&#40;object&#40;&#123;&#10;    bgp_peer &#61; object&#40;&#123;&#10;      address        &#61; string&#10;      asn            &#61; number&#10;      route_priority &#61; optional&#40;number, 1000&#41;&#10;      custom_advertise &#61; optional&#40;object&#40;&#123;&#10;        all_subnets          &#61; bool&#10;        all_vpc_subnets      &#61; bool&#10;        all_peer_vpc_subnets &#61; bool&#10;        ip_ranges            &#61; map&#40;string&#41;&#10;      &#125;&#41;&#41;&#10;    &#125;&#41;&#10;    bgp_session_range               &#61; string&#10;    ike_version                     &#61; optional&#40;number, 2&#41;&#10;    peer_external_gateway_interface &#61; optional&#40;number&#41;&#10;    peer_gateway                    &#61; optional&#40;string, &#34;default&#34;&#41;&#10;    router                          &#61; optional&#40;string&#41;&#10;    shared_secret                   &#61; optional&#40;string&#41;&#10;    vpn_gateway_interface           &#61; number&#10;  &#125;&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>null</code> |  |

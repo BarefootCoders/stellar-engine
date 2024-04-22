@@ -14,7 +14,9 @@
 
 labels:
  team: team-0
-parent: folders/1234567890
+parent: folders/736253310515
+name: potato
+descriptive_name: potato
 services:
 - compute.googleapis.com
 - storage.googleapis.com
