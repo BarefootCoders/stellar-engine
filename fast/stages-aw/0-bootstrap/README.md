@@ -399,13 +399,14 @@ Copy/paste the command returned by the script to link or copy the provider file,
 
 ```bash
 terraform init -migrate-state
-terraform apply
+terraform apply \
+  -var bootstrap_user=$(gcloud config list --format 'value(core.account)')
 ```
 
 or
 ```bash
 terraform init -migrate-state
-terraform apply -var 'org_policies_config={"import_defaults": true}'
+terraform apply -var 'org_policies_config={"import_defaults": true}' -var bootstrap_user=$(gcloud config list --format 'value(core.account)')
 ```
 if there default policies are enabled.
 
