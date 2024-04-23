@@ -243,6 +243,14 @@ for role in $FAST_ROLES; do
 done
 ```
 
+Before starting, make sure you are running a very new version of Terraform
+
+```bash
+admin@cloudshell:~$ terraform version
+Terraform v1.8.1
+on linux_amd64
+```
+
 Then make sure the same user is also part of the `gcp-organization-admins` group so that impersonating the automation service account later on will be possible.
 
 #### Standalone billing account
