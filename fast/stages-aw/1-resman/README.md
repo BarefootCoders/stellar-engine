@@ -92,7 +92,7 @@ gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/tfvars/0-bootstrap.auto
 
 The preconfigured provider file uses impersonation to run with this stage's automation service account's credentials. The `gcp-devops` and `organization-admins` groups have the necessary IAM bindings in place to do that, so make sure the current user is a member of one of those groups.
 
-### Setting Default Project for Manual Run
+### Setting default project for manual run
 **Important**: Before running this, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' project created in 0-bootstrap.
 To find the 'automation' project,
 ```bash
