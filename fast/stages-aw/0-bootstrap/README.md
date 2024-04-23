@@ -388,14 +388,6 @@ Once the initial `apply` completes successfully, configure a remote backend usin
 The following two snippets show how to leverage the `stage-links.sh` script in the root FAST folder to fetch the commands required for output files linking or copying, using either the local output folder configured via Terraform variables, or the GCS bucket which can be derived from the `automation` output.
 
 ```bash
-../../stage-links.sh ~/fast-config
-
-# copy and paste the following commands for '0-bootstrap'
-
-ln -s ~/fast-config/providers/0-bootstrap-providers.tf ./
-```
-
-```bash
 ../../stage-links.sh gs://xxx-prod-iac-core-outputs-0
 
 # copy and paste the following commands for '0-bootstrap'
