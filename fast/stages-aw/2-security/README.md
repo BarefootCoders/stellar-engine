@@ -23,6 +23,7 @@ The following diagram illustrates the high-level design of created resources and
   - [Provider and Terraform variables](#provider-and-terraform-variables)
   - [Impersonating the automation service account](#impersonating-the-automation-service-account)
   - [Variable configuration](#variable-configuration)
+  - [Setting default project for manual run](#Setting-default-project-for-manual-run)
   - [Using delayed billing association for projects](#using-delayed-billing-association-for-projects)
   - [Running the stage](#running-the-stage)
 - [Customizations](#customizations)
