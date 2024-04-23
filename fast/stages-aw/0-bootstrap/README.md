@@ -419,6 +419,16 @@ if there default policies are enabled.
 
 Make sure the user you're logged in with is a member of the `gcp-organization-admins` group or impersonation will not be possible.
 
+**Important**: Before moving on to subsequent stages, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' project created in this step.
+To find the 'automation' project,
+```bash
+terraform output project_ids
+```
+And to set the gcloud project default in your CLI
+```bash
+gcloud config set project <prefix>-prod-iac-core-0
+```
+
 ## Customizations
 
 Most variables (e.g. `billing_account` and `organization`) are only used to input actual values and should be self-explanatory. The only meaningful customizations that apply here are groups, and IAM roles.
