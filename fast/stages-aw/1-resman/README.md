@@ -21,6 +21,7 @@ The following diagram is a high level reference of the resources created and man
 - [How to run this stage](#how-to-run-this-stage)
   - [Provider and Terraform variables](#provider-and-terraform-variables)
   - [Impersonating the automation service account](#impersonating-the-automation-service-account)
+  - [Setting default project for manual run](#setting-default-project-for-manual-run)
   - [Variable configuration](#variable-configuration)
   - [Running the stage](#running-the-stage)
 - [Customizations](#customizations)
