@@ -6,9 +6,9 @@ billing_account = {
 
 # locations for GCS, BigQuery, and logging buckets created here
 locations = {
-  bq      = "EU"
-  gcs     = "EU"
-  logging = "global"
+  bq      = "US"
+  gcs     = "US"
+  logging = "us"
   pubsub  = []
 }
 
