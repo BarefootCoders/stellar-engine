@@ -92,16 +92,18 @@ gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/tfvars/0-bootstrap.auto
 
 The preconfigured provider file uses impersonation to run with this stage's automation service account's credentials. The `gcp-devops` and `organization-admins` groups have the necessary IAM bindings in place to do that, so make sure the current user is a member of one of those groups.
 
-Make sure the `resman` service account has the `Service Usage Consumer` role.
-
-Find the resman service account
+### Setting Default Project for Manual Run
+**Important**: Before running this, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' project created in 0-bootstrap.
+To find the 'automation' project,
 ```bash
-cd ../0-bootstrap/
-terraform output service_accounts
+pushd ../0-bootstrap
+terraform output project_ids
+popd
 ```
-
-And make sure it has the "Service Usage Consumer" role in the project that you are using to bootstrap.
-
+And to set the gcloud project default in your CLI
+```bash
+gcloud config set project <prefix>-prod-iac-core-0
+```
 
 ### Variable configuration
 
