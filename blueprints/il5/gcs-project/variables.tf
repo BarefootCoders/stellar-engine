@@ -44,7 +44,7 @@ variable "public_access_prevention" {
 variable "location" {
   description = "Bucket location."
   type        = string
-  default     = "EU"
+  default     = "US"
   # Set to us-east4 or us-cental1
 }
  

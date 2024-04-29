@@ -15,10 +15,9 @@
  */
 
 variable "autoclass" {
-  description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request. Defaults to set to True"
+  description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. Defaults to false."
   type        = bool
-  #default     = false
-  default     = true
+  default     = false
 }
 
 variable "cors" {
@@ -223,9 +222,9 @@ variable "project_id" {
 }
 
 variable "public_access_prevention" {
-  description = "Prevents public access to a bucket. The default value is set to enforced and enabled with private access only. Enabling public access prevention. Acceptable values are inherited or enforced. If inherited, the bucket uses public access prevention, only if the bucket is subject to the public access prevention organization policy constraint."
+  description = "Prevents public access to a bucket. Acceptable values are inherited or enforced. If inherited, the bucket uses public access prevention, only if the bucket is subject to the public access prevention organization policy constraint."
   type        = string
-  default     = "enforced"
+  default     = null
 }
 
 variable "requester_pays" {
