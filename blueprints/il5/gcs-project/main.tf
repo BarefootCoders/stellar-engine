@@ -1,10 +1,7 @@
 # Google Project
 # Google Cloud Storage Module 
-
-
 module "project" {
   source = "../../../modules/project"
-  #source = "../../../modules/project"
   billing_account = (var.project_create != null
     ? var.project_create.billing_account_id
     : null

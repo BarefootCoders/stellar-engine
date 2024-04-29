@@ -17,14 +17,9 @@
 variable "name" {
   description = "Bucket name suffix."
   type        = string
-  default     = "tapanapr29v2"
+  default     = "Name-ofBucket"
 }
 
-variable "prefix" {
-  description = "Optional prefix used to generate the bucket name."
-  type        = string
-  default     = "tnbgcp"
-}
 
 variable "project_create" {
   description = "Parameters for the creation of a new project."
@@ -35,13 +30,10 @@ variable "project_create" {
   default = null
 }
 
-# Project number: 53935569403
-# Project ID: tapan-dev 
-
 variable "project_id" {
   description = "Project ID."
   type        = string
-  default     = "tapan-dev"
+  default     = "Project-123-xscf-dev"
 }
 
 variable "autoclass" {
@@ -60,7 +52,7 @@ variable "public_access_prevention" {
 variable "location" {
   description = "Bucket location."
   type        = string
-  default     = "us-east4"
+  default     = "US"
   # Set to us-east4 or us-cental1
 }
 

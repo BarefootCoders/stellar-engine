@@ -16,11 +16,6 @@ autoclass { enabled = true }
 4. Region of deployment to US Only 
 
 
-## Prerequisites
-
-You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
-
-
 ## Deployment Steps
 
 1. Clone the repo to your local machine or Cloud Shell:
@@ -37,7 +32,7 @@ cd dino-runner/blueprints/serverless/cloud-run-explore
 
 You should see this README and some terraform files.
 
-3. To deploy a specific use case, you will need to create a file in this directory called `terraform.tfvars` and follow the corresponding instructions to set variables. Values that are meant to be substituted will be shown inside brackets but you need to omit these brackets. E.g.:
+1. To deploy a specific use case, you will need to create a file in this directory called `terraform.tfvars` and follow the corresponding instructions to set variables. Values that are meant to be substituted will be shown inside brackets but you need to omit these brackets. E.g.:
 
 ```tfvars
 project_id = "[your-project_id]"
@@ -51,7 +46,7 @@ project_id = "spiritual-hour-331417"
 
 Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at will.
 
-4. The usual terraform commands will do the work:
+2. The usual terraform commands will do the work:
 
 ```bash
 terraform init

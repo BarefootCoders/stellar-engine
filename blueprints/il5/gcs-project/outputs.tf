@@ -20,5 +20,3 @@
 # have an id output, it is convenient to have in this module too to
 # handle all log destination as homogeneous objects (i.e. you can
 # assume any valid log destination has an `id` output).
- 
- 
