@@ -14,23 +14,39 @@
  * limitations under the License.
  */
 
+variable "name" {
+  description = "Bucket name suffix."
+  type        = string
+  default     = "tapanapr29v2"
+}
+
+variable "prefix" {
+  description = "Optional prefix used to generate the bucket name."
+  type        = string
+  default     = "tnbgcp"
+}
+
+variable "project_create" {
+  description = "Parameters for the creation of a new project."
+  type = object({
+    billing_account_id = string
+    parent             = string
+  })
+  default = null
+}
+
+# Project number: 53935569403
+# Project ID: tapan-dev 
+
 variable "project_id" {
-  default = "tapan-dev"
+  description = "Project ID."
+  type        = string
+  default     = "tapan-dev"
 }
-
-variable "bucket_name" {}
-variable "email" {}
-variable "key_ring_name" {}
-variable "key_name" {}
-variable "dual_locations" {
-  type = list(string)
-}
-
 
 variable "autoclass" {
-  description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request. Defaults to set to True"
+  description = "For IL5 Requirements, Enable the autoclass to True. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request."
   type        = bool
-  #default     = false
   default     = true
 }
 
@@ -39,43 +55,25 @@ variable "public_access_prevention" {
   type        = string
   default     = "enforced"
 }
- 
+
 
 variable "location" {
   description = "Bucket location."
   type        = string
-  default     = "US"
+  default     = "us-east4"
   # Set to us-east4 or us-cental1
-}
- 
-variable "name" {
-  description = "Bucket name suffix."
-  type        = string
-}
- 
-variable "prefix" {
-  description = "Optional prefix used to generate the bucket name."
-  type        = string
-  default     = null
-  validation {
-    condition     = var.prefix != ""
-    error_message = "Prefix cannot be empty, please use null instead."
-  }
-}
-
-variable "project_id" {
-  description = "Bucket project id."
-  type        = string
 }
 
 
 variable "storage_class" {
   description = "Bucket storage class."
   type        = string
-  default     = "MULTI_REGIONAL"
-  validation {
-    condition     = contains(["STANDARD", "MULTI_REGIONAL", "REGIONAL", "NEARLINE", "COLDLINE", "ARCHIVE"], var.storage_class)
-    error_message = "Storage class must be one of STANDARD, MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, ARCHIVE."
-  }
+  default     = "STANDARD"
+  # Is AutoClass is Enabled the Storage Class Shall be set to Standard
 }
- 
+
+variable "versioning" {
+  description = "The IL5 requires,  versioning Enabled to true"
+  type        = bool
+  default     = true
+}
