@@ -14,6 +14,19 @@
  * limitations under the License.
  */
 
+variable "project_id" {
+  default = "tapan-dev"
+}
+
+variable "bucket_name" {}
+variable "email" {}
+variable "key_ring_name" {}
+variable "key_name" {}
+variable "dual_locations" {
+  type = list(string)
+}
+
+
 variable "autoclass" {
   description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request. Defaults to set to True"
   type        = bool
