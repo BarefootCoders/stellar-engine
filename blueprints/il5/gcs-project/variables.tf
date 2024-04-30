@@ -13,33 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-variable "name" {
-  description = "Bucket name."
+variable "key_ring_name" {
+  description = "Key ring name."
   type        = string
-  default     = "tnbkcapra123abcde"
-}
-
-
-# variable "project_create" {
-#   description = "Parameters for the creation of a new project."
-#   type = object({
-#     billing_account_id = string
-#     parent             = string
-#   })
-#   default = null
-# }
-
-variable "project_id" {
-  description = "Project ID."
-  type        = string
-  default     = "tapan-dev"
+  default     = "keyringapr"
 }
 
 variable "autoclass" {
-  description = "For IL5 Requirements, Enable the autoclass to True. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request."
+  description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request. Defaults to set to True"
   type        = bool
-  default     = true
+  #default     = false
+  default = true
 }
 
 variable "public_access_prevention" {
@@ -49,16 +33,39 @@ variable "public_access_prevention" {
 }
 
 
-variable "force_destroy" {
-  description = "Optional map to set force destroy keyed by name, defaults to true."
-  type        = bool
-  default     = true
-}
-
 variable "location" {
   description = "Bucket location."
   type        = string
   default     = "us-east4"
+  # Set to us-east4 or us-cental1
+}
+
+variable "name" {
+  description = "Bucket name suffix."
+  type        = string
+  default     = "apr3"
+}
+
+variable "prefix" {
+  description = "Optional prefix used to generate the bucket name."
+  type        = string
+  default     = "dinr"
+  validation {
+    condition     = var.prefix != ""
+    error_message = "Prefix cannot be empty, please use null instead."
+  }
+}
+
+variable "suffix" {
+  description = "Optional suffix used to generate the bucket name."
+  type        = string
+  default     = "s"
+}
+
+variable "project_id" {
+  description = "Bucket project id."
+  type        = string
+  default     = "tapan-dev"
 }
 
 
@@ -66,18 +73,86 @@ variable "storage_class" {
   description = "Bucket storage class."
   type        = string
   default     = "STANDARD"
-  # Is AutoClass is Enabled the Storage Class Shall be set to Standard
+  validation {
+    condition     = contains(["STANDARD", "MULTI_REGIONAL", "REGIONAL", "NEARLINE", "COLDLINE", "ARCHIVE"], var.storage_class)
+    error_message = "Storage class must be one of STANDARD, MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, ARCHIVE."
+  }
 }
 
-variable "versioning" {
-  description = "The IL5 requires,  versioning Enabled to true"
-  type        = bool
-  default     = true
+variable "keyring" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
+  default = {
+    location = "us-east4"
+    name     = "keyring-apr"
+  }
 }
 
-variable "encryption_key" {
-  description = "KMS key that will be used for encryption."
-  type        = string
-  default     = "projects/tapan-dev/locations/us-east4/keyRings/tnb-key/cryptoKeys/tnb-key"
+variable "keys" {
+  description = "Key names and base attributes. Set attributes to null if not needed."
+  type = map(object({
+    destroy_scheduled_duration    = optional(string)
+    rotation_period               = optional(string)
+    labels                        = optional(map(string))
+    purpose                       = optional(string, "ENCRYPT_DECRYPT")
+    skip_initial_version_creation = optional(bool, false)
+    version_template = optional(object({
+      algorithm        = string
+      protection_level = optional(string, "SOFTWARE")
+    }))
+
+    iam = optional(map(list(string)), {})
+    iam_bindings = optional(map(object({
+      members = list(string)
+      role    = string
+      condition = optional(object({
+        expression  = string
+        title       = string
+        description = optional(string)
+      }))
+    })), {})
+    iam_bindings_additive = optional(map(object({
+      member = string
+      role   = string
+      condition = optional(object({
+        expression  = string
+        title       = string
+        description = optional(string)
+      }))
+    })), {})
+  }))
+  default = {
+    "default" = {
+      destroy_scheduled_duration    = null
+      rotation_period               = null
+      labels                        = null
+      purpose                       = "ENCRYPT_DECRYPT"
+      skip_initial_version_creation = false
+      version_template = {
+        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+        protection_level = "SOFTWARE"
+      }
+
+      iam                   = {}
+      iam_bindings          = {}
+      iam_bindings_additive = {}
+    }
+  }
+  nullable = false
 }
 
+variable "region" {
+  default = "us-east4"
+  description = "Region of the bucket."
+  type = string
+}
+
+variable "email" {
+  default = "admin.tapan@dino-runner.darkwolfsolutions.com"
+  description = "Email address of the user."
+  type = string
+}   
+ 
