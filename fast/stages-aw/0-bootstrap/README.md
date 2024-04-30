@@ -424,6 +424,10 @@ gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/providers/0-bootstrap-p
 
 Copy/paste the command returned by the script to link or copy the provider file, then migrate state with `terraform init` and run `terraform apply`. If your organization was created with "Secure by Default Org Policy", that is with some of the org policies enabled, add `-var 'org_policies_config={"import_defaults": true}'` to `terraform apply`:
 
+<<<<<<< HEAD
+=======
+**Important**: Before moving on to subsequent stages, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' project created in this step.
+>>>>>>> 85c0e0f2 (Update README.md)
 To find the 'automation' project,
 ```bash
 terraform output project_ids
