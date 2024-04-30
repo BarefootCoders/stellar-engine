@@ -1,5 +1,8 @@
 project_id = "my-project-id" 
-keyring = "name-of-key-ring"
+keyring = {
+    location = "us-east4"
+    name     = "todo-keyring"
+}
 prefix = "prefix-name"
 name = "Name-of-the-Bucket"
 location ="location-of-bucket"
@@ -9,11 +12,18 @@ public_access_prevention="enforced"
 storage_class="STANDARD"
 
 keys = {
+
+     destroy_scheduled_duration    = null
+      rotation_period               = null
+      labels                        = null
+      purpose                       = "ENCRYPT_DECRYPT"
+      skip_initial_version_creation = false
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "SOFTWARE"
       }
-    purpose = "ENCRYPT_DECRYPT"
-    skip_initial_version_creation = false
 
+      iam                   = {}
+      iam_bindings          = {}
+      iam_bindings_additive = {}
 }
