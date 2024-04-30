@@ -27,8 +27,8 @@ variable "keyring" {
     name     = string
   })
   default = {
-    location = ""
-    name     = ""
+    location = "us-east4"
+    name     = "gcs-keyring"
 
     # Example location = "us-east4"
     # Example name     = "april"
@@ -50,7 +50,6 @@ variable "prefix" {
 variable "name" {
   description = "Bucket name suffix."
   type        = string
-  default     = ""
   # TODO: Update the name of the bucket suffix For example welcome-data
 }
 
@@ -62,7 +61,6 @@ variable "location" {
 }
 
 variable "email" {
-  default = ""
   # Example default = "admin.user-anme@example.google.com"
   description = "Email address of the user."
   type        = string
