@@ -17,7 +17,7 @@
 variable "project_id" {
   description = "Project ID"
   type        = string
-  default     = "todo-project-id"
+  default     = "tapan-dev"
   # TODO: Update the Project ID , example project-abc-123
 }
 
@@ -29,7 +29,7 @@ variable "keyring" {
   })
   default = {
     location = "us-east4"
-    name     = "todo-keyring"
+    name     = "april"
     # TODO: Update the name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
   }
 }
@@ -37,7 +37,7 @@ variable "keyring" {
 variable "prefix" {
   description = "Optional prefix used to generate the bucket name."
   type        = string
-  default     = "todo-prefix"
+  default     = "ab"
   # TODO: Update the name of the prefix
   validation {
     condition     = var.prefix != ""
@@ -48,7 +48,7 @@ variable "prefix" {
 variable "name" {
   description = "Bucket name suffix."
   type        = string
-  default     = "bucket-name-here"
+  default     = "april30a"
   # TODO: Update the name of the bucket suffix
 }
 
@@ -60,7 +60,7 @@ variable "location" {
 }
 
 variable "email" {
-  default = "todo-update-email@example.google.com"
+  default = ""
   # Example default = "admin.user-anme@example.google.com"
   description = "Email address of the user."
   type        = string
