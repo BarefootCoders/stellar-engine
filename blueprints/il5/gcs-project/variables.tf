@@ -17,7 +17,7 @@
 variable "project_id" {
   description = "Project ID"
   type        = string
-  default     = "tapan-dev"
+  default     = ""
   # TODO: Update the Project ID , example project-abc-123
 }
 
@@ -28,8 +28,11 @@ variable "keyring" {
     name     = string
   })
   default = {
-    location = "us-east4"
-    name     = "april"
+    location = ""
+    name     = ""
+
+    # Example location = "us-east4"
+    # Example name     = "april"
     # TODO: Update the name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
   }
 }
@@ -37,8 +40,8 @@ variable "keyring" {
 variable "prefix" {
   description = "Optional prefix used to generate the bucket name."
   type        = string
-  default     = "ab"
-  # TODO: Update the name of the prefix
+  default     = ""
+  # TODO: Update the name of the prefix, for example "dino"
   validation {
     condition     = var.prefix != ""
     error_message = "Prefix cannot be empty, please use null instead."
@@ -48,8 +51,8 @@ variable "prefix" {
 variable "name" {
   description = "Bucket name suffix."
   type        = string
-  default     = "april30a"
-  # TODO: Update the name of the bucket suffix
+  default     = ""
+  # TODO: Update the name of the bucket suffix For example welcome-data
 }
 
 variable "location" {
