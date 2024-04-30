@@ -16,7 +16,20 @@
 variable "key_ring_name" {
   description = "Key ring name."
   type        = string
-  default     = "keyringapr"
+  default     = "wkeyringname"
+}
+
+
+variable "keyring" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
+  default = {
+    location = "us-east4"
+    name     = "w-keyring"
+  }
 }
 
 variable "autoclass" {
@@ -79,17 +92,7 @@ variable "storage_class" {
   }
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-  default = {
-    location = "us-east4"
-    name     = "keyring-apr"
-  }
-}
+
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."

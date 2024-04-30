@@ -14,23 +14,14 @@ module "gcs" {
   encryption_key = module.kms.keys.default.id
   name           = var.name
 }
-
+/*
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
   keyring    = var.keyring
   keys       = var.keys
 }
-    
-
-resource "google_project_iam_binding" "project" {
-  project = data.google_project.current.id
-  role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  members = [
-    "serviceAccount:${local.cloud_storage_service_account}",
-  ]
-}
-
+*/
 data "google_project" "current" {
 }
 
@@ -38,6 +29,16 @@ locals {
   cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = var.project_id
+  keys       = var.keys
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}",  "serviceAccount:${local.cloud_storage_service_account}"]
+  }
+  keyring = var.keyring  
+}
+    
 
 data "google_iam_policy" "admin" {
   binding {
@@ -47,8 +48,3 @@ data "google_iam_policy" "admin" {
     ]
   }
 }
-
-resource "google_storage_bucket_iam_policy" "policy" {
-  bucket      = google_storage_bucket.bucket.name
-  policy_data = data.google_iam_policy.admin.policy_data
-}    
