@@ -13,7 +13,8 @@ storage_class="STANDARD"
 
 keys = {
 
-     destroy_scheduled_duration    = null
+     "default" = {
+      destroy_scheduled_duration    = null
       rotation_period               = null
       labels                        = null
       purpose                       = "ENCRYPT_DECRYPT"
@@ -22,7 +23,9 @@ keys = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "SOFTWARE"
       }
+
       iam                   = {}
       iam_bindings          = {}
       iam_bindings_additive = {}
+    }
 }
