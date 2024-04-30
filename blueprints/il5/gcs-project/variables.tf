@@ -17,23 +17,23 @@
 variable "name" {
   description = "Bucket name."
   type        = string
-  default     = "Name-of-the-Bucket"
+  default     = "tnbkcapra123abcde"
 }
 
 
-variable "project_create" {
-  description = "Parameters for the creation of a new project."
-  type = object({
-    billing_account_id = string
-    parent             = string
-  })
-  default = null
-}
+# variable "project_create" {
+#   description = "Parameters for the creation of a new project."
+#   type = object({
+#     billing_account_id = string
+#     parent             = string
+#   })
+#   default = null
+# }
 
 variable "project_id" {
   description = "Project ID."
   type        = string
-  default     = "Project-123-xscf-dev"
+  default     = "tapan-dev"
 }
 
 variable "autoclass" {
@@ -48,6 +48,12 @@ variable "public_access_prevention" {
   default     = "enforced"
 }
 
+
+variable "force_destroy" {
+  description = "Optional map to set force destroy keyed by name, defaults to true."
+  type        = bool
+  default     = true
+}
 
 variable "location" {
   description = "Bucket location."
@@ -68,3 +74,10 @@ variable "versioning" {
   type        = bool
   default     = true
 }
+
+variable "encryption_key" {
+  description = "KMS key that will be used for encryption."
+  type        = string
+  default     = "projects/tapan-dev/locations/us-east4/keyRings/tnb-key/cryptoKeys/tnb-key"
+}
+

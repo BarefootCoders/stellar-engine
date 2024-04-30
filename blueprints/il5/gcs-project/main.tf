@@ -8,5 +8,7 @@ module "cloud_storage" {
   versioning               = var.versioning
   storage_class            = var.storage_class
   public_access_prevention = var.public_access_prevention
+  force_destroy            = var.force_destroy
+  encryption_key           = var.encryption_key
 
 }
