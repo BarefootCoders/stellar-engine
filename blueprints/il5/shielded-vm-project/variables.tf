@@ -75,23 +75,27 @@ variable "shielded_config" {
 variable "ip_cidr_range" {
   description = "The IP CIDR range for the VPC"
   type        = string
-  default     = "10.0.1.0/24"
-  #TODO Update the VPC CIDR IP Range
+  #Example  default     = "10.0.1.0/24"
 }
 
+
+variable "instance_type" {
+  description = "The Machine Type for the Shielded Compute VM"
+  type        = string
+  default     = "e2-micro"
+  #Example  default     = "e2-micro"
+}
 variable "source_ranges_allowed" {
   description = "The List of the source IP CIDR range allowed to connect to the Shieled Compute VM"
   type        = list(any)
-  default     = ["10.0.1.0/24"]
-  #TODO Update the List of the source IP CIDR range allowed to connect
+  # #Example   default     = ["10.0.1.0/24"]
 }
 
 
-variable "allowd_firewall_ports" {
+variable "allowed_firewall_ports" {
   description = "The list of the Allowed Ports"
   type        = list(any)
-  default     = ["22", "443"]
-  #TODO Update the The list of the Allowed Ports
+  #Example  default     = ["22", "443"]
 }
 
 variable "keys" {
