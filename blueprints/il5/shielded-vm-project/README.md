@@ -12,8 +12,10 @@ Shielded VMs are virtual machines (VMs) on Google Cloud hardened by a set of sec
 
 ```
 2. Enable the Customer-Managed Encryption Keys (CMEK) Cloud KMS for Google Compute Engine and Disk
+
 3.  The IL5 Requirements as of the creation of the project the region of deployment to US Only for example in us-east4 and us-central1
-4.__Important Note__: The project is scoped around the computer engine shielded VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects. 
+
+4. __Important Note__: The project is scoped around the computer engine shielded VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects. 
 
 
 ## Pre-requisite
@@ -25,7 +27,7 @@ Shielded VMs are virtual machines (VMs) on Google Cloud hardened by a set of sec
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
 1. Update the Variables in the variables.tf 
-2. There is a sample ```terraform.tfvars.sample``` available as wellthat 
+2. There is a sample ```terraform.tfvars.sample``` available as well.
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
 
 ```bash
