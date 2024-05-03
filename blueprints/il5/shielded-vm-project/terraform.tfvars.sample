@@ -7,6 +7,7 @@ keyring = {
 location ="the-gcp-location-of-compute-engine-vm"
 zone ="the-gcp-zone-of-the-compute-engine-vm"
 instance_name = "the-name-of-the-instance"
+instance_type ="e2-micro"
 ip_cidr_range = "10.0.1.0/24"
 source_ranges_allowed = ["10.0.1.0/24"]
 allowd_firewall_ports =  ["80", "22", "443"]

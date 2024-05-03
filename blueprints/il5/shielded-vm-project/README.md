@@ -24,7 +24,7 @@ Shielded VMs are virtual machines (VMs) on Google Cloud hardened by a set of sec
 
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
-1. Update the Variables in the variables.tf , that are marked as "# TODO: Update"
+1. Update the Variables in the variables.tf 
 2. There is a sample ```terraform.tfvars.sample``` available as wellthat 
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
 

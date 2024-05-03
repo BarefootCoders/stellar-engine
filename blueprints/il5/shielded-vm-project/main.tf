@@ -62,6 +62,7 @@ module "shielded-vm" {
   zone            = var.zone
   name            = var.instance_name
   shielded_config = var.shielded_config
+  instance_type   = var.instance_type
   network_interfaces = [{
     network    = module.vpc.network.self_link
     subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-${data.google_project.current.number}"
@@ -120,7 +121,7 @@ resource "google_compute_firewall" "default" {
   network = module.vpc.network.self_link
   allow {
     protocol = "tcp"
-    ports    = var.allowd_firewall_ports
+    ports    = var.allowed_firewall_ports
   }
   # Allowing to connect only within the VPC CIDR Range
   source_ranges = var.source_ranges_allowed
