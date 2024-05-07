@@ -161,8 +161,8 @@ module "tenant-core-gcs" {
     ? "MULTI_REGIONAL"
     : "REGIONAL"
   )
-  encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
-  depends_on     = [module.tenant-project-key]
+  # encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
+  depends_on = [module.tenant-project-key]
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
