@@ -1,0 +1,27 @@
+project_id = "update-your-project_id"
+email      = "update-your-email-address-here"
+location   = "us-east4"
+keyring = {
+  location = "us-east4"
+  name     = "update-name-of-the-keyring"
+}
+
+keys = {
+  "update-name-the-runner-keys" = {
+    rotation_period            = "7776000s"
+    destroy_scheduled_duration = "2592000s"
+    labels = {
+      "team" = "update-label-team"
+    }
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "SOFTWARE"
+    }
+    iam = {
+      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-your-email-address-here"]
+    }
+    lifecycle = {
+        prevent_destroy = true
+    }
+  }
+}
