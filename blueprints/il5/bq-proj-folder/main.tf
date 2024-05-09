@@ -13,33 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #Terraform Provider for Google Cloud Platform
 provider "google" {
   project = var.project_id
   region  = var.region
 }
-resource "google_kms_key_ring" "crypto_bq_keyring" {
-  name     = "may-big-query-key-ring"
-  location = var.region
-  project  = var.project_id
-}
-resource "google_kms_crypto_key" "crypto_bq_key" {
-  name            = "may-big-query-key"
-  key_ring        = google_kms_key_ring.crypto_bq_keyring.id
-  rotation_period = "7776000s"
-  purpose         = "ENCRYPT_DECRYPT"
-}
-module "bigquery" {
-  project_id                 = var.project_id
-  source                     = "terraform-google-modules/bigquery/google"
-  version                    = "7.0.0"
-  dataset_id                 = var.dataset_id
-  dataset_name               = var.dataset_name
-  description                = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
-  delete_contents_on_destroy = var.delete_contents_on_destroy
-  access                     = var.bigquery_access
+
+data "google_project" "current" {}
+data "google_bigquery_default_service_account" "bq_sa" {}
+
+module "bigquery-dataset" {
+  source         = "../../../modules/bigquery-dataset"
+  location       = "us-east4"
+  project_id     = var.project_id
+  id             = var.id
+  description    = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
+  encryption_key = module.kms.keys.default.id
+
+  depends_on = [module.kms]
 }
 
-
-
-
+#Google KMS Module
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = var.project_id
+  keys       = var.keys
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"]
+  }
+  keyring = var.keyring
+}

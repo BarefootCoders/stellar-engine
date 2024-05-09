@@ -13,35 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 variable "project_id" {
-  default = "tnbsea-dev-ashley-dev"
-  type    = string
+  type = string
 }
+
+variable "id" {
+  description = "This is the dataset id"
+  type        = string
+}
+
 variable "region" {
   default = "us-east4"
   type    = string
 }
-variable "dataset_id" {
-  default = "dataset_01"
-  type    = string
+
+#CFF module utilization
+variable "keyring" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
 }
-variable "dataset_name" {
-  default = "named_bq_dataset"
-  type    = string
-}
-variable "kms_key_name" {
-  default = "crypto_bq_key"
-  type    = string
-}
-variable "delete_contents_on_destroy" {
-  description = "This will delete dataset contents after destroying resource."
-  type        = bool
-  default     = false
-}
-variable "bigquery_access" {
-  type = list(object({
-    role          = string
-    user_by_email = string
+
+variable "keys" {
+  description = "Key names and base attributes. Set attributes to null if not needed."
+  type = map(object({
+    destroy_scheduled_duration    = optional(string)
+    rotation_period               = optional(string)
+    labels                        = optional(map(string))
+    purpose                       = optional(string, "ENCRYPT_DECRYPT")
+    skip_initial_version_creation = optional(bool, false)
+    version_template = optional(object({
+      algorithm        = string
+      protection_level = optional(string, "SOFTWARE")
+    }))
+
+    iam = optional(map(list(string)), {})
+    iam_bindings = optional(map(object({
+      members = list(string)
+      role    = string
+      condition = optional(object({
+        expression  = string
+        title       = string
+        description = optional(string)
+      }))
+    })), {})
+
+    iam_bindings_additive = optional(map(object({
+      member = string
+      role   = string
+      condition = optional(object({
+        expression  = string
+        title       = string
+        description = optional(string)
+      }))
+    })), {})
   }))
-  default = []
+
+  default = {
+    "default" = {
+      destroy_scheduled_duration    = null
+      rotation_period               = null
+      labels                        = null
+      purpose                       = "ENCRYPT_DECRYPT"
+      skip_initial_version_creation = false
+      version_template = {
+        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+        protection_level = "SOFTWARE"
+      }
+
+      iam                   = {}
+      iam_bindings          = {}
+      iam_bindings_additive = {}
+    }
+  }
+
+  nullable = false
+}
+
+variable "email" {
+  type = string
+
 }
