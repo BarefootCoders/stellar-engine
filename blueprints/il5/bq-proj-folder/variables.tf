@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
 variable "project_id" {
-  default = "tnbsea-dev-ashley-dev"
   type    = string
 }
 variable "region" {
@@ -29,14 +29,27 @@ variable "dataset_name" {
   default = "named_bq_dataset"
   type    = string
 }
-variable "kms_key_name" {
-  default = "crypto_bq_key"
-  type    = string
+#CFF module utilization
+variable "keyring" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
 }
-variable "delete_contents_on_destroy" {
-  description = "This will delete dataset contents after destroying resource."
-  type        = bool
-  default     = false
+  variable "keys" {
+  description = "Key names and base attributes. Set attributes to null if not needed."
+  type = map(object({
+    destroy_scheduled_duration    = optional(string)
+    rotation_period               = optional(string)
+    labels                        = optional(map(string))
+    purpose                       = optional(string, "ENCRYPT_DECRYPT")
+    skip_initial_version_creation = optional(bool, false)
+    version_template = optional(object({
+      algorithm        = string
+      protection_level = optional(string, "SOFTWARE")
+    }))
+  }))
 }
 variable "bigquery_access" {
   type = list(object({
@@ -44,4 +57,9 @@ variable "bigquery_access" {
     user_by_email = string
   }))
   default = []
+}
+variable "delete_contents_on_destroy" {
+  description = "This will delete dataset contents after destroying resource."
+  type        = bool
+  default     = false
 }

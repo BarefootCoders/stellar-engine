@@ -19,6 +19,3 @@ output "dataset_id" {
 output "google_kms_key_ring" {
   value = google_kms_key_ring.may-big-query-key-ring
 }
-output "google_kms_crypto_key" {
-  value = google_kms_crypto_key.crypto_bq_key
-}
