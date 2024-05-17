@@ -1,0 +1,6 @@
+# skip boilerplate check
+
+name: landing-default
+region: us-central1
+ip_cidr_range: 10.80.0.0/24
+description: Default us-central1 subnet for landing landing

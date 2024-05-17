@@ -146,7 +146,7 @@ module "ilb-nva-dmz" {
   forwarding_rules_config = {
     "" = {
       global_access = true
-    } 
+    }
   }
   vpc_config = {
     network    = module.dmz-vpc.self_link
