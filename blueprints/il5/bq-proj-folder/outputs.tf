@@ -13,4 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+output "id"{
+value = module.bigquery-dataset.id
+}
+output "keyring" {
+  value = module.kms.keyring
+}
