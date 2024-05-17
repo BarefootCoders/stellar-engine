@@ -129,37 +129,3 @@ module "landing-firewall" {
     rules_folder  = "${var.factories_config.data_dir}/firewall-rules/landing"
   }
 }
-
-# Management (mgmt) VPC
-
-module "mgmt-vpc" {
-  source                          = "../../../modules/net-vpc"
-  project_id                      = module.landing-project.project_id
-  name                            = "mgmt-landing-0"
-  delete_default_routes_on_create = true
-  mtu                             = 1500
-  factories_config = {
-    subnets_folder = "${var.factories_config.data_dir}/subnets/mgmt"
-  }
-  dns_policy = {
-    inbound = true
-  }
-  # Set explicit routes for googleapis in case the default route is deleted
-  create_googleapis_routes = {
-    private    = true
-    restricted = true
-  }
-}
-
-module "mgmt-firewall" {
-  source     = "../../../modules/net-vpc-firewall"
-  project_id = module.landing-project.project_id
-  network    = module.mgmt-vpc.name
-  default_rules_config = {
-    disabled = true
-  }
-  factories_config = {
-    cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
-    rules_folder  = "${var.factories_config.data_dir}/firewall-rules/mgmt"
-  }
-}

@@ -1,6 +1,6 @@
 # skip boilerplate check
 
-name: mgmt-default
+name: dev-default
 region: us-central1
-ip_cidr_range: 10.85.0.0/24
-description: Default us-central1 subnet for mgmt
+ip_cidr_range: 10.84.0.0/24
+description: Default us-central1 subnet for dev

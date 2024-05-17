@@ -39,7 +39,7 @@ locals {
     },
   ]
   nva_locality = {
-    for v in setproduct(["primary",], local.nva_zones) :
+    for v in setproduct(keys(var.regions), local.nva_zones) :
     join("-", v) => {
       name   = v[0]
       region = var.regions[v[0]]
@@ -62,7 +62,7 @@ module "nva-template" {
   project_id      = module.landing-project.project_id
   name            = "nva-template-${each.key}"
   zone            = "${each.value.region}-${each.value.zone}"
-  instance_type   = "n2d-standard-4"
+  instance_type   = "e2-standard-2"
   tags            = ["nva"]
   create_template = true
   can_ip_forward  = true
@@ -72,15 +72,7 @@ module "nva-template" {
       subnetwork = try(
         module.dmz-vpc.subnet_self_links["${each.value.region}/dmz-default"], null
       )
-      nat       = true
-      addresses = null
-    },
-    {
-      network = module.mgmt-vpc.self_link
-      subnetwork = try(
-        module.mgmt-vpc.subnet_self_links["${each.value.region}/mgmt-default"], null
-      )
-      nat       = true
+      nat       = false
       addresses = null
     },
     {
@@ -104,11 +96,7 @@ module "nva-template" {
     termination_action        = "STOP"
   }
   metadata = {
-    mgmt-interface-swap         = "enable"
-    dhcp-accept-server-domain   = "yes"
-    dhcp-accept-server-hostname = "yes"
-    ssh-keys                    = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
-    serial-port-enable          = "true"
+    user-data = module.nva-cloud-config.cloud_config
   }
 }
 
@@ -146,7 +134,7 @@ module "ilb-nva-dmz" {
   forwarding_rules_config = {
     "" = {
       global_access = true
-    } 
+    }
   }
   vpc_config = {
     network    = module.dmz-vpc.self_link

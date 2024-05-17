@@ -306,13 +306,3 @@ variable "vpn_onprem_secondary_config" {
   })
   default = null
 }
-
-variable "vmseries_image" {
-  description = <<EOF
-  The image name from which to boot an instance, including a license type (bundle/flex) and version.
-  To get a list of available official images, please run the following command:
-  `gcloud compute images list --filter="family ~ vmseries" --project paloaltonetworksgcp-public --no-standard-images`
-  EOF
-  default     = "vmseries-111"
-  type        = string
-}

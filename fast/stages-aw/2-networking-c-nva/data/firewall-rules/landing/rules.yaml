@@ -8,8 +8,15 @@ ingress:
     description: "Allow traffic from Google healthchecks to NVA appliances"
     source_ranges:
       - healthchecks
-      - 35.235.240.0/20 # IAP
     rules:
       - protocol: tcp
         ports:
           - 22
+  allow-onprem-probes-landing-example:
+    description: "Allow traffic from onprem probes"
+    source_ranges:
+      - onprem_probes
+    rules:
+      - protocol: tcp
+        ports:
+          - 12345
