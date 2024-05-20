@@ -56,6 +56,11 @@ data "google_compute_image" "vmseries" {
   project = "paloaltonetworksgcp-public"
 }
 
+data "google_storage_project_service_account" "gcs_account" {
+  project = module.landing-project.project_id
+
+}
+
 resource "tls_private_key" "ngfw-ssh" {
   algorithm = "RSA"
   rsa_bits  = "4096"
@@ -76,15 +81,13 @@ module "ngfw-service-account" {
 }
 # Google Cloud Storage Module 
 module "ngfw-bootstrap-bucket" {
-  for_each       = var.regions
-  source         = "../../../modules/gcs"
-  prefix         = var.prefix
-  project_id     = module.landing-project.project_id
-  location       = each.value
-  storage_class  = "REGIONAL"
-  encryption_key = module.kms.keys.default.id
-  name           = "ngfw-bootstrap-${each.value}"
-  depends_on     = [module.kms]
+  source                  = "../../../modules/gcs"
+  prefix                  = var.prefix
+  project_id              = module.landing-project.project_id
+  encryption_key          = module.kms.keys.default.id
+  name                    = "ngfw-bootstrap"
+  location                = "NAM4" # This is the only allowed dual-region for GCS right now
+  depends_on              = [module.kms]
 }
 
 # Google KMS Module
@@ -93,50 +96,27 @@ module "kms" {
   project_id = module.landing-project.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${local.cloud_storage_service_account}"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"]
   }
   keyring = {
-    location = var.locations.kms
+    location = "nam4" # This is the only allowed dual-region for GCS right now
     name     = "landing-zone-keyring"
   }
 }
 
-resource "google_storage_bucket_object" "config_folder" {
-  for_each = var.regions
-  name     = "config/"
-  bucket   = module.ngfw-bootstrap-bucket[each.key].name
-  content  = " "
-}
-
-resource "google_storage_bucket_object" "content_folder" {
-  for_each = var.regions
-  name     = "content/"
-  bucket   = module.ngfw-bootstrap-bucket[each.key].name
-  content  = " "
-}
-
-resource "google_storage_bucket_object" "license_folder" {
-  for_each = var.regions
-  name     = "license/"
-  bucket   = module.ngfw-bootstrap-bucket[each.key].name
-  content  = " "
-}
-
-resource "google_storage_bucket_object" "software_folder" {
-  for_each = var.regions
-  name     = "software/"
-  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+resource "google_storage_bucket_object" "config_folders" {
+  for_each = toset(local.ngfw_bootstrap_folders)
+  name     = each.value
+  bucket   = module.ngfw-bootstrap-bucket.name
   content  = " "
 }
 
 resource "google_storage_bucket_object" "bootstrap-xml" {
-  for_each = var.regions
-  name     = "config/bootstrap.xml"
+  name = "config/bootstrap.xml"
   content = templatefile("./templates/bootstrap.xml.tpl", {
     ssh-pubkey = tls_private_key.ngfw-ssh.private_key_openssh,
-    public-gw  = module.dmz-vpc.subnets["${each.value}/dmz-default"].gateway_address
   })
-  bucket = module.ngfw-bootstrap-bucket[each.key].name
+  bucket = module.ngfw-bootstrap-bucket.name
 }
 
 module "ngfw-template" {
@@ -193,7 +173,7 @@ module "ngfw-template" {
     dhcp-accept-server-hostname          = "yes"
     ssh-keys                             = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
     serial-port-enable                   = "true"
-    vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket[each.value.region].name
+    vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket.name
   }
   service_account = {
     email = module.ngfw-service-account.email
