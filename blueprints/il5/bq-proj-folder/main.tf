@@ -18,18 +18,8 @@
 provider "google" {
   project = var.project_id
   region  = var.region
-} #data #resources #module #commented out code 
+} 
 
-#Google KMS Module
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys 
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"]
-  }
-  keyring    = var.keyring
-  }
 data "google_project" "current" {}
 data "google_bigquery_default_service_account" "bq_sa" {}
 
@@ -43,3 +33,17 @@ module "bigquery-dataset" {
 
   depends_on = [module.kms]
 }
+
+#Google KMS Module
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = var.project_id
+  keys       = var.keys 
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"]
+  }
+  keyring    = var.keyring
+  }
+
+
+
