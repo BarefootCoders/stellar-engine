@@ -1,0 +1,29 @@
+project_id = "the-project-id" 
+email      = "the-email-address"
+keyring = {
+  location = "us-east4"
+  name     = "Name-of-keyring"
+}
+location               = "the-gcp-location"
+zone                   = "zone-within-the-gcp-location"
+instance_name          = "Compute-Engine-Name"
+instance_type          = "e2-micro"
+ip_cidr_range          = "10.0.1.0/24"
+source_ranges_allowed  = ["10.0.1.0/24"]
+allowed_firewall_ports = ["80", "22", "443"]
+keys = {
+  "default" = {
+    destroy_scheduled_duration    = null
+    rotation_period               = null
+    labels                        = null
+    purpose                       = "ENCRYPT_DECRYPT"
+    skip_initial_version_creation = false
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "SOFTWARE"
+    }
+    iam                   = {}
+    iam_bindings          = {}
+    iam_bindings_additive = {}
+  }
+}
