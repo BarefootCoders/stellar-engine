@@ -44,6 +44,3 @@ module "kms" {
   }
   keyring = var.keyring
 }
-
-
-

@@ -17,15 +17,16 @@
 variable "project_id" {
   type = string
 }
+
 variable "id" {
   description = "This is the dataset id"
   type        = string
 }
+
 variable "region" {
   default = "us-east4"
   type    = string
 }
-
 
 #CFF module utilization
 variable "keyring" {
@@ -35,6 +36,7 @@ variable "keyring" {
     name     = string
   })
 }
+
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
@@ -58,6 +60,7 @@ variable "keys" {
         description = optional(string)
       }))
     })), {})
+
     iam_bindings_additive = optional(map(object({
       member = string
       role   = string
@@ -68,6 +71,7 @@ variable "keys" {
       }))
     })), {})
   }))
+
   default = {
     "default" = {
       destroy_scheduled_duration    = null
@@ -85,8 +89,10 @@ variable "keys" {
       iam_bindings_additive = {}
     }
   }
+
   nullable = false
 }
+
 variable "email" {
   type = string
 
