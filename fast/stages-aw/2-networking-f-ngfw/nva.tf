@@ -70,6 +70,24 @@ resource "tls_private_key" "ngfw-ssh" {
   rsa_bits  = "4096"
 }
 
+# Shell out to openssl to get the password hash
+resource "random_password" "password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+data "external" "openssl" {
+  program = ["bash", "${path.module}/openssl-helper.sh"]
+
+  query = {
+    # arbitrary map from strings to strings, passed
+    # to the external program as the data query.
+    algo      = "5"
+    plaintext = random_password.password.result
+  }
+}
+
 # Google Cloud Storage Module 
 module "ngfw-bootstrap-bucket" {
   source         = "../../../modules/gcs"
@@ -116,7 +134,8 @@ resource "google_storage_bucket_object" "config_folders" {
 resource "google_storage_bucket_object" "bootstrap-xml" {
   name = "config/bootstrap.xml"
   content = templatefile("./templates/bootstrap.xml.tpl", {
-    ssh-pubkey        = tls_private_key.ngfw-ssh.private_key_openssh,
+    password_hash     = data.external.openssl.result.hash
+    ssh_pubkey        = tls_private_key.ngfw-ssh.public_key_openssh
     healthcheck_cidrs = local.cidr_ranges["healthchecks"]
     iap_cidrs         = local.cidr_ranges["iap"]
   })
@@ -174,7 +193,7 @@ module "ngfw-template" {
       size  = 60
       type  = "pd-ssd"
     }
-    kms_key_self_link       = module.kms.keys.default.id
+    kms_key_self_link = module.kms.keys.default.id
   }
   options = {
     allow_stopping_for_update = true
@@ -214,7 +233,6 @@ module "nva-mig" {
     initial_delay_sec = 600
   }
   health_check_config = {
-    enable_logging = true
     tcp = {
       port = 22
     }

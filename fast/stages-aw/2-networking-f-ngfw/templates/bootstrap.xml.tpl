@@ -3,13 +3,13 @@
   <mgt-config>
     <users>
       <entry name="admin">
-        <phash>$5$ajblpsms$YEJDp3AVoNSWJce.JfaJWMvdd5qbA2huAIvsAwQaZPD</phash>
+        <phash>${ password_hash }</phash>
         <permissions>
           <role-based>
             <superuser>yes</superuser>
           </role-based>
         </permissions>
-        <public-key>{{ ssh-pubkey }}</public-key>
+        <public-key>${ ssh_pubkey }</public-key>
       </entry>
       <entry name="__openconfig">
         <phash>*</phash>
@@ -395,7 +395,7 @@
                   <accept-dhcp-domain>yes</accept-dhcp-domain>
                 </dhcp-client>
               </type>
-              <public-key>{{ ssh-pubkey }}</public-key>
+              <public-key>${ ssh_pubkey }</public-key>
            </initcfg>
           </management>
         </setting>
