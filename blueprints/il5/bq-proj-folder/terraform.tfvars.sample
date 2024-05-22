@@ -1,13 +1,11 @@
 project_id = "my-project-id" 
+email= "admin.user@example.google.com"
+dataset_id = "dataset-id"
+location = "the-gcp-region"
 keyring = {
-    location = "us-east4"
+    location = "the-gcp-region"
     name     = "my-keyring"
 }
-dataset_id = "dataset-id"
-email= "admin.user@example.google.com"
-autoclass=true
-public_access_prevention="enforced"
-storage_class="STANDARD"
 keys = {
      "default" = {
       destroy_scheduled_duration    = null

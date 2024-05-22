@@ -15,26 +15,43 @@
  */
 
 variable "project_id" {
-  type = string
+  description = "Project ID"
+  type        = string
+  # Example default = "project-id-123"
 }
 
-variable "id" {
+variable "email" {
+  description = "Email address of the user."
+  type        = string
+  # Example default = "admin.user-anme@example.google.com"
+}
+
+variable "dataset_id" {
   description = "This is the dataset id"
   type        = string
+  #Example default = "dataset_01"
 }
 
-variable "region" {
-  default = "us-east4"
-  type    = string
+variable "location" {
+  description = "Location of the BigQuery Dataaset in GCP"
+  type        = string
+  default     = "us-east4"
 }
 
-#CFF module utilization
+
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
     location = string
     name     = string
   })
+  # Example  
+  # default = {
+  #  location = "us-east4"
+  #  name     = "name-of-keyring"
+  #}
+  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
+
 }
 
 variable "keys" {
@@ -93,7 +110,3 @@ variable "keys" {
   nullable = false
 }
 
-variable "email" {
-  type = string
-
-}
