@@ -134,6 +134,7 @@ output "vpn_gateway_endpoints" {
 
 output "ngfw_password" {
   description = "Password for authenticating to the NGFW"
+  sensitive   = true
   value       = random_password.password
 }
 
