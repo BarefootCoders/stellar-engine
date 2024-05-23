@@ -54,10 +54,6 @@ variable "keyring" {
 
 }
 
-variable "location" {
-  description = "This is the location of BigQuery dataset."
-  type        = string
-}
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
