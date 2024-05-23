@@ -39,7 +39,7 @@ module "kms" {
   project_id = var.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [data.google_bigquery_default_service_account.bq_sa.member]
   }
   keyring = var.keyring
 }
