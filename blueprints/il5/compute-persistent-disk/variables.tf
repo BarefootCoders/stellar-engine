@@ -30,6 +30,13 @@ variable "compute_service_account_id" {
   type        = string
   # Example default = "computeblue"
 }
+
+variable "auto_delete" {
+  description = "Persistent Disk auto delete options"
+  type        = bool
+  # Example default = true
+}
+
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
@@ -80,7 +87,6 @@ variable "source_ranges_allowed" {
   type        = list(any)
   #Example default = ["10.0.1.0/24"]
 }
-
 
 variable "allowed_firewall_ports" {
   description = "The list of the Allowed Ports"
