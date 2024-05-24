@@ -48,6 +48,7 @@ locals {
   }
   nva_zones                     = ["b", "c"]
   cloud_storage_service_account = "service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com"
+  cloud_compute_service_account = "service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com"
   ngfw_bootstrap_folders        = ["config/", "content/", "license/", "software/"]
   cidr_ranges                   = yamldecode(file("${path.module}/data/cidrs.yaml"))
 }
@@ -77,6 +78,22 @@ resource "random_password" "password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+module "ngfw-service-account" {
+  name       = "ngfw-compute"
+  source     = "../../../modules/iam-service-account"
+  project_id = module.landing-project.project_id
+  iam_project_roles = {
+    "${module.landing-project.project_id}" = [
+      "roles/logging.bucketWriter",
+      "roles/opsconfigmonitoring.resourceMetadata.writer",
+      "roles/autoscaling.metricsWriter",
+      "roles/monitoring.metricWriter",
+      "roles/storage.objectViewer",
+      "roles/viewer"
+    ]
+  }
+}
+
 data "external" "openssl" {
   program = ["bash", "${path.module}/openssl-helper.sh"]
 
@@ -104,6 +121,7 @@ resource "google_storage_bucket_iam_binding" "binding" {
   role   = "roles/storage.objectUser"
   members = [
     data.google_compute_default_service_account.gce_account.member,
+    module.ngfw-service-account.service_account.member
   ]
 }
 
@@ -115,13 +133,14 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       data.google_storage_project_service_account.gcs_account.member,
-      data.google_compute_default_service_account.gce_account.member
+      "serviceAccount:${local.cloud_compute_service_account}",
     ]
   }
   keyring = {
     location = "nam4" # This is the only allowed dual-region for GCS right now
     name     = "landing-zone-keyring"
   }
+  depends_on = [module.ngfw-service-account]
 }
 
 resource "google_storage_bucket_object" "config_folders" {
@@ -175,7 +194,7 @@ module "ngfw-template" {
       subnetwork = try(
         module.mgmt-vpc.subnet_self_links["${each.value.region}/mgmt-default"], null
       )
-      nat       = false
+      nat       = true
       addresses = null
     },
     {
@@ -193,7 +212,7 @@ module "ngfw-template" {
       size  = 60
       type  = "pd-ssd"
     }
-    kms_key_self_link = module.kms.keys.default.id
+    # kms_key_self_link = module.kms.keys.default.id
   }
   options = {
     allow_stopping_for_update = true
@@ -211,13 +230,14 @@ module "ngfw-template" {
     vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket.name
   }
   service_account = {
-    scopes = [
-      "https://www.googleapis.com/auth/compute.readonly",
-      "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring.write",
-    ]
+    email = module.ngfw-service-account.email
+    # scopes = [
+    #   "https://www.googleapis.com/auth/compute.readonly",
+    #   "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
+    #   "https://www.googleapis.com/auth/devstorage.read_only",
+    #   "https://www.googleapis.com/auth/logging.write",
+    #   "https://www.googleapis.com/auth/monitoring.write",
+    # ]
   }
 }
 

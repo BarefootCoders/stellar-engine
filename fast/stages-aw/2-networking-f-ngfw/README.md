@@ -433,6 +433,30 @@ Variables managing L7 Internal Load Balancers (`l7ilb_subnets`) and Private Serv
 
 DNS configurations are centralised in the `dns-*.tf` files. Spokes delegate DNS resolution to Landing through DNS peering, and optionally define a private zone (e.g. `dev.gcp.example.com`) which the landing peers to. To configure DNS for a new environment, copy one of the other environments DNS files [e.g. (dns-dev.tf)](dns-dev.tf) into a new `dns-*.tf` file suffixed with the environment name (e.g. `dns-staging.tf`), and update its content accordingly. Don't forget to add a peering zone from the landing to the newly created environment private zone.
 
+
+##  Configuring Palo Alto NGFWs
+
+### Reaching the Management Console
+
+In order to access the Palo Alto managment console, you will need 3 things:
+  1. The admin password is stored in the terraform state file, use this command to get it `terraform output -json | jq ".\"ngfw_password\".value.result"`
+  2. The terraform code should have automatically created a small VM on the mgmt network that will work as a bastion. You may have to start it, if it is not already running.
+  3. Each NGFW instance will have at least 3 interfaces, but only the second one, connected to `prod-mgmt-0` is usable for administration.
+
+Use the following command to access the web portal `gcloud compute ssh management-bastion --zone us-east4-a --tunnel-through-iap -- -L 8443:<ip-of-ngfw>:443`. From here, you should be able to access the management interface at the url https://localhost:8443/ and log in with the username `admin` and the password you found using in the terraform output command. *Note*: You may need to change the zone in the above command if your management bastion host wasn't deployed in `us-east4-a`.
+
+If you wish to ssh into the NGFWs, you can copy the `id_rsa` and `id_rsa.pub` files that are output by the terraform process over to the `.ssh/` folder on the bastion host.
+
+### Updating configuration
+
+These Palo Alto NGFWs operate the same as normal ones. But, in order to update the Bootstrap autoconfig XML file after changing a setting, you must take additional steps. In the device settings, under the operations tab, there is an option to export the running config. This will produce a tar file with the `running-config.xml` file in it. You must merge this into the XML file stored under `templates/bootstrap.xml.tpl` by replacing key fields with the terraform template tags.
+
+There is currently no way to automate this process, but take the version of the file committed in Git and find where these template tags are
+* `password_hash`: Used 1 time near the top of the document
+* `ssh_pubkey`: Used 2 times, once near the top and once near the middle
+* `healthcheck_cidrs`: Used 1 time as part of a Jinja template loop. Make sure to copy the entire loop starting with `%{ for` and ending with `%{ endfor`
+* `iap_cidrs`: Used 1 time as part of a Jinja template loop. Make sure to copy the entire loop starting with `%{ for` and ending with `%{ endfor`
+
 <!-- TFDOC OPTS files:1 show_extra:1 -->
 <!-- BEGIN TFDOC -->
 ## Files

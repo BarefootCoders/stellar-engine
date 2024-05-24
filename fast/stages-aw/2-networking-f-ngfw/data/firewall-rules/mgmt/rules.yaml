@@ -5,12 +5,12 @@
 
 ingress:
   allow-hc-nva-ssh-mgmt:
-    description: "Allow traffic from Google healthchecks to NVA appliances"
+    description: "Allow traffic from management subnets"
     source_ranges:
-      - healthchecks
-      - 35.235.240.0/20 # IAP
+      - 10.80.1.0/24
       - 10.69.0.0/24
     rules:
       - protocol: tcp
         ports:
           - 22
+          - 443
