@@ -439,7 +439,7 @@ DNS configurations are centralised in the `dns-*.tf` files. Spokes delegate DNS 
 ### Reaching the Management Console
 
 In order to access the Palo Alto managment console, you will need 3 things:
-  1. The admin password is stored in the terraform state file, use this command to get it `terraform output -json | jq ".\"ngfw_password\".value.result"`
+  1. The admin password is stored in the terraform state file, use this command to get it `terraform output -json | jq ".ngfw_password.value.result"`
   2. The terraform code should have automatically created a small VM on the mgmt network that will work as a bastion. You may have to start it, if it is not already running.
   3. Each NGFW instance will have at least 3 interfaces, but only the second one, connected to `prod-mgmt-0` is usable for administration.
 
