@@ -9,13 +9,16 @@ module "bastion-vm" {
     enable_vtpm                 = true
     enable_integrity_monitoring = true
   }
-  instance_type = "e2-medium"
+  instance_type = "e2-small"
   network_interfaces = [{
     network = module.mgmt-vpc.self_link
     subnetwork = try(
       module.mgmt-vpc.subnet_self_links["${var.regions["primary"]}/mgmt-default"], null
     )
   }]
+  encryption = {
+    kms_key_self_link = module.kms.keys.default.id
+  }
   attached_disks = [
     {
       auto_delete = true
@@ -24,6 +27,9 @@ module "bastion-vm" {
       initialize_params = {
         image = "projects/cos-cloud/global/images/family/cos-stable"
       }
+      kms_key_self_link = module.kms.keys.default.id
+
+
     }
   ]
 }

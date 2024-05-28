@@ -112,7 +112,7 @@ module "ngfw-bootstrap-bucket" {
   project_id     = module.landing-project.project_id
   encryption_key = module.kms.keys.default.id
   name           = "ngfw-bootstrap"
-  location       = "NAM4" # This is the only allowed dual-region for GCS right now
+  location       = "us"
   depends_on     = [module.kms]
 }
 
@@ -137,7 +137,7 @@ module "kms" {
     ]
   }
   keyring = {
-    location = "nam4" # This is the only allowed dual-region for GCS right now
+    location = "us"
     name     = "landing-zone-keyring"
   }
   depends_on = [module.ngfw-service-account]
@@ -206,13 +206,17 @@ module "ngfw-template" {
       addresses = null
     }
   ]
+  encryption = {
+    encrypt_boot = true
+    kms_key_self_link = module.kms.keys.default.id
+  }
   boot_disk = {
     initialize_params = {
       image = data.google_compute_image.vmseries.self_link
       size  = 60
       type  = "pd-ssd"
     }
-    # kms_key_self_link = module.kms.keys.default.id
+    kms_key_self_link = module.kms.keys.default.id
   }
   options = {
     allow_stopping_for_update = true
