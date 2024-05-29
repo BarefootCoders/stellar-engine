@@ -50,7 +50,7 @@ module "vpc" {
     {
       ip_cidr_range = "10.0.2.0/24"
       name          = "subnet-ue1"
-      region        = "us-east1"
+      region        = "us-east4"
     },
     {
       ip_cidr_range = "10.0.3.0/24"
@@ -77,7 +77,7 @@ module "nat_ew1" {
 module "nat_ue1" {
   source         = "../../../modules/net-cloudnat"
   project_id     = module.project.project_id
-  region         = "us-east1"
+  region         = "us-east4"
   name           = "${var.prefix}-nat-ue1"
   router_network = module.vpc.name
 }
@@ -104,11 +104,11 @@ module "instance_template_ew1" {
 module "instance_template_ue1" {
   source     = "../../../modules/compute-vm"
   project_id = module.project.project_id
-  zone       = "us-east1-b"
-  name       = "${var.prefix}-us-east1-template"
+  zone       = "us-east4-b"
+  name       = "${var.prefix}-us-east4-template"
   network_interfaces = [{
     network    = module.vpc.self_link
-    subnetwork = module.vpc.subnet_self_links["us-east1/subnet-ue1"]
+    subnetwork = module.vpc.subnet_self_links["us-east4/subnet-ue1"]
   }]
   metadata = {
     startup-script-url = "gs://cloud-training/gcpnet/httplb/startup.sh"
@@ -170,8 +170,8 @@ module "mig_ew1" {
 module "mig_ue1" {
   source            = "../../../modules/compute-mig"
   project_id        = module.project.project_id
-  location          = "us-east1"
-  name              = "${var.prefix}-us-east1-mig"
+  location          = "us-east4"
+  name              = "${var.prefix}-us-east4-mig"
   instance_template = module.instance_template_ue1.template.self_link
   autoscaler_config = {
     max_replicas    = 5

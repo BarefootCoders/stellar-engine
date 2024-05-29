@@ -49,13 +49,13 @@ locals {
   nva_zones                     = ["b", "c"]
   cloud_storage_service_account = "service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com"
   cloud_compute_service_account = "service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com"
-  ngfw_bootstrap_folders        = ["config/", "content/", "license/", "software/"]
   cidr_ranges                   = yamldecode(file("${path.module}/data/cidrs.yaml"))
 }
 
 data "google_compute_image" "vmseries" {
-  family  = var.vmseries_image
-  project = "paloaltonetworksgcp-public"
+  filter      = "name=vmseries-flex-byol-1113 AND family=${var.vmseries_image}"
+  most_recent = true
+  project     = "paloaltonetworksgcp-public"
 }
 
 data "google_storage_project_service_account" "gcs_account" {
@@ -78,6 +78,12 @@ resource "random_password" "password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+# Shell out to openssl to get the password hash
+resource "random_password" "salt" {
+  length           = 8
+  special          = false
+}
+
 module "ngfw-service-account" {
   name       = "ngfw-compute"
   source     = "../../../modules/iam-service-account"
@@ -96,11 +102,11 @@ module "ngfw-service-account" {
 
 data "external" "openssl" {
   program = ["bash", "${path.module}/openssl-helper.sh"]
-
   query = {
     # arbitrary map from strings to strings, passed
     # to the external program as the data query.
     algo      = "5"
+    salt      = random_password.salt.result
     plaintext = random_password.password.result
   }
 }
@@ -108,17 +114,20 @@ data "external" "openssl" {
 # Google Cloud Storage Module 
 module "ngfw-bootstrap-bucket" {
   source         = "../../../modules/gcs"
+  for_each       = var.regions
   prefix         = var.prefix
   project_id     = module.landing-project.project_id
-  encryption_key = module.kms.keys.default.id
-  name           = "ngfw-bootstrap"
-  location       = "us"
+  encryption_key = module.kms[each.key].keys.default.id
+  storage_class  = "REGIONAL"
+  name           = "ngfw-bootstrap-${each.value}"
+  location       = upper(each.value)
   depends_on     = [module.kms]
 }
 
 resource "google_storage_bucket_iam_binding" "binding" {
-  bucket = module.ngfw-bootstrap-bucket.name
-  role   = "roles/storage.objectUser"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+  for_each = var.regions
+  role     = "roles/storage.objectUser"
   members = [
     data.google_compute_default_service_account.gce_account.member,
     module.ngfw-service-account.service_account.member
@@ -128,6 +137,7 @@ resource "google_storage_bucket_iam_binding" "binding" {
 # Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
+  for_each   = var.regions
   project_id = module.landing-project.project_id
   keys       = var.keys
   iam = {
@@ -137,36 +147,60 @@ module "kms" {
     ]
   }
   keyring = {
-    location = "us"
+    location = each.value
     name     = "landing-zone-keyring"
   }
   depends_on = [module.ngfw-service-account]
 }
 
 resource "google_storage_bucket_object" "config_folders" {
-  for_each = toset(local.ngfw_bootstrap_folders)
-  name     = each.value
-  bucket   = module.ngfw-bootstrap-bucket.name
+  for_each = var.regions
+  name     = "config/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+  content  = " "
+}
+
+resource "google_storage_bucket_object" "content_folders" {
+  for_each = var.regions
+  name     = "content/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+  content  = " "
+}
+
+resource "google_storage_bucket_object" "software_folders" {
+  for_each = var.regions
+  name     = "software/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+  content  = " "
+}
+
+resource "google_storage_bucket_object" "license_folders" {
+  for_each = var.regions
+  name     = "license/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
   content  = " "
 }
 
 resource "google_storage_bucket_object" "bootstrap-xml" {
-  name = "config/bootstrap.xml"
+  name     = "config/bootstrap.xml"
+  for_each = var.regions
   content = templatefile("./templates/bootstrap.xml.tpl", {
     password_hash     = data.external.openssl.result.hash
     ssh_pubkey        = tls_private_key.ngfw-ssh.public_key_openssh
     healthcheck_cidrs = local.cidr_ranges["healthchecks"]
     iap_cidrs         = local.cidr_ranges["iap"]
   })
-  bucket = module.ngfw-bootstrap-bucket.name
+  bucket = module.ngfw-bootstrap-bucket[each.key].name
 }
 
 resource "google_storage_bucket_object" "init-cfg" {
-  name = "config/init-cfg.txt"
+  name     = "config/init-cfg.txt"
+  for_each = var.regions
+
   content = templatefile("./templates/init-cfg.txt.tpl", {
     op-command-modes = "mgmt-interface-swap"
   })
-  bucket = module.ngfw-bootstrap-bucket.name
+  bucket = module.ngfw-bootstrap-bucket[each.key].name
 }
 
 
@@ -194,7 +228,7 @@ module "ngfw-template" {
       subnetwork = try(
         module.mgmt-vpc.subnet_self_links["${each.value.region}/mgmt-default"], null
       )
-      nat       = true
+      nat       = true # we can't turn this off until we figure out Private Service Connect
       addresses = null
     },
     {
@@ -207,8 +241,9 @@ module "ngfw-template" {
     }
   ]
   encryption = {
-    encrypt_boot = true
-    kms_key_self_link = module.kms.keys.default.id
+    encrypt_boot      = true
+    kms_key_self_link = module.kms[each.value.name].keys.default.id
+
   }
   boot_disk = {
     initialize_params = {
@@ -216,7 +251,7 @@ module "ngfw-template" {
       size  = 60
       type  = "pd-ssd"
     }
-    kms_key_self_link = module.kms.keys.default.id
+    kms_key_self_link = module.kms[each.value.name].keys.default.id
   }
   options = {
     allow_stopping_for_update = true
@@ -231,17 +266,10 @@ module "ngfw-template" {
     dhcp-accept-server-hostname          = "yes"
     ssh-keys                             = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
     serial-port-enable                   = "true"
-    vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket.name
+    vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket[each.value.name].name
   }
   service_account = {
     email = module.ngfw-service-account.email
-    # scopes = [
-    #   "https://www.googleapis.com/auth/compute.readonly",
-    #   "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
-    #   "https://www.googleapis.com/auth/devstorage.read_only",
-    #   "https://www.googleapis.com/auth/logging.write",
-    #   "https://www.googleapis.com/auth/monitoring.write",
-    # ]
   }
 }
 

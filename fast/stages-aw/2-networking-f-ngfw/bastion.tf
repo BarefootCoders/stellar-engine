@@ -2,7 +2,7 @@
 module "bastion-vm" {
   source     = "../../../modules/compute-vm"
   project_id = module.landing-project.project_id
-  zone       = "${var.regions["primary"]}-a"
+  zone       = "${var.regions["primary"]}-c"
   name       = "management-bastion"
   shielded_config = {
     enable_secure_boot          = true
@@ -17,7 +17,7 @@ module "bastion-vm" {
     )
   }]
   encryption = {
-    kms_key_self_link = module.kms.keys.default.id
+    kms_key_self_link = module.kms["primary"].keys.default.id
   }
   attached_disks = [
     {
@@ -27,9 +27,7 @@ module "bastion-vm" {
       initialize_params = {
         image = "projects/cos-cloud/global/images/family/cos-stable"
       }
-      kms_key_self_link = module.kms.keys.default.id
-
-
+      kms_key_self_link = module.kms["primary"].keys.default.id
     }
   ]
 }

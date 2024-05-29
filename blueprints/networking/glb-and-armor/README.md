@@ -100,7 +100,7 @@ __Congratulations__! You have successfully deployed an HTTP Load Balancer with t
 2. In the Cloud Console, on the Navigation menu, click __Network Services > Load balancing__.
 3. Click __Backends__, then click __http-backend__ and navigate to __http-lb__
 4. Click on the __Monitoring__ tab.
-5. Monitor the Frontend Location (Total inbound traffic) between North America and the two backends for 2 to 3 minutes. At first, traffic should just be directed to __us-east1-mig__ but as the RPS increases, traffic is also directed to __europe-west1-mig__. This demonstrates that by default traffic is forwarded to the closest backend but if the load is very high, traffic can be distributed across the backends.
+5. Monitor the Frontend Location (Total inbound traffic) between North America and the two backends for 2 to 3 minutes. At first, traffic should just be directed to __us-east4-mig__ but as the RPS increases, traffic is also directed to __europe-west1-mig__. This demonstrates that by default traffic is forwarded to the closest backend but if the load is very high, traffic can be distributed across the backends.
 6. Now, to test the IP deny-listing, rerun terraform as follows:
 
         terraform apply -var project_id=my-project-id -var enforce_security_policy=true
