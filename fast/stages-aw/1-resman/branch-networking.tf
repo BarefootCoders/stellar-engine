@@ -56,6 +56,12 @@ module "branch-network-folder" {
       module.organization.tag_values["${var.tag_names.context}/networking"].id, null
     )
   }
+  compliance = {
+    organization = var.organization.id
+
+    regime   = "IL5"
+    location = "us"
+  }
 }
 
 module "branch-network-prod-folder" {

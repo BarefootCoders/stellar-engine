@@ -80,8 +80,8 @@ resource "random_password" "password" {
 
 # Shell out to openssl to get the password hash
 resource "random_password" "salt" {
-  length           = 8
-  special          = false
+  length  = 8
+  special = false
 }
 
 module "ngfw-service-account" {
