@@ -89,7 +89,7 @@ resource "google_project_iam_custom_role" "ngfw-custom-role" {
   title   = "NGFW Appliance"
   project = module.landing-project.project_id
 
-  description = "All of the permissions required for the Palo Alto NGFW"
+  description = "Many of the permissions required for the Palo Alto NGFW, not including compute.viewer"
   permissions = [
     "storage.buckets.get",
     "logging.buckets.write",
