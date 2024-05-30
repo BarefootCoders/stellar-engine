@@ -25,35 +25,10 @@ data "google_project" "current" {}
 
 # Custom service account with compute engine role  
 resource "google_service_account" "compute" {
-  account_id = "compute"
+  account_id = var.compute_service_account_id
   project    = var.project_id
 }
 
-# Give the service account the roles needed to encrypt/decrypt
-resource "google_project_iam_binding" "compute" {
-  project = var.project_id
-  role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  members = [
-    "serviceAccount:${google_service_account.compute.email}",
-    "user:${var.email}"
-  ]
-  depends_on = [module.kms]
-}
-
-# Assign the Binding on the Role to the Members for the Google IAM POlicy encrypt/decrypt 
-data "google_iam_policy" "kms_key_encrypt_decrypt" {
-  binding {
-    role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-    members = ["serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"]
-  }
-}
-
-# The Crypto Key and Policy
-resource "google_kms_crypto_key_iam_policy" "crypto_key" {
-  crypto_key_id = module.kms.keys.default.id
-  policy_data   = data.google_iam_policy.kms_key_encrypt_decrypt.policy_data
-  depends_on    = [module.kms]
-}
 
 # Google Compute Shielded VM Module
 module "shielded-vm" {
@@ -81,11 +56,10 @@ module "shielded-vm" {
       initialize_params = {
         image = "debian-cloud/debian-10"
       }
-      kms_key_self_link       = module.kms.keys.default.id
-      kms_key_service_account = "service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
+      kms_key_self_link = module.kms.keys.default.id
     }
   ]
-  depends_on = [module.kms, google_service_account.compute, google_kms_crypto_key_iam_policy.crypto_key]
+  depends_on = [module.kms, google_service_account.compute]
 }
 
 # Google KMS Module
@@ -94,7 +68,11 @@ module "kms" {
   project_id = var.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}", "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      google_service_account.compute.member,
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+      "user:${var.email}"
+    ]
   }
   keyring = var.keyring
 }

@@ -22,7 +22,12 @@ variable "email" {
   description = "Email address of the user."
   type        = string
   # Example default = "admin.user-anme@example.google.com"
+}
 
+variable "compute_service_account_id" {
+  description = "The Service Account for Compute Engine"
+  type        = string
+  # Example  default = "compute-service-account"
 }
 
 variable "keyring" {
