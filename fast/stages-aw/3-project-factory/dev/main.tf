@@ -21,6 +21,9 @@ module "projects" {
   data_defaults = {
     billing_account = var.billing_account.id
     # more defaults are available, check the project factory variables
+    shared_vpc_service_config = {
+      host_project = "tnbsea-prod-net-spoke-0"
+    }
   }
   data_merges = {
     labels = {

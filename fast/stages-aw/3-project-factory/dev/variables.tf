@@ -51,3 +51,11 @@ variable "prefix" {
     error_message = "Use a maximum of 9 characters for prefix."
   }
 }
+
+variable "host_project_ids" {
+  # tfdoc:variable:source 3-network
+  description = "Map of host projects from the networks stages"
+  type        = map(string)
+  default     = {}
+  nullable    = false
+}
