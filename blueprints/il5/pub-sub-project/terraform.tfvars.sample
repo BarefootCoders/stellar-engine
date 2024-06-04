@@ -1,0 +1,33 @@
+project_id = "my-project-id"
+iam_roles_members = {
+  owner  = [
+    "user:owner1@gmail.com",
+    "user:owner2@gmail.com",
+     "user:owner3@gmail.com",
+  ],
+  viewer = [
+    "user:editor1@gmail.com",
+    "user:editor2@gmail.com",
+    "user:editor3@gmail.com",
+    "user:editor4@gmail.com"
+  ],
+  editor = [
+    "user:viewer1@gmail.com",
+    "user:viewer2@gmail.com",
+     "user:viewer3@gmail.com",
+      "user:viewer4@gmail.com"
+  ]
+}
+admin_members = [
+  "user:admin1@gmail.com",
+  "user:admin2@gmail.com",
+  "user:admin3@gmail.com",
+  "user:admin4@gmail.com",
+  "user:admin5@gmail.com",
+  "user:admin6@gmail.com"
+]
+service_account_email = "service-account-email@gmail.iam.gserviceaccount.com"
+
+pubsub_subscription_name = "my-pubsub-subscription-name"
+
+pubsub_topic_name = "my-pubsub-topic-name"
