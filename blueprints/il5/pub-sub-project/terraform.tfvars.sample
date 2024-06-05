@@ -1,4 +1,22 @@
 project_id = "my-project-id"
+keys = {
+     "default" = {
+      destroy_scheduled_duration    = null
+      rotation_period               = null
+      labels                        = null
+      purpose                       = "ENCRYPT_DECRYPT"
+      skip_initial_version_creation = false
+      version_template = {
+        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+        protection_level = "SOFTWARE"
+      }
+
+      iam                   = {}
+      iam_bindings          = {}
+      iam_bindings_additive = {}
+    }
+}
+
 iam_roles_members = {
   owner  = [
     "user:owner1@gmail.com",
@@ -18,14 +36,8 @@ iam_roles_members = {
       "user:viewer4@gmail.com"
   ]
 }
-admin_members = [
-  "user:admin1@gmail.com",
-  "user:admin2@gmail.com",
-  "user:admin3@gmail.com",
-  "user:admin4@gmail.com",
-  "user:admin5@gmail.com",
-  "user:admin6@gmail.com"
-]
+admin_members = "user:admin1@gmail.com"
+
 service_account_email = "service-account-email@gmail.iam.gserviceaccount.com"
 
 pubsub_subscription_name = "my-pubsub-subscription-name"

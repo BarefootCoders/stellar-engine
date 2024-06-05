@@ -17,20 +17,37 @@ variable "project_id" {
   type = string
 }
 variable "location" {
-  type = string
+  type    = string
   default = "us-east4"
 }
+variable "email" {
+    type = string
+}
 
+variable "pubsub_service_account_id" {
+    type = string
+}
+
+variable "pubsub_subscription_name" {
+    type = string
+}
+
+variable "pubsub_topic_name" {
+  type    = string  
+}
+
+variable "push_endpoint" {
+    type = string
+}
 
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
     location = string
     name     = string
-  })  
+  })
 
 }
-
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
@@ -86,32 +103,4 @@ variable "keys" {
   }
 
   nullable = false
-}
-
- variable "admin_members" {
-    type = list(string)
- }
-
-  variable "subscriber_members" {
-    type = list(string)
- }
- 
-variable "service_account_email" {
-    type = string
-}
-
-variable "pubsub_subscription_name" {
-    type = string
-}
-
-variable "pubsub_topic_name" {
-    type = string
-}
-
-variable "iam_roles_members" {
-        type = list(string)
-}
-
-variable "publisher_members" {
-        type = list(string)
 }

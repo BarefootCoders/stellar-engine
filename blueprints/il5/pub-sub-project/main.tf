@@ -14,49 +14,57 @@
  * limitations under the License.
  */
 #Terraform Provider for Google Cloud Platform
-provider "google" { 
- project = var.project_id 
- region  = var.location
- } 
+provider "google" {
+  project = var.project_id
+  region  = var.location
+}
 
-#Google KMS Module
+data "google_project" "pubsub_sa"{
+
+}
+
+resource "google_service_account" "pubsub_sa" {
+  account_id = var.pubsub_service_account_id
+  project    = var.project_id
+}
+
+#Google KMS Module 
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.compute.member,
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-      "user:${var.service_account_email}"
+     google_service_account.pubsub_sa.email
     ]
   }
   keyring = var.keyring
 }
 
+#Implementing CMEK to pub-sub
 resource "google_pubsub_topic" "pubsub_topic" {
-  name             = var.pubsub_topic_name
-  kms_key_name     = google_kms_crypto_key.crypto_key.id
+  name         = var.pubsub_topic_name
+  kms_key_name = module.kms.crypto_key_id
 }
 
- resource "google_pubsub_topic_iam_binding" "pubsub_topic_admin" {
-  topic = google_pubsub_topic.pubsub_topic.name
-  role  = "roles/pubsub.admin"
-  members = var.admin_members
-}
-resource "google_pubsub_topic_iam_binding" "pubsub_topic_publisher" {
-  topic = google_pubsub_topic.pubsub_topic.name
-  role  = "roles/pubsub.publisher"
-  members = var.publisher_members
-}
-resource "google_pubsub_topic_iam_binding" "pubsub_topic_subscriber" {
-  topic = google_pubsub_topic.pubsub_topic.name
-  role  = "roles/pubsub.subscriber"
-  members = var.subscriber_members
-
-}
-resource "google_pubsub_subscription" "pubsub_subscription" {
+# Creating a Pub/Sub subscription
+resource "google_pubsub_subscription" "subscription" {
   name  = var.pubsub_subscription_name
   topic = google_pubsub_topic.pubsub_topic.name
+  ack_deadline_seconds = 20
+  push_config {
+    #create push endpoint
+    push_endpoint = var.push_endpoint
+  }
 }
-
+# IAM role bindings for the service account
+resource "google_pubsub_topic_iam_member" "publisher" {
+  topic      = google_pubsub_topic.pubsub_topic.name
+  role       = "roles/pubsub.publisher"
+  member     = "serviceAccount:${google_service_account.pubsub_sa.email}"
+}
+resource "google_pubsub_subscription_iam_member" "subscriber" {
+  subscription = google_pubsub_subscription.subscription.name
+  role         = "roles/pubsub.subscriber"
+  member       = "serviceAccount:${google_service_account.pubsub_sa.email}"
+}
