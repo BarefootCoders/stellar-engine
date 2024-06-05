@@ -36,11 +36,20 @@ variable "location" {
   default     = "us-east4"
 }
 
+
+variable "host_project_name" {
+  description = "The name of the Host Project"
+  type        = string
+  default     = "tnbsea-prod-net-spoke-0"
+}
+
 variable "peer_network" {
   description = "The Peer Network Project and and global Network Name"
   type        = string
   #Example 
-  default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
+  # default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
+  default = "projects/tnbsea-dev-net-spoke-0/global/networks/dev-spoke-0"
+  #default = "projects/tnbsea-prod-net-spoke-0/global/networks/prod-spoke-0"
 }
 
 
@@ -49,7 +58,8 @@ variable "ip_cidr_range" {
   description = "The IP CIDR range for the VPC"
   type        = string
   #Example 
-  default = "10.0.1.0/24"
+  default = "10.200.0.0/24"
+
 }
 
 variable "project_id" {

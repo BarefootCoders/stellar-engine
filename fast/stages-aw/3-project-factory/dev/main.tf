@@ -16,13 +16,28 @@
 
 # tfdoc:file:description Project factory.
 
+locals {
+  base        = "10.200.0.0/24"
+  subnet_cidr = cidrsubnet(local.base, 8, 0)
+
+  # List all YAML files in the directory
+  yaml_files = fileset("${path.root}/data/dev", "*.yaml")
+  # Read and decode each YAML file to extract the name
+  projects = [
+    for file in local.yaml_files : {
+      name        = yamldecode(file("${path.root}/data/dev/${file}")).name
+      subnet_cidr = local.subnet_cidr
+    }
+  ]
+}
+
 module "projects" {
   source = "../../../../modules/project-factory"
   data_defaults = {
     billing_account = var.billing_account.id
     # more defaults are available, check the project factory variables
     shared_vpc_service_config = {
-      host_project = "tnbsea-prod-net-spoke-0"
+      host_project = var.host_project_name
     }
   }
   data_merges = {
@@ -42,26 +57,17 @@ module "projects" {
 
 module "vpc" {
   source                          = "../../../../modules/net-vpc"
-  project_id                      = var.project_id
-  name                            = "vpc-app"
+  for_each                        = toset(local.projects)
+  project_id                      = each.value.id
+  name                            = "vpc-${each.value.name}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "GLOBAL"
   subnets = [
     {
-      name          = "subnet-app"
+      name          = "${each.value.name}-subnet"
       region        = var.location
-      ip_cidr_range = var.ip_cidr_range
+      ip_cidr_range = each.value.subnet_cidr
     }
   ]
-
 }
-
-module "peering" {
-  source        = "../../../..//modules/net-vpc-peering"
-  prefix        = "app-prod-peer"
-  local_network = module.vpc.self_link
-  peer_network  = var.peer_network
-
-}
- 
