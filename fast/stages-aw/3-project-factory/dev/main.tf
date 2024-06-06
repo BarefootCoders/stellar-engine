@@ -16,21 +16,6 @@
 
 # tfdoc:file:description Project factory.
 
-locals {
-  base        = "10.200.0.0/24"
-  subnet_cidr = cidrsubnet(local.base, 8, 0)
-
-  # List all YAML files in the directory
-  yaml_files = fileset("${path.root}/data/dev", "*.yaml")
-  # Read and decode each YAML file to extract the name
-  projects = [
-    for file in local.yaml_files : {
-      name        = yamldecode(file("${path.root}/data/dev/${file}")).name
-      subnet_cidr = local.subnet_cidr
-    }
-  ]
-}
-
 module "projects" {
   source = "../../../../modules/project-factory"
   data_defaults = {
@@ -54,20 +39,39 @@ module "projects" {
   factories_config = var.factories_config
 }
 
+# Get existing VPC from the existing project (MAIN PROJECT)
+data "google_compute_network" "vpc" {
+  project = var.host_project_name
+  name    = var.peer_network_name
+}
 
+# Google VPC Module 
 module "vpc" {
   source                          = "../../../../modules/net-vpc"
-  for_each                        = toset(local.projects)
+  for_each                        = module.projects.projects
   project_id                      = each.value.id
-  name                            = "vpc-${each.value.name}"
+  name                            = "vpc-${lower(each.value.name)}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "GLOBAL"
   subnets = [
     {
-      name          = "${each.value.name}-subnet"
-      region        = var.location
-      ip_cidr_range = each.value.subnet_cidr
+      name   = "subnet-${lower(each.value.name)}"
+      region = "us-east1"
+      #ip_cidr_range = "10.${((index(keys(module.projects.projects), "${lower(each.value.name)}-dev") + 1) * 100)}.0.0/22"
+      #ip_cidr_range = "10.2${((index(keys(module.projects.projects), "${lower(each.value.name)}-dev") + 1) * 10)}.0.0/22"
+      ip_cidr_range = "10.2${10 * (parseint(index(keys(module.projects.projects), "${lower(each.value.name)}-dev")) - 1)}.0.0/22"
     }
   ]
 }
+
+# Google VPC Network Peering module   
+module "peering" {
+  source        = "../../../../modules/net-vpc-peering"
+  for_each      = module.vpc
+  prefix        = "app-prod-peer"
+  local_network = data.google_compute_network.vpc.self_link
+  peer_network  = each.value.self_link
+}
+
+

@@ -53,14 +53,17 @@ variable "peer_network" {
 }
 
 
-
-variable "ip_cidr_range" {
-  description = "The IP CIDR range for the VPC"
+variable "peer_network_name" {
+  description = "The Peer Network Project and and global Network Name"
   type        = string
   #Example 
-  default = "10.200.0.0/24"
-
+  # default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
+  default = "prod-spoke-0"
+  #default = "projects/tnbsea-prod-net-spoke-0/global/networks/prod-spoke-0"
 }
+
+
+
 
 variable "project_id" {
   description = "This is the project ID. Please set using a terraform.tfvars file."
