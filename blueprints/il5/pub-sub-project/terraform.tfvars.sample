@@ -10,6 +10,8 @@ keys = {
     name     = "my-key-ring"
   }
 
+allowed_persistence_regions = ["us-east4"]
+
 pubsub_topic_name = "pb_topic"
 
 email = "email@gmail.com"

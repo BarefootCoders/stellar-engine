@@ -64,6 +64,12 @@ variable "keyring" {
 
 }
 
+variable "allowed_persistence_regions" {
+  description = "The allowed persistence regions for the Pub/Sub topic"
+  type        = list(string)
+  default     = ["us-east4"]
+}
+
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({

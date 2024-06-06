@@ -22,13 +22,13 @@ provider "google" {
 #Create publisher account 
 resource "google_service_account" "publisher" {
   account_id = var.publisher_account_id
-  name       = var.publisher_name
+  display_name       = var.publisher_name
 }
 
 #Create subscriber account 
 resource "google_service_account" "subscriber" {
   account_id   = var.subscriber_account_id
-  display_name = var.subscriber_name
+  display_name         = var.subscriber_name
 }
 
 #IAM role for the publisher service account
@@ -61,8 +61,9 @@ module "kms" {
 
 # Create a Pub/Sub topic with allowed persistence regions
 resource "google_pubsub_topic" "pubsub_topic" {
-  name         = var.pubsub_topic_name
-  kms_key_name = module.kms.crypto_key_id
+  name                        = var.pubsub_topic_name
+  kms_key_name                = module.kms.keys
+  #allowed_persistence_regions = var.allowed_persistence_regions
 }
 
 # IAM role bindings for publisher account
@@ -74,13 +75,13 @@ resource "google_pubsub_topic_iam_member" "publisher" {
 
 #IAM role bindings for subscriber account
 resource "google_pubsub_subscription_iam_member" "subscriber" {
-  subscription = google_pubsub_subscription.subscription.name
+  subscription = google_pubsub_subscription.pubsub_subscription.name
   role         = "roles/pubsub.subscriber"
   member       = "serviceAccount:${google_service_account.subscriber.email}"
 }
 
 # Creating a Pub/Sub subscription
-resource "google_pubsub_subscription" "subscription" {
+resource "google_pubsub_subscription" "pubsub_subscription" {
   name                 = var.pubsub_subscription_name
   topic                = google_pubsub_topic.pubsub_topic.name
   ack_deadline_seconds = 20
