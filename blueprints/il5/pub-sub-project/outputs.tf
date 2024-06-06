@@ -15,18 +15,11 @@
  */
 
 output "publisher_service_account_email" {
-  value = google_service_account.publisher.email
+  value       = google_service_account.publisher.email
+  description = "The email of the publisher service account"
 }
 
 output "subscriber_service_account_email" {
-  value = google_service_account.subscriber.email
-}
-
-output "pubsub_topic_name" {
-  value = google_pubsub_topic.pubsub_topic.name
-}
-
-
-output "pubsub_subscription_name" {
-  value = google_pubsub_subscription.pubsub_subscription.name
+  value       = google_service_account.subscriber.email
+  description = "The email of the subscriber service account"
 }

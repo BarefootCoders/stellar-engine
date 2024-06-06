@@ -21,14 +21,14 @@ provider "google" {
 
 #Create publisher account 
 resource "google_service_account" "publisher" {
-  account_id = var.publisher_account_id
-  display_name       = var.publisher_name
+  account_id   = var.publisher_account_id
+  display_name = var.publisher_name
 }
 
 #Create subscriber account 
 resource "google_service_account" "subscriber" {
   account_id   = var.subscriber_account_id
-  display_name         = var.subscriber_name
+  display_name = var.subscriber_name
 }
 
 #IAM role for the publisher service account
@@ -59,34 +59,10 @@ module "kms" {
   keyring = var.keyring
 }
 
-# Create a Pub/Sub topic with allowed persistence regions
-resource "google_pubsub_topic" "pubsub_topic" {
-  name                        = var.pubsub_topic_name
-  kms_key_name                = module.kms.keys
-  #allowed_persistence_regions = var.allowed_persistence_regions
-}
-
-# IAM role bindings for publisher account
-resource "google_pubsub_topic_iam_member" "publisher" {
-  topic  = google_pubsub_topic.pubsub_topic.name
-  role   = "roles/pubsub.publisher"
-  member = "serviceAccount:${google_service_account.publisher.email}"
-}
-
-#IAM role bindings for subscriber account
-resource "google_pubsub_subscription_iam_member" "subscriber" {
-  subscription = google_pubsub_subscription.pubsub_subscription.name
-  role         = "roles/pubsub.subscriber"
-  member       = "serviceAccount:${google_service_account.subscriber.email}"
-}
-
-# Creating a Pub/Sub subscription
-resource "google_pubsub_subscription" "pubsub_subscription" {
-  name                 = var.pubsub_subscription_name
-  topic                = google_pubsub_topic.pubsub_topic.name
-  ack_deadline_seconds = 20
-  push_config {
-    #create push endpoint
-    push_endpoint = var.push_endpoint
-  }
+# Pub/Sub Module
+module "pubsub" {
+  source     = "../../../modules/pubsub"
+  project_id = var.project_id
+  name       = var.pubsub_topic
+  regions    = var.allowed_persistence_regions
 }

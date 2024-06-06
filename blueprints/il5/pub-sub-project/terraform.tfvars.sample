@@ -3,11 +3,67 @@ project_id = "my-project-id"
 location   = "us-east4"
 
 keys = {
-    name = "my-keys"
+  "june-keys" = {
+    destroy_scheduled_duration    = null
+    rotation_period               = null
+    labels                        = {}
+    location                      = "us-east4"
+    purpose                       = "ENCRYPT_DECRYPT"
+    skip_initial_version_creation = false
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "HSM"
     }
+  }
+}
+subscriptions = {
+  "my-subscription" = {
+    labels                       = {}
+    ack_deadline_seconds         = 20
+    message_retention_duration   = "604800s"  # 7 days
+    retain_acked_messages        = true
+    filter                       = ""
+    enable_message_ordering      = false
+    enable_exactly_once_delivery = false
+    expiration_policy_ttl        = "31536000s"  # 1 year
+    dead_letter_policy = {
+      topic                = "projects/your-project-id/topics/dead-letter-topic"
+      max_delivery_attempts = 5
+    }
+    retry_policy = {
+      maximum_backoff = "600s"  # 10 minutes
+      minimum_backoff = "10s"
+    }
+    push = {
+      endpoint           = "https://example.com/push-endpoint"
+      attributes         = {}
+      oidc_token = {
+        service_account_email = "service-account@example.com"
+        audience              = ""
+      }
+    }
+    bigquery = {
+      table               = ""
+      use_topic_schema    = false
+      write_metadata      = false
+      drop_unknown_fields = false
+    }
+    cloud_storage = {
+      bucket          = ""
+      filename_prefix = ""
+      filename_suffix = ""
+      max_duration    = ""
+      max_bytes       = 0
+      avro_config = {
+        write_metadata = false
+      }
+    }
+  }
+}
 
  keyring = {
     name     = "my-key-ring"
+    location = "us-east4"
   }
 
 allowed_persistence_regions = ["us-east4"]

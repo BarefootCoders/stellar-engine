@@ -30,7 +30,7 @@ variable "pubsub_subscription_name" {
   type = string
 }
 
-variable "pubsub_topic_name" {
+variable "pubsub_topic" {
   type = string
 }
 
@@ -70,12 +70,60 @@ variable "allowed_persistence_regions" {
   default     = ["us-east4"]
 }
 
+variable "subscriptions" {
+  description = "A map of subscription configurations"
+  type = map(object({
+    labels                       = map(string)
+    ack_deadline_seconds         = number
+    message_retention_duration   = string
+    retain_acked_messages        = bool
+    filter                       = string
+    enable_message_ordering      = bool
+    enable_exactly_once_delivery = bool
+    expiration_policy_ttl        = string
+    dead_letter_policy = object({
+      topic                 = string
+      max_delivery_attempts = number
+    })
+    retry_policy = object({
+      maximum_backoff = string
+      minimum_backoff = string
+    })
+    push = object({
+      endpoint   = string
+      attributes = map(string)
+      oidc_token = object({
+        service_account_email = string
+        audience              = string
+      })
+    })
+    bigquery = object({
+      table               = string
+      use_topic_schema    = bool
+      write_metadata      = bool
+      drop_unknown_fields = bool
+    })
+    cloud_storage = object({
+      bucket          = string
+      filename_prefix = string
+      filename_suffix = string
+      max_duration    = string
+      max_bytes       = number
+      avro_config = object({
+        write_metadata = bool
+      })
+    })
+  }))
+  default = {}
+}
+
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
     rotation_period               = optional(string)
     labels                        = optional(map(string))
+    location                      = optional(string, "us-east4")
     purpose                       = optional(string, "ENCRYPT_DECRYPT")
     skip_initial_version_creation = optional(bool, false)
     version_template = optional(object({
