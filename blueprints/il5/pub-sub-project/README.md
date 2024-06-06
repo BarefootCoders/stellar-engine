@@ -25,3 +25,9 @@ terraform apply
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+publisher_service_account_email = "publisher@tnbsea-dev-ashley-dev.iam.gserviceaccount.com"
+subscriber_service_account_email = "subscriber@tnbsea-dev-ashley-dev.iam.gserviceaccount.com"
