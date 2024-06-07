@@ -45,7 +45,7 @@ data "google_compute_network" "vpc" {
   name    = var.peer_network_name
 }
 
-# Google VPC Module 
+# Google VPC Module, Create One VPC for each Project, iterate the projects and create a VPC per project
 module "vpc" {
   source                          = "../../../../modules/net-vpc"
   for_each                        = module.projects.projects
@@ -56,20 +56,18 @@ module "vpc" {
   routing_mode                    = "GLOBAL"
   subnets = [
     {
-      name   = "subnet-${lower(each.value.name)}"
-      region = "us-east1"
-      #ip_cidr_range = "10.${((index(keys(module.projects.projects), "${lower(each.value.name)}-dev") + 1) * 100)}.0.0/22"
-      #ip_cidr_range = "10.2${((index(keys(module.projects.projects), "${lower(each.value.name)}-dev") + 1) * 10)}.0.0/22"
-      ip_cidr_range = "10.2${10 * (parseint(index(keys(module.projects.projects), "${lower(each.value.name)}-dev")) - 1)}.0.0/22"
+      name          = "subnet-${lower(each.value.name)}"
+      region        = var.location
+      ip_cidr_range = "10.2${((index(keys(module.projects.projects), "${lower(each.value.name)}-dev") + 1) * 10)}.0.0/24"
     }
   ]
 }
 
-# Google VPC Network Peering module   
+# Setup peering with the Peer network using the Google VPC Network Peering module   
 module "peering" {
   source        = "../../../../modules/net-vpc-peering"
   for_each      = module.vpc
-  prefix        = "app-prod-peer"
+  prefix        = var.prefix
   local_network = data.google_compute_network.vpc.self_link
   peer_network  = each.value.self_link
 }

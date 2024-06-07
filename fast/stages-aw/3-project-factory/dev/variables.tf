@@ -29,48 +29,6 @@ variable "billing_account" {
   }
 }
 
-
-variable "location" {
-  description = "Location of the Compute Engine VM"
-  type        = string
-  default     = "us-east4"
-}
-
-
-variable "host_project_name" {
-  description = "The name of the Host Project"
-  type        = string
-  default     = "tnbsea-prod-net-spoke-0"
-}
-
-variable "peer_network" {
-  description = "The Peer Network Project and and global Network Name"
-  type        = string
-  #Example 
-  # default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
-  default = "projects/tnbsea-dev-net-spoke-0/global/networks/dev-spoke-0"
-  #default = "projects/tnbsea-prod-net-spoke-0/global/networks/prod-spoke-0"
-}
-
-
-variable "peer_network_name" {
-  description = "The Peer Network Project and and global Network Name"
-  type        = string
-  #Example 
-  # default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
-  default = "prod-spoke-0"
-  #default = "projects/tnbsea-prod-net-spoke-0/global/networks/prod-spoke-0"
-}
-
-
-
-
-variable "project_id" {
-  description = "This is the project ID. Please set using a terraform.tfvars file."
-  type        = string
-  default     = "tnbsea-dev-tapand-dev"
-}
-
 variable "factories_config" {
   description = "Path to folder with YAML resource description data files."
   type = object({
@@ -103,4 +61,27 @@ variable "host_project_ids" {
   type        = map(string)
   default     = {}
   nullable    = false
+}
+
+variable "location" {
+  description = "Location of the Compute Engine VM"
+  type        = string
+  default     = "us-east4"
+}
+
+variable "host_project_name" {
+  description = "The name of the Host Project"
+  type        = string
+  default     = "tnbsea-dev-net-spoke-0"
+  #default     = "tnbsea-prod-net-spoke-0"
+}
+
+variable "peer_network_name" {
+  description = "The Peer Network Project and and global Network Name"
+  type        = string
+  #Example 
+  # default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
+  # default = "prod-spoke-0"
+  default = "dev-spoke-0"
+
 }

@@ -1,7 +1,6 @@
 factories_config = {
-    projects_data_path ="data/projects"
+  projects_data_path = "data/projects"
 }
-ip_cidr_range = "10.0.1.0/24"
-location =  "us-east4"
-project_id = "tnbsea-dev-tapand-dev"
-peer_network = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
+location          = "us-east4"
+host_project_name = "tnbsea-dev-net-spoke-0"
+peer_network_name = "dev-spoke-0"
