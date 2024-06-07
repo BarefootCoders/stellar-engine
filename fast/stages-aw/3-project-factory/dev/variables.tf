@@ -39,9 +39,6 @@ variable "factories_config" {
       notification_channels = optional(map(any), {})
     }))
   })
-  default = {
-    projects_data_path = "data/projects"
-  }
   nullable = false
 }
 
