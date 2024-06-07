@@ -69,7 +69,7 @@ variable "location" {
 variable "host_project_name" {
   description = "The name of the Host Project"
   type        = string
-  default     = "tnbsea-dev-net-spoke-0"
+   #Example   default     = "abc-host-dev-net-spoke-0"
 }
 
 variable "peer_network_name" {
