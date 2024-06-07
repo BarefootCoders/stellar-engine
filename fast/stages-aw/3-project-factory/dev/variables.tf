@@ -66,22 +66,17 @@ variable "host_project_ids" {
 variable "location" {
   description = "Location of the Compute Engine VM"
   type        = string
-  default     = "us-east4"
+  #Example default     = "us-east4"
 }
 
 variable "host_project_name" {
   description = "The name of the Host Project"
   type        = string
   default     = "tnbsea-dev-net-spoke-0"
-  #default     = "tnbsea-prod-net-spoke-0"
 }
 
 variable "peer_network_name" {
   description = "The Peer Network Project and and global Network Name"
   type        = string
-  #Example 
-  # default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
-  # default = "prod-spoke-0"
-  default = "dev-spoke-0"
-
+  #Example  default = "dev-spoke-0"
 }
