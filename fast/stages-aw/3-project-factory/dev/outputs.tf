@@ -19,3 +19,7 @@ output "projects" {
   description = "Project module outputs."
   value       = module.projects.projects
 }
+
+output "project_contents" {
+  value = local.project_contents
+}

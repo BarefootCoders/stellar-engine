@@ -15,7 +15,6 @@
  */
 
 # tfdoc:file:description Project factory.
-
 module "projects" {
   source = "../../../../modules/project-factory"
   data_defaults = {
@@ -39,31 +38,59 @@ module "projects" {
   factories_config = var.factories_config
 }
 
-# Get existing VPC from the existing project (MAIN PROJECT)
+
+# Get existing vpc from existing project (Main project)
 data "google_compute_network" "vpc" {
   project = var.host_project_name
   name    = var.peer_network_name
 }
 
-# Google VPC Module, Create One VPC for each Project, iterate the projects and create a VPC per project
+# Read the content of the YAML files
+data "local_file" "yaml_files" {
+  for_each = toset(local.yaml_files)
+  filename = "${path.module}/data/projects/${each.value}"
+}
+
+# List all YAML files in the data/projects directory
+locals {
+  yaml_files = fileset("${path.module}/data/projects", "*.yaml")
+  file_contents = {
+    for file in data.local_file.yaml_files : file.filename => yamldecode(file.content)
+  }
+  file_names = {
+    for file, content in local.file_contents : file => content.name
+  }
+  project_contents = {
+    for file, content in local.file_contents : content.name => content
+  }
+  project_names = keys(local.file_names)
+  projects = {
+    for idx in range(length(local.project_names)) :
+    local.project_names[idx] => {
+      name = local.file_names[local.project_names[idx]]
+
+    }
+  }
+}
+
+
 module "vpc" {
   source                          = "../../../../modules/net-vpc"
-  for_each                        = module.projects.projects
-  project_id                      = each.value.id
-  name                            = "vpc-${lower(each.value.name)}"
+  for_each                        = local.projects
+  project_id                      = "tnbsea-dev-${each.value.name}-dev"
+  name                            = "vpc-${var.prefix}-${each.value.name}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "GLOBAL"
   subnets = [
     {
-      name          = "subnet-${lower(each.value.name)}"
-      region        = var.location
-      ip_cidr_range = "10.2${((index(keys(module.projects.projects), "${lower(each.value.name)}-dev") + 1) * 10)}.0.0/24"
+      name          = "subnet-${var.prefix}-${each.value.name}"
+      region        = local.project_contents[each.value.name].subnetregion
+      ip_cidr_range = local.project_contents[each.value.name].subnetcidr
     }
   ]
 }
 
-# Setup peering with the Peer network using the Google VPC Network Peering module   
 module "peering" {
   source        = "../../../../modules/net-vpc-peering"
   for_each      = module.vpc
@@ -71,5 +98,3 @@ module "peering" {
   local_network = data.google_compute_network.vpc.self_link
   peer_network  = each.value.self_link
 }
-
-

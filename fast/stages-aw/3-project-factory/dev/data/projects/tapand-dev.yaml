@@ -16,6 +16,8 @@ labels:
  team: dino-runner
 parent: folders/173507323014
 name: tapand
+subnetcidr: 10.200.8.0/23
+subnetregion: us-east4
 descriptive_name: Tapand
 services:
 - compute.googleapis.com

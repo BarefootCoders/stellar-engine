@@ -16,6 +16,8 @@ labels:
  team: dino-runner
 parent: folders/173507323014
 name: ashley
+subnetcidr: 10.200.2.0/23
+subnetregion: us-east4
 descriptive_name: Ashley 
 services:
 - compute.googleapis.com

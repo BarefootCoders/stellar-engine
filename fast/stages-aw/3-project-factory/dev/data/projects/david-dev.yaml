@@ -16,6 +16,8 @@ labels:
  team: dino-runner
 parent: folders/173507323014
 name: david
+subnetcidr: 10.200.4.0/23
+subnetregion: us-east4
 descriptive_name: David 
 services:
 - compute.googleapis.com

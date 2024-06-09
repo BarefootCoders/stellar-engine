@@ -16,6 +16,8 @@ labels:
  team: dino-runner
 parent: folders/173507323014
 name: michael
+subnetcidr: 10.200.6.0/23
+subnetregion: us-east4
 descriptive_name: Michael 
 services:
 - compute.googleapis.com

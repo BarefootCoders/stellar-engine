@@ -16,6 +16,8 @@ labels:
  team: dino-runner
 parent: folders/173507323014
 name: will
+subnetcidr: 10.200.10.0/23
+subnetregion: us-east4
 descriptive_name: Will
 services:
 - compute.googleapis.com
