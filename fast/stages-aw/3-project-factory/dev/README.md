@@ -54,8 +54,39 @@ gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/tfvars/2-security.auto.
 ```
 
 If you're not using FAST, refer to the [Variables](#variables) table at the bottom of this document for a full list of variables, their origin (e.g., a stage or specific to this one), and descriptions explaining their meaning.
+### Creating the YAML Files
 
-Besides the values above, the project factory is driven by YAML data files, with one file per project. Please refer to the underlying [project factory module](../../../../modules/project-factory/) documentation for details on the format.
+The project factory is driven by YAML data files, with one file per project. Please refer to the underlying [project factory module](../../../../modules/project-factory/) documentation for details on the format.
+The project factory module implements end-to-end creation processes for a folder hierarchy, projects, VPC with CIDR via YAML data configurations.
+
+Service accounts and buckets will be prefixed with the project name, and use the key specified in the YAML file as a suffix. The YAML files are located in dev/data/projects directory.
+
+```
+# file name: project-dev.yaml
+labels:
+ team: dino-runner
+ # Name of the team
+parent: folders/173507323014
+#Parent Folder
+name: project-name
+#Name of the project
+subnetcidr: 10.200.2.0/23
+#The CIDR Address given to the VPC
+subnetregion: us-east4
+# The GCP Region of the VPC
+descriptive_name: Ashley 
+# The project descriptive name
+
+services:
+- compute.googleapis.com
+- storage.googleapis.com
+
+```
+### Updating the variables 
+
+- Update the variables using the variables.tf or terraform.tfvars the details about each required variables is listed in section "Variables"
+- There is a sample terraform.tfvars.sample available
+- It is important to update the Host project, Host VPC Network name, Location in the variables.
 
 Once the configuration is complete, run the project factory with:
 
@@ -81,6 +112,13 @@ terraform apply
 | [billing_account](variables.tf#L19) | Billing account id. If billing account is not part of the same org set `is_org_level` to false. | <code title="object&#40;&#123;&#10;  id           &#61; string&#10;  is_org_level &#61; optional&#40;bool, true&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  | <code>0-bootstrap</code> |
 | [factories_config](variables.tf#L32) | Path to folder with YAML resource description data files. | <code title="object&#40;&#123;&#10;  projects_data_path &#61; string&#10;  budgets &#61; optional&#40;object&#40;&#123;&#10;    billing_account       &#61; string&#10;    budgets_data_path     &#61; string&#10;    notification_channels &#61; optional&#40;map&#40;any&#41;, &#123;&#125;&#41;&#10;  &#125;&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |  |
 | [prefix](variables.tf#L45) | Prefix used for resources that need unique names. Use 9 characters or less. | <code>string</code> | ✓ |  | <code>0-bootstrap</code> |
+| [location](variables.tf#L59) | The GCP Location of the project and the VPC For example us-east4. | <code>string</code> | ✓ |  |  |
+| [host_project_name](variables.tf#L66) | The Name of GCP Host Project that has the Host Main VPC (Mostly the Landing Main Networking Project) For example prefix-prod-net-landing-0. | <code>string</code> | ✓ |  |  |
+| [peer_network_name](variables.tf#L73) | The Name of  VPC Network where the Tenants VPC will be connected / Peered to.  (Mostly the Landing VPC) For example prod-landing-0. | <code>string</code> | ✓ |  |  |
+
+Please see the reference terraform.tfvars.sample file
+
+
 
 ## Outputs
 
@@ -88,4 +126,5 @@ terraform apply
 |---|---|:---:|---|
 | [projects](outputs.tf#L17) | Created projects. |  |  |
 | [service_accounts](outputs.tf#L27) | Created service accounts. |  |  |
+| [vpcs-subnets](outputs.tf#L32) | Created VPCs, Subnet and CIDR information. |  |  |
 <!-- END TFDOC -->
