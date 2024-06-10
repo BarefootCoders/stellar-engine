@@ -15,7 +15,6 @@
  */
 
 #TODO: tfdoc annotations
-
 variable "billing_account" {
   # tfdoc:variable:source 0-bootstrap
   description = "Billing account id. If billing account is not part of the same org set `is_org_level` to false."
@@ -60,4 +59,20 @@ variable "location" {
   type        = string
   #Example
   default = "us-east4"
+}
+
+variable "host_project_ids" {
+  # tfdoc:variable:source 3-network
+  description = "Map of host projects from the networks stages"
+  type        = map(string)
+  default     = {}
+  nullable    = false
+}
+
+variable "vpc_self_links" {
+  # tfdoc:variable:source 3-network
+  description = "Map of projects and VPC from the networks stages"
+  type        = map(string)
+  default     = {}
+  nullable    = false
 }

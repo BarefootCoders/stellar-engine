@@ -18,13 +18,7 @@
 
 # List all YAML files in the data/projects directory
 locals {
-  network_json_data = jsondecode(file("./2-networking.auto.tfvars.json"))
-  yaml_files        = fileset("${path.module}/data/projects", "*.yaml")
-
-  # Extract the specific value 'prod-landing-0' from the URL
-  prod_landing_url = local.network_json_data.vpc_self_links["prod-landing"]
-  prod_landing_id  = regex("networks/([^/]+)$", local.prod_landing_url)[0]
-
+  yaml_files = fileset("${path.module}/data/projects", "*.yaml")
   file_contents = {
     for file in data.local_file.yaml_files : file.filename => yamldecode(file.content)
   }
@@ -45,9 +39,8 @@ locals {
 
 # Get existing vpc from existing project (Main project)
 data "google_compute_network" "vpc" {
-  # project = var.host_project_name
-  name    = local.prod_landing_id
-  project = local.network_json_data.host_project_ids["prod-landing"]
+  project = var.host_project_ids["prod-landing"]
+  name    = regex("networks/([^/]+)$", var.vpc_self_links["prod-landing"])[0]
 }
 
 
@@ -64,7 +57,7 @@ module "projects" {
     billing_account = var.billing_account.id
     # more defaults are available, check the project factory variables
     shared_vpc_service_config = {
-      host_project = local.network_json_data.host_project_ids["prod-landing"]
+      host_project = var.host_project_ids["prod-landing"]
     }
   }
   data_merges = {
