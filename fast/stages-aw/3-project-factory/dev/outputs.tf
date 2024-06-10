@@ -14,12 +14,29 @@
  * limitations under the License.
  */
 
-
 output "projects" {
-  description = "Project module outputs."
-  value       = module.projects.projects
+  description = "Created projects."
+  value = {
+    for k, v in module.projects.projects : k => {
+      number     = v.number
+      project_id = v.id
+    }
+  }
 }
 
-output "project_contents" {
-  value = local.project_contents
+output "service_accounts" {
+  description = "Created service accounts."
+  value       = module.projects.service_accounts
 }
+
+output "vpcs-subnets" {
+  description = "Created projects."
+  value = {
+    for k, v in module.vpc : k => {
+      vpc_name    = v.name
+      project_id  = v.project_id
+      subnet_name = v.subnets
+    }
+  }
+}
+ 
