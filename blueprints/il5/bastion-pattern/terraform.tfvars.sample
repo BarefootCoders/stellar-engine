@@ -2,7 +2,7 @@ project_id        = "my-repository-id"
 
 image             = "projects/cos-cloud/global/images/family/cos-stable"
 
-allowed_source_ranges = ["35.191.0.0/16", "130.211.0.0/22"]
+allowed_firewall_ports = ["80", "22", "443"]
 
 instance_name     = "sample-bastion"
 

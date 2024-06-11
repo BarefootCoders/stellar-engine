@@ -23,12 +23,10 @@ variable "location" {
   default = "us-east4"
 }
 
-variable "only_allowed_firewalls" {
-  type = string
-}
-
-variable "only_allowed_source_ranges" {
-  type = string
+variable "allowed_firewall_ports" {
+  description = "The list of the Allowed Ports"
+  type        = list(any)
+  #Example  default     = ["22", "443"]
 }
 
 variable "my_vpc" {

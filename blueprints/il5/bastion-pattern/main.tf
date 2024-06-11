@@ -63,19 +63,16 @@ resource "google_compute_subnetwork" "subnet_one" {
   project       = var.project_id
 }
 
-resource "google_compute_firewall" "allow_from_iap_to_bastion" {
-  project = var.project_id
-  name    = var.only_allowed_firewalls
-  network = module.mgmt-vpc.self_link
-
+# Google Computer Firewall
+resource "google_compute_firewall" "default" {
+  name    = "allow-web"
+  network = module.mgmt-vpc.network.self_link
   allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = var.allowed_firewall_ports
   }
-
-  # Allow access to the bastion instances from the Health Check endpoints
-  source_ranges           = var.allowed_source_ranges
-  target_service_accounts = [module.bastion-vm.service_account]
+  # Allowing to connect only within the VPC CIDR Range
+  source_ranges = var.allowed_source_ranges
 }
 
 #Bastion compute instance 
