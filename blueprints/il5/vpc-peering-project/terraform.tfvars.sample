@@ -1,0 +1,8 @@
+project_id        = "project-name"
+email             = "your-email-address@your-domain.com"
+location          = "the-gcp-location-regions"
+host_project_name = "the-host-project-name"
+peer_network_name = "the-vpc-network-name-to-peer"
+subnets_cidr_a    = "10.200.12.0/25"
+subnets_cidr_b    = "10.200.12.128/25"
+subnets_cidr_c    = "10.200.13.0/25"
