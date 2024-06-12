@@ -23,14 +23,9 @@ output "vpc_self_link" {
   value       = data.google_compute_network.my_vpc.self_link
 }
 
-output "firewall_self_link" {
-  description = "The self link of the firewall rule"
-  value       = data.google_compute_firewall.default.self_link
-}
-
 output "subnet_self_link" {
   description = "The self link of the subnet"
-  value       = google_compute_subnetwork.subnet_one.self_link
+  value       = data.google_compute_subnetwork.my_subnet.self_link
 }
 
 output "compute_service_account_email" {

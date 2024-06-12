@@ -19,11 +19,15 @@ provider "google" {
   region  = var.location
 }
 
-# Work on the Current Project
+#Current Project
 data "google_project" "current" {}
 
 data "google_compute_network" "my_vpc" {
   name = var.my_vpc
+}
+
+data "google_compute_subnetwork" "my_subnet" {
+  name = var.my_subnet
 }
 
 # Custom service account with compute engine role  
@@ -37,22 +41,18 @@ module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
   keys       = var.keys
+
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.compute.member,
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-      "user:${var.email}"
-    ]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
+      [
+        "serviceAccount:${google_service_account.compute.email}",
+        "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+        "user:${var.email}"
+      ],
+      [for email in var.group_email : "group:${email}"]
+    )
   }
   keyring = var.keyring
-}
-
-resource "google_compute_subnetwork" "subnet_one" {
-  project       = var.project_id
-  name          = var.subnet_one
-  ip_cidr_range = var.ip_cidr_range
-  region        = var.location
-  network       = data.google_compute_network.my_vpc.self_link
 }
 
 # Google Computer Firewall
@@ -81,7 +81,7 @@ module "bastion-vm" {
   instance_type = var.instance_type
   network_interfaces = [{
     network    = data.google_compute_network.my_vpc.self_link
-    subnetwork = google_compute_subnetwork.subnet_one.self_link
+    subnetwork = data.google_compute_subnetwork.my_subnet.self_link
   }]
 
   service_account = {

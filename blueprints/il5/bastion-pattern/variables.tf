@@ -23,33 +23,35 @@ variable "location" {
   default = "us-east4"
 }
 
+variable "zone" {
+  description = "This is the zone of the instance."
+  type        = string
+}
+
 variable "allowed_firewall_ports" {
   description = "The allowed ports for the firewall"
   type        = list(string)
 }
 
 variable "my_vpc" {
-  type    = string
-  default = "us-east4"
+  type = string
 }
 
-variable "zone" {
-  description = "This is the zone of the instance."
-  type        = string
+variable "my_subnet" {
+  type = string
 }
 
 variable "email" {
   type = string
 }
 
-variable "subnet_one" {
-  type = string
+variable "group_email" {
+  type = list(string)
 }
 
 variable "instance_type" {
   type    = string
   default = "e2-small"
-
 }
 
 variable "instance_name" {
@@ -90,7 +92,6 @@ variable "keyring" {
     location = string
     name     = string
   })
-
 }
 
 variable "keys" {

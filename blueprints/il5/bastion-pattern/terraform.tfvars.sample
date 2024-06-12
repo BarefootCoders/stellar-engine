@@ -38,7 +38,10 @@ keys = {
 
 email = "ashley.siddiqui@darkwolfsolutions.com"
 
-subnet_one = "subnet-one"
+group_email  =  ["email-name1@gmail.com",
+                "email-name2@gmail.com"]
+
+my_subnet     = "subnet-tnbsea-ashley"
 
 ip_cidr_range              = "10.0.0.0/24"
 
