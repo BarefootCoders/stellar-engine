@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
+# Work on the Current Project
+data "google_project" "current" {}
+
+
 # Terraform Provider for Google Cloud Platform
 provider "google" {
   project = var.current_project_id
   region  = var.location
 }
 
-# Work on the Current Project
-data "google_project" "current" {}
 
 # Get existing vpc from existing project (Main project)
 data "google_compute_network" "vpc" {
@@ -32,11 +34,11 @@ data "google_compute_network" "vpc" {
 # Google VPC Module
 module "vpc" {
   source                          = "../../../modules/net-vpc"
-  project_id                      = var.current_project_id
-  name                            = "vpc-pjt-${data.google_project.current.number}"
+  project_id                      =  var.current_project_id
+  name                            = "vpca1-${data.google_project.current.number}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
-  routing_mode                    = "GLOBAL"
+  routing_mode                    = "REGIONAL"
   # Divided from 10.200.12.0/23
   subnets = [
     {
