@@ -1,0 +1,44 @@
+---
+# This list constraint defines the set of external Organizations from which resources
+# can be imported, and denies all moves from all other Organizations. By default,
+# resources cannot be moved between Organizations. If this constraint is applied to
+# a resource, imported resources directly under this resource must be explicitly
+# allowed by this constraint. Moves within an Organization are not governed by this
+# constraint. The move operation will still require the same IAM permissions as normal
+# resource moves. Values specified in allow/deny lists must be in the form:
+#   under:organizations/ORGANIZATION_ID.
+# SHOULD HAVE
+# resourcemanager.allowedImportSources:
+#   rules:
+#   - allow:
+#       values:
+#         - under:organizations/<org_id>
+
+# This list constraint defines the set of external Organizations to which resources
+# can be moved, and denies all moves to all other Organizations. By default,
+# resources cannot be moved between Organizations. If this constraint is applied
+# to a resource, the resource can be moved only to Organizations that are explicitly
+# allowed by this constraint. Moves within an Organization are not governed by this
+# constraint. The move operation will still require the same IAM permissions as normal
+# resource moves. Values specified in allow/deny lists must be in the form:
+#   under:organizations/ORGANIZATION_ID.
+# SHOULD HAVE
+# resourcemanager.allowedExportDestinations:
+#   rules:
+#   - allow:
+#       values:
+#         - under:organizations/<org_id>
+
+# This list constraint defines the set of domains that email addresses added to
+# Essential Contacts can have. By default, email addresses with any domain can
+# be added to Essential Contacts. The allowed/denied list must specify one or
+# more domains of the form @dino-runner.darkwolfsolutions.com. If this constraint is active and
+# configured with allowed values, only email addresses with a suffix matching
+# one of the entries from the list of allowed domains can be added in Essential
+# Contacts.This constraint has no effect on updating or removing existing contacts.
+# MUST HAVE
+essentialcontacts.allowedContactDomains:
+  rules:
+  - allow:
+      values:
+        - ${domain_name}
