@@ -1,5 +1,4 @@
 project_id                 = "project-id-"
-email                      = "your-email-address@your-domain.com"
 location                   = "the-gcp-location-regions"
 host_project_name          = "the-host-project-name"
 peer_network_name          = "the-vpc-network-name-to-peer"
