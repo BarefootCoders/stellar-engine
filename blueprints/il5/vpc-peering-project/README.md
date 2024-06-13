@@ -1,4 +1,4 @@
-# Google Compute Shielded VM Project
+# Google Virtual Private Cloud (VPC) Project
 This blueprint contains all the necessary Terraform modules to build and deploy a Virtual Private Cloud (VPC) and allows creation and management of VPC networks including VPC Peering.
 
 
@@ -41,7 +41,7 @@ Changes to Outputs:
       + import_custom_routes                = true
       + import_subnet_routes_with_public_ip = null
       + name                                = (known after apply)
-      + network                             = "https://www.googleapis.com/compute/v1/projects/yyyyyyy/global/networks/prod-landing-0"
+      + network                             = "https://www.googleapis.com/compute/v1/projects/yyyyyyy/global/networks/xxxxxxx"
       + peer_network                        = (known after apply)
       + stack_type                          = "IPV4_ONLY"
       + state                               = (known after apply)
@@ -57,7 +57,7 @@ Changes to Outputs:
           + import_subnet_routes_with_public_ip = null
           + name                                = (known after apply)
           + network                             = (known after apply)
-          + peer_network                        = "https://www.googleapis.com/compute/v1/projects/yyyyyyy/global/networks/prod-landing-0"
+          + peer_network                        = "https://www.googleapis.com/compute/v1/projects/yyyyyyy/global/networks/xxxxxxx"
           + stack_type                          = "IPV4_ONLY"
           + state                               = (known after apply)
           + state_details                       = (known after apply)
@@ -96,7 +96,7 @@ Changes to Outputs:
           + gateway_address            = (known after apply)
           + id                         = (known after apply)
           + internal_ipv6_prefix       = (known after apply)
-          + ip_cidr_range              = "10.200.12.0/25"
+          + ip_cidr_range              = "x.x.x.x/25"
           + ipv6_access_type           = null
           + ipv6_cidr_range            = (known after apply)
           + log_config                 = []
@@ -104,7 +104,7 @@ Changes to Outputs:
           + network                    = "vpc-project-xxxxxx"
           + private_ip_google_access   = true
           + private_ipv6_google_access = (known after apply)
-          + project                    = "tnbsea-dev-tapand-dev"
+          + project                    = "project-name"
           + purpose                    = (known after apply)
           + region                     = "us-east4"
           + role                       = null
@@ -129,7 +129,7 @@ Changes to Outputs:
           + network                    = "vpc-project-xxxxxx"
           + private_ip_google_access   = false
           + private_ipv6_google_access = (known after apply)
-          + project                    = "tnbsea-dev-tapand-dev"
+          + project                    = "project-name"
           + purpose                    = (known after apply)
           + region                     = "us-east4"
           + role                       = null
