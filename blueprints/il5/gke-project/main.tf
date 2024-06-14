@@ -32,20 +32,20 @@ resource "google_service_account" "compute" {
 
 
 #Create KMS Key Ring and Crypto Key using the kms module
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
-  keyring    = var.keyring
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "user:${var.email}",
-      "group:${var.group_email}",
-      "serviceAccount:${google_service_account.compute.email}",
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-    ]
-  }
-}
+# module "kms" {
+#   source     = "../../../modules/kms"
+#   project_id = var.project_id
+#   keys       = var.keys
+#   keyring    = var.keyring
+#   iam = {
+#     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+#       "user:${var.email}",
+#       "group:${var.group_email}",
+#       "serviceAccount:${google_service_account.compute.email}",
+#       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+#     ]
+#   }
+# }
 
 # Google VPC Module
 module "vpc" {
@@ -55,12 +55,12 @@ module "vpc" {
   auto_create_subnetworks = false
   subnets = [
     {
-      ip_cidr_range = "10.0.1.0/24"
+      ip_cidr_range = "10.0.4.0/22"
       name          = "subnet-kube-1"
       region        = var.region
       secondary_ip_ranges = {
-        pods     = "172.16.0.0/20"
-        services = "192.168.0.0/24"
+        pods     = "10.4.0.0/14"
+        services = "10.0.32.0/20"
       }
     }
 
@@ -85,8 +85,9 @@ module "cluster" {
   location            = var.region
   deletion_protection = false
 
+
   vpc_config = {
-    master_ipv4_cidr_block = "10.0.0.0/28"
+    master_ipv4_cidr_block = "192.168.0.0/28"
     network                = module.vpc.self_link
     subnetwork             = module.vpc.subnet_self_links["${var.region}/subnet-kube-1"]
   }
@@ -94,12 +95,14 @@ module "cluster" {
     boot_disk_kms_key        = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/gke-keynamev2"
     deletion_protection      = false
     remove_default_node_pool = false
-    initial_node_count       = 1
+    initial_node_count       = 3
+
   }
   private_cluster_config = {
     enable_private_endpoint = false
     master_global_access    = false
   }
+
 
   depends_on = [module.vpc]
 }
@@ -124,7 +127,7 @@ module "cluster_nodepool" {
   location     = var.region
   name         = "nodepool-kube-1"
   service_account = {
-    create = true
+    create = false
   }
   node_config = {
     boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/gke-keynamev2"
@@ -134,3 +137,5 @@ module "cluster_nodepool" {
   node_count = { initial = 2 }
   depends_on = [module.vpc, module.cluster]
 }
+
+
