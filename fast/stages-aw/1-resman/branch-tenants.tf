@@ -264,6 +264,10 @@ module "tenant-project-key" {
       labels          = { service = "gcs" }
       locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
       rotation_period = "7776000s"
+      version_template = {
+        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+        protection_level = "HSM"
+      }
     }
   }
 }

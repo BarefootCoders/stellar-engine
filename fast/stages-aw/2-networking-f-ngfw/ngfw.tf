@@ -127,7 +127,7 @@ data "external" "openssl" {
   }
 }
 
-# Google Cloud Storage Module 
+# Google Cloud Storage Module
 module "ngfw-bootstrap-bucket" {
   source         = "../../../modules/gcs"
   for_each       = var.regions
@@ -165,6 +165,10 @@ module "kms" {
   keyring = {
     location = each.value
     name     = "landing-zone-keyring"
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "HSM"
+    }
   }
   depends_on = [module.ngfw-service-account]
 }

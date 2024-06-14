@@ -1,5 +1,5 @@
 # Google Compute Engine VM with Persistent Disk Project
-This blueprint contains all the necessary Terraform modules to build and deploy a Compute Engine VM (virtual machines VMs on Google Cloud) attached to a persistent disk having encryption using the Cloud Key Management Service (KMS). 
+This blueprint contains all the necessary Terraform modules to build and deploy a Compute Engine VM (virtual machines VMs on Google Cloud) attached to a persistent disk having encryption using the Cloud Key Management Service (KMS).
 
 ## Introduction
 Compute Engine is an Infrastructure-as-a-Service product offering flexible, self-managed virtual machines (VMs) hosted on Google's infrastructure.  Persistent Disk is Google's local durable storage service, fully integrated with Google Cloud products, Compute Engine. Persistent Disk volumes are durable network storage devices that your virtual machine (VM) instances can access like physical disks in a desktop or a server.  Persistent Disk remains encrypted usng the Customer-Managed Encryption Keys (CMEK) Cloud KMS.
@@ -8,7 +8,7 @@ Compute Engine is an Infrastructure-as-a-Service product offering flexible, self
 2. Enable the Customer-Managed Encryption Keys (CMEK) Cloud KMS for Google Compute Engine and Disk
 3.  The IL5 Requirements as of the creation of the project the region of deployment to US Only for example in us-east4 and us-central1
 
-4. __Important Note__: The project is scoped around the computer engine VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects. 
+4. __Important Note__: The project is scoped around the computer engine VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects.
 
 
 ## Pre-requisite
@@ -19,7 +19,7 @@ Compute Engine is an Infrastructure-as-a-Service product offering flexible, self
 
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
-1. Update the Variables in the variables.tf 
+1. Update the Variables in the variables.tf
 2. There is a sample ```terraform.tfvars.sample``` available as well.
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
 
@@ -78,7 +78,7 @@ keyrings-keys = {
     "version_template" = tolist([
       {
         "algorithm" = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        "protection_level" = "SOFTWARE"
+        "protection_level" = "HSM"
       },
     ])
   }
@@ -89,4 +89,3 @@ keyrings-keys = {
 
 - Go to the Compute Engine in the GCP Console. Select the VM. Check the Presistent Disk Encryption
 ![GCP Compute Engine Instance Presistent Disk Encryption](./images/vm-disk-1.png?raw=true "GCP Compute Engine Instance Presistent Disk Encryption")
- 

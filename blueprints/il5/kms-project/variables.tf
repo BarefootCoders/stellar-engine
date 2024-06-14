@@ -45,12 +45,12 @@ variable "keyring" {
     name     = string
   })
 
-  # Example  
+  # Example
   # default = {
   #  location = "us-east4"
   #  name     = "update-name-of-keyring"
   #}
-  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
+  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
 }
 
 
@@ -64,7 +64,7 @@ variable "keys" {
     skip_initial_version_creation = optional(bool, false)
     version_template = optional(object({
       algorithm        = string
-      protection_level = optional(string, "SOFTWARE")
+      protection_level = optional(string, "HSM")
     }))
 
     iam = optional(map(list(string)), {})
@@ -96,7 +96,7 @@ variable "keys" {
       }
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        protection_level = "SOFTWARE"
+        protection_level = "HSM"
       }
       iam = {
         "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-the-email-address-here", "group:update-group-email-address-here"]

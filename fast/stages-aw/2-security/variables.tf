@@ -129,7 +129,7 @@ variable "kms_keys" {
     skip_initial_version_creation = optional(bool, false)
     version_template = optional(object({
       algorithm        = string
-      protection_level = optional(string, "SOFTWARE")
+      protection_level = optional(string, "HSM")
     }))
 
     iam = optional(map(list(string)), {})

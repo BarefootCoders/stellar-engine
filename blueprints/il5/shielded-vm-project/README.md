@@ -4,7 +4,7 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 ## Introduction
 Shielded VMs are virtual machines (VMs) on Google Cloud hardened by a set of security controls that help defend against rootkits and bootkits. Using Shielded VMs helps protect enterprise workloads from threats like remote attacks, privilege escalation, and malicious insiders. Shielded VMs leverage advanced platform security capabilities such as secure and measured boot, a virtual trusted platform module (vTPM), UEFI firmware, and integrity monitoring.
 
-1. Enforce the Best Practices for the Shielded VM to be Enable Secure Boot, Enable VTPM, Monitoring 
+1. Enforce the Best Practices for the Shielded VM to be Enable Secure Boot, Enable VTPM, Monitoring
 ```
     enable_secure_boot          = true
     enable_vtpm                 = true
@@ -15,7 +15,7 @@ Shielded VMs are virtual machines (VMs) on Google Cloud hardened by a set of sec
 
 3.  The IL5 Requirements as of the creation of the project the region of deployment to US Only for example in us-east4 and us-central1
 
-4. __Important Note__: The project is scoped around the computer engine shielded VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects. 
+4. __Important Note__: The project is scoped around the computer engine shielded VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects.
 
 
 ## Pre-requisite
@@ -26,7 +26,7 @@ Shielded VMs are virtual machines (VMs) on Google Cloud hardened by a set of sec
 
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
-1. Update the Variables in the variables.tf 
+1. Update the Variables in the variables.tf
 2. There is a sample ```terraform.tfvars.sample``` available as well.
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
 
@@ -77,7 +77,7 @@ keyrings-keys = {
     "version_template" = tolist([
       {
         "algorithm" = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        "protection_level" = "SOFTWARE"
+        "protection_level" = "HSM"
       },
     ])
   }

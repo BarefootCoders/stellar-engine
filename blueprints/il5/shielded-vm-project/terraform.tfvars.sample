@@ -26,7 +26,7 @@ keys = {
     skip_initial_version_creation = false
     version_template = {
       algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-      protection_level = "SOFTWARE"
+      protection_level = "HSM"
     }
     iam                   = {}
     iam_bindings          = {}

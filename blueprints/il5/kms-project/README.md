@@ -5,8 +5,8 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 ## Introduction Google Cloud Key Management Service (Cloud KMS)
 Google Cloud Key Management Service (Cloud KMS) lets you create and manage encryption keys for use in compatible Google Cloud services and in your own applications. Using Cloud KMS, you can Generate software or hardware keys, import existing keys into Cloud KMS, or link external keys in your compatible external key management (EKM) system. Allows managing a keyring, zero or more keys in the keyring, and IAM role bindings on individual keys.
 
-1. The Rotation Period ``` rotation_period ``` is set to 90 days, 
-2. The Destory Schedulded Duration is ``` destroy_scheduled_duration ``` is set to 30 days 
+1. The Rotation Period ``` rotation_period ``` is set to 90 days,
+2. The Destory Schedulded Duration is ``` destroy_scheduled_duration ``` is set to 30 days
 3. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` is assigned
 
 ## Pre-requisite for Google Cloud Key Management Service (Cloud KMS)
@@ -39,15 +39,15 @@ You should see this README and some terraform files.
 - ```project_id```  with your GCP Project ID<br />
 -  ```email```  with your email address<br />
 - ```location```  with the GCP Location<br />
-- ```keyring``` with the location of the keyring and the name of the 
+- ```keyring``` with the location of the keyring and the name of the
 keyring, for example <br />
-```bash 
+```bash
   default = {
     location = "us-east4"
     name     = "may6v3-keyring"
   }
 ```
-- ```keys```  with the right properties, update the ```updated-the-runner-key-name``` , ```labels = { "team" = ``` , 
+- ```keys```  with the right properties, update the ```updated-the-runner-key-name``` , ```labels = { "team" = ``` ,
 ```iam = { roles/cloudkms.cryptoKeyEncrypterDecrypter = ["user:YOUR-EMAIL-ADDRESS]```
 
 2. There is a sample ```terraform.tfvars.sample``` available as well.
@@ -107,7 +107,7 @@ keyrings-keys = {
     "version_template" = tolist([
       {
         "algorithm" = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        "protection_level" = "SOFTWARE"
+        "protection_level" = "HSM"
       },
     ])
   }
@@ -116,5 +116,5 @@ qualified_key_ids = {
   "keryrings-runner-key" = "projects/project-id-123/locations/us-east4/keyRings/name-of-the-keyring/cryptoKeys/keryrings-runner-key"
 }
 
-    
+
 ```

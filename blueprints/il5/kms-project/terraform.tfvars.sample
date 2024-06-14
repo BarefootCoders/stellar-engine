@@ -16,7 +16,7 @@ keys = {
     }
     version_template = {
       algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-      protection_level = "SOFTWARE"
+      protection_level = "HSM"
     }
     iam = {
       "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-your-email-address-here", "group:update-group-email-address-here"]

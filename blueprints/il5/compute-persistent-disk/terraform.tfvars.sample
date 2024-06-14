@@ -1,4 +1,4 @@
-project_id = "the-project-id" 
+project_id = "the-project-id"
 email      = "the-email-address"
 compute_service_account_id = "computeblue"
 auto_delete           = true
@@ -22,7 +22,7 @@ keys = {
     skip_initial_version_creation = false
     version_template = {
       algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-      protection_level = "SOFTWARE"
+      protection_level = "HSM"
     }
     iam                   = {}
     iam_bindings          = {}

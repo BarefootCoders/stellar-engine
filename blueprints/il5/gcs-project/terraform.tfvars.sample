@@ -1,4 +1,4 @@
-project_id = "my-project-id" 
+project_id = "my-project-id"
 keyring = {
     location = "us-east4"
     name     = "todo-keyring"
@@ -19,7 +19,7 @@ keys = {
       skip_initial_version_creation = false
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        protection_level = "SOFTWARE"
+        protection_level = "HSM"
       }
 
       iam                   = {}
