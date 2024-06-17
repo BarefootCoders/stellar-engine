@@ -1,0 +1,7 @@
+docker:
+  registry-k8s-io:
+      remote:
+        uri: https://registry.k8s.io
+  quay-io:
+      remote:
+        uri: https://quay.io

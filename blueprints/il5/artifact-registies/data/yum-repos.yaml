@@ -1,0 +1,9 @@
+yum:
+  centos9-stream-baseos:
+      remote:
+        base: CENTOS_STREAM
+        path: 9-stream/BaseOS/x86_64/os
+  centos9-stream-appstream:
+      remote:
+        base: CENTOS_STREAM
+        path: 9-stream/AppStream/x86_64/os
