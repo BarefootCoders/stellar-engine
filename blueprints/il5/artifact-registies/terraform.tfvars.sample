@@ -1,0 +1,4 @@
+region  = "us-east4"
+project = "my-project"
+keyring = "my-project-key"
+compute_vpc = "my-project-vpc"

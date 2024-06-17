@@ -18,7 +18,10 @@ module "kms" {
       "serviceAccount:service-${data.google_project.project.number}@gcp-sa-artifactregistry.iam.gserviceaccount.com"
     ]
   }
-  keyring = var.keyring
+  keyring = {
+    name     = var.keyring
+    location = var.region
+  }
 }
 
 resource "google_artifact_registry_repository" "yum-repos" {

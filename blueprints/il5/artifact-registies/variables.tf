@@ -11,10 +11,7 @@ variable "project" {
 
 variable "keyring" {
   description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
+  type        = string
 }
 
 variable "keys" {
