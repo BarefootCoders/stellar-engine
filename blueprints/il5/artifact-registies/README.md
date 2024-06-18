@@ -25,7 +25,7 @@ The blueprint also creates a CentOS-9-Stream instance with a startup-script that
 |------|-------------|------|---------|:--------:|
 | project | The GCP Project to deploy the blueprint into | string |  | ✓ |
 | region | The GCP region to deploy the blueprint into | string | us-east4 | ✓ |
-| keyring | KMS keyring to use for encryption. Use `terraform import` if you want to use an existing keyring | string |  | ✓ |
+| keyring | KMS keyring to use for encryption. Use `terraform import 'module.kms.google_kms_key_ring.default[0]' projects/<your-project>/locations/<your location>/keyRings/<your-keyring>` if you want to use an existing keyring | string |  | ✓ |
 | keys | Configurations for the key that will be used for encrypting artifact-registry items, named "artifact-registry" | string | "artifact-registry" with HSM enabled | ✓ |
 | compute_vpc | The VPC to deploy the consumer VM into, using the first available subnet in the VPC | string |  | ✓ |
 
