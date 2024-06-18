@@ -9,7 +9,7 @@ locals {
 
 data "google_project" "project" {}
 
-resource "google_project_service" "project" {
+resource "google_project_service" "api" {
   project = data.google_project.project.id
   service = "artifactregistry.googleapis.com"
 }
@@ -29,7 +29,10 @@ module "kms" {
     name     = var.keyring
     location = var.region
   }
-  depends_on = [google_artifact_registry_repository.docker-hub]
+  depends_on = [
+    google_artifact_registry_repository.docker-hub,
+    google_project_service.api
+  ]
 }
 
 resource "google_artifact_registry_repository" "yum-repos" {
@@ -50,7 +53,8 @@ resource "google_artifact_registry_repository" "yum-repos" {
   }
   kms_key_name = module.kms.keys["artifact-registry"].id
   depends_on = [
-    module.kms
+    module.kms,
+    google_project_service.api
   ]
 }
 
@@ -70,6 +74,7 @@ resource "google_artifact_registry_repository" "docker-hub" {
   # This forces GCP to create the service-account, so that we can grant the service account permissions to use KMS
   # Getting us out of the dependency loop
   kms_key_name = "projects/${data.google_project.project.name}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/artifact-registry"
+  depends_on   = [google_project_service.api]
 }
 
 resource "google_artifact_registry_repository" "docker-repos" {
@@ -89,7 +94,8 @@ resource "google_artifact_registry_repository" "docker-repos" {
   }
   kms_key_name = module.kms.keys["artifact-registry"].id
   depends_on = [
-    module.kms
+    module.kms,
+    google_project_service.api
   ]
 }
 
