@@ -1,0 +1,42 @@
+project_id            = "my-tenent-il5-repo"
+
+service_account_email = "my-email@gmail.com"
+
+email                 = "my-email@gmail.com"
+
+name                  = "sample-dataflow-name"
+
+zone                  = "us-east4"
+
+template_gcs_path     = "gs://my-bucket/template/template_file"
+
+bucket_name           = "sample-bucket-name"
+
+keyring = {
+  location = "us-east4"
+  name     = "my-sample-keyring"
+}
+
+kms_key_self_link = "projects/my-project/locations/my-location/keyRings/my-sample-keyring/cryptoKeys/default"
+
+keys = {
+  "default" = {
+    rotation_period            = "7776000s"
+    destroy_scheduled_duration = "2592000s"
+    labels = {
+      "team" = "update-label-team"
+    }
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "HSM"
+    }
+    iam = {
+      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:my-email@gmail.com"]
+    }
+    lifecycle = {
+      prevent_destroy = true
+    }
+  }
+}
+
+compute_service_account_id = "compute-two"
