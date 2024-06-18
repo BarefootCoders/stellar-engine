@@ -1,3 +1,55 @@
+project_id                           = "update-your-project_id"
+email                                = "update-your-email-address-here"
+group_email                          = "update-group-email-address-here"
+region                               = "us-east4"
+gke_service_account_id               = "the-gke-service-account-ID"
+vpc_name_1                           = "name-of-the-gke-vpc"
+subnet_name_1                        = "name-of-the-subnet"
+subnet_ip_cidr_range_1               = "10.0.4.0/22"
+subnet_secondary_ip_range_pods_1     = "10.4.0.0/14"
+subnet_secondary_ip_range_services_1 = "10.0.32.0/20"
+gke_vpc_master_ipv4_cidr_block       = "192.168.0.0/28"
+gke_cluster_name                     = "gke-k8-cluster_name"
+gke_initial_node_count               = 1
+node_config_tags                     = ["node-config-gke", "intial-nodeconfig-gke"]
+gke_nat_name                         = "gke-nat-name"
+gke_nodepool_name                    = "gke-nodepool-name"
+node_machine_type                    = "e2-medium"
+node_disk_size_gb                    = 15
+nodepool_node_count = {
+  initial = 1
+}
+keyring = {
+  location = "us-east4"
+  name     = "gkekeyring"
+}
+keys = {
+  "key-gke" = {
+    rotation_period            = "7776000s"
+    destroy_scheduled_duration = "2592000s"
+    labels = {
+      "team" = "gke-team"
+    }
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "SOFTWARE"
+    }
+    iam = {
+      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-your-email-address-here", "group:update-group-email-address-here"]
+    }
+    lifecycle = {
+      prevent_destroy = true
+    }
+  }
+}
+
+
+
+
+
+
+
+
 project_id = "update-your-project_id"
 email      = "update-your-email-address-here"
 group_email = "update-group-email-address-here"
@@ -19,14 +71,10 @@ node_disk_size_gb = 15
 nodepool_node_count = {
   initial = 1
 }
-
-
-
 keyring = {
   location = "us-east4"
   name     = "gkekeyring"
 }
-
 keys = {
   "key-gke" = {
     rotation_period            = "7776000s"
