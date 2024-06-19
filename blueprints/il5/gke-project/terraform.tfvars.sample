@@ -10,12 +10,12 @@ subnet_secondary_ip_range_pods_1     = "10.4.0.0/14"
 subnet_secondary_ip_range_services_1 = "10.0.32.0/20"
 gke_vpc_master_ipv4_cidr_block       = "192.168.0.0/28"
 gke_cluster_name                     = "gke-k8-cluster_name"
-gke_initial_node_count               = 1
+gke_initial_node_per_zone            = 1
 node_config_tags                     = ["node-config-gke", "intial-nodeconfig-gke"]
 gke_nat_name                         = "gke-nat-name"
 gke_nodepool_name                    = "gke-nodepool-name"
 node_machine_type                    = "e2-medium"
-node_disk_size_gb                    = 15
+node_disk_size_gb                    = 20
 nodepool_node_count = {
   initial = 1
 }

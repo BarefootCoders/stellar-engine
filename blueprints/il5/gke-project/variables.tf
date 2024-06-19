@@ -70,10 +70,10 @@ variable "gke_cluster_name" {
   # default     = "gke-kubernetes-cls"
 }
 
-variable "gke_initial_node_count" {
-  description = "The Initla Node Count when the GKE Cluster Spins up"
+variable "gke_initial_node_per_zone" {
+  description = "The intial number of Node per each zone"
   type        = number
-  #default     = 3
+  #default     = 1
 }
 
 variable "node_config_tags" {
@@ -108,7 +108,7 @@ variable "node_disk_size_gb" {
 }
 
 variable "nodepool_node_count" {
-  description = "Number of nodes  in the Nodepool"
+  description = "Number of node per zone in the Nodepool"
   type = object({
     current = optional(number)
     initial = number
@@ -116,7 +116,7 @@ variable "nodepool_node_count" {
   nullable = false
   # Example  
   # default = {
-  #   initial = 2
+  #   initial = 1
   # }
 
 }
@@ -130,7 +130,7 @@ variable "keyring" {
   # Example  
   # default = {
   #  location = "us-east4"
-  #  name     = "update-name-of-keyring"
+  #  name     = "gkekeyring"
   #}
   # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
 

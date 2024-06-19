@@ -5,6 +5,8 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 - GKE is a Google-managed implementation of the Kubernetes open source container orchestration platform.  In GKE Standard mode, there is flexible node upgrade strategies to optimize availability and manage disruptions. 
 - In GKE Standard mode, you pay for all resources on nodes, regardless of Pod requests. A GKE environment consists of nodes, which are Compute Engine virtual machines (VMs) with Customer-Managed Encryption Keys (CMEK) Cloud KMS that are grouped together to form a cluster. 
 - This implementation offers a way to create and manage Google Kubernetes Engine (GKE) [Standard clusters](https://cloud.google.com/kubernetes-engine/docs/concepts/choose-cluster-mode#why-standard). 
+- In GKE, the allocation of the nodes is done as per the Zone. For example, if there are 3 Zone and the initial node allocation per Zone is 1, then the total number of Nodes in the cluster shall be initial node allocation per zone times the total number of Zone 
+- For example, If there are 3 Zone us-east4-a, us-east4-b, us-east4-c. The initial node allocation per zone is 1. Then the total number of nodes shall be 3 x 1 = 3 total nodes in the cluster.
 ## Pre-requisite
 1. The Principal (user or group) must have Cloud KMS Admin, Able to Deploy a Google VPC, GKE Create, permission at the GCP Level.
 2. Have access to the GCP Project ID
