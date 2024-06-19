@@ -32,21 +32,20 @@ resource "google_service_account" "gke" {
 
 
 # #Create KMS Key Ring and Crypto Key using the kms module
-# module "kms" {
-#   source     = "../../../modules/kms"
-#   project_id = var.project_id
-#   keys       = var.keys
-#   keyring    = var.keyring
-#   iam = {
-#     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-#       "user:${var.email}",
-#       "group:${var.group_email}",
-#       "serviceAccount:${google_service_account.gke.email}",
-#       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-#     ]
-#   }
-# }
-
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = var.project_id
+  keys       = var.keys
+  keyring    = var.keyring
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      "user:${var.email}",
+      "group:${var.group_email}",
+      "serviceAccount:${google_service_account.gke.email}",
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+    ]
+  }
+}
 
 # Google VPC Module management of VPC networks including subnetworks
 module "vpc" {
@@ -65,7 +64,7 @@ module "vpc" {
       }
     }
   ]
-  depends_on = [module.kms]
+  #depends_on = [module.kms]
 }
 
 
@@ -76,7 +75,8 @@ module "nat" {
   region         = var.region
   name           = var.gke_nat_name
   router_network = module.vpc.name
-  depends_on     = [module.vpc, module.kms]
+  #depends_on     = [module.vpc, module.kms]
+  depends_on = [module.vpc]
 }
 
 
@@ -105,7 +105,8 @@ module "cluster" {
     enable_private_endpoint = false
     master_global_access    = false
   }
-  depends_on = [module.vpc, module.kms]
+  #depends_on = [module.vpc, module.kms]
+  depends_on = [module.vpc]
 }
 
 # # Google GKE Kubernetes NodePool Module
@@ -126,5 +127,6 @@ module "cluster_nodepool" {
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"
   }
-  depends_on = [module.vpc, module.cluster, module.kms]
+  depends_on = [module.vpc, module.cluster]
+  # depends_on = [module.vpc, module.cluster, module.kms]
 }
