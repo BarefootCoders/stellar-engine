@@ -43,7 +43,6 @@ module "project" {
     "cloudresourcemanager.googleapis.com",
     "container.googleapis.com",
     "containeranalysis.googleapis.com",
-    "sourcerepo.googleapis.com"
   ]
   iam = {
     "roles/storage.admin" = [module.sa.iam_email]
