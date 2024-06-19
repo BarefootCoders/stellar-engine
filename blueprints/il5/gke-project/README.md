@@ -6,7 +6,7 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 - In GKE Standard mode, you pay for all resources on nodes, regardless of Pod requests. A GKE environment consists of nodes, which are Compute Engine virtual machines (VMs) with Customer-Managed Encryption Keys (CMEK) Cloud KMS that are grouped together to form a cluster. 
 - This implementation offers a way to create and manage Google Kubernetes Engine (GKE) [Standard clusters](https://cloud.google.com/kubernetes-engine/docs/concepts/choose-cluster-mode#why-standard). 
 - In GKE, the allocation of the nodes is done as per the Zone. For example, if there are 3 Zone and the initial node allocation per Zone is 1, then the total number of Nodes in the cluster shall be initial node allocation per zone times the total number of Zone 
-- For example, If there are 3 Zone us-east4-a, us-east4-b, us-east4-c. The initial node allocation per zone is 1. Then the total number of nodes shall be 3 x 1 = 3 total nodes in the cluster.
+- For example, If there are 3 Zone gcp-region-name-a, gcp-region-name-b, gcp-region-name-c. The initial node allocation per zone is 1. Then the total number of nodes shall be 3 x 1 = 3 total nodes in the cluster.
 ## Pre-requisite
 1. The Principal (user or group) must have Cloud KMS Admin, Able to Deploy a Google VPC, GKE Create, permission at the GCP Level.
 2. Have access to the GCP Project ID
@@ -29,59 +29,61 @@ It will take a few minutes. When complete, you should see an output stating the 
 
 The Output will look like following
 ```
-Apply complete! Resources: 13 added, 0 changed, 0 destroyed.
+Apply complete! Resources: 8 added, 0 changed, 0 destroyed.
 
 Outputs:
 
 gke_cluster_endpoint = "x.x.x.x"
-gke_cluster_name = "cluster-name-here"
-keyring-id = "projects/project-name/locations/us-east4/keyRings/keyring-name"
-keyring-location = "us-east4"
-keyring-name = "keyring-name"
-keyring-resource = {
-  "id" = "projects/project-name/locations/us-east4/keyRings/keyring-name"
-  "location" = "us-east4"
-  "name" = "keyring-name"
-  "project" = "project-name"
-  "timeouts" = null /* object */
+gke_cluster_name = "gke-cluster-name"
+nodepool_id = "projects/project-name/locations/gcp-region-name/clusters/gke-cluster-name/nodePools/nodepool-name-here"
+nodepool_name = "nodepool-name-here"
+subnet_regions = {
+  "gcp-region-name/subnet-xxx-xxx" = "gcp-region-name"
 }
-keyrings-keys = {
-  "keyring-version-name" = {
-    "crypto_key_backend" = ""
-    "destroy_scheduled_duration" = "xxxxxxs"
-    "effective_labels" = tomap({
-      "team" = "gke-team"
-    })
-    "id" = "projects/project-name/locations/us-east4/keyRings/keyring-name/cryptoKeys/keyring-version-name"
-    "import_only" = false
-    "key_ring" = "projects/project-name/locations/us-east4/keyRings/keyring-name"
-    "labels" = tomap({
-      "team" = "gke-team"
-    })
-    "name" = "keyring-version-name"
-    "primary" = tolist([
+subnets = {
+  "gcp-region-name/subnet-xxx-xxx" = {
+    "description" = "Terraform-managed."
+    "external_ipv6_prefix" = ""
+    "fingerprint" = tostring(null)
+    "gateway_address" = "x.x.x.x"
+    "id" = "projects/project-name/regions/gcp-region-name/subnetworks/subnet-xxx-xxx"
+    "internal_ipv6_prefix" = ""
+    "ip_cidr_range" = "x.x.x.x/22"
+    "ipv6_access_type" = ""
+    "ipv6_cidr_range" = ""
+    "log_config" = tolist([])
+    "name" = "subnet-xxx-xxx"
+    "network" = "https://www.googleapis.com/compute/v1/projects/project-name/global/networks/vpc-name-here"
+    "private_ip_google_access" = true
+    "project" = "project-name"
+    "purpose" = "PRIVATE"
+    "region" = "gcp-region-name"
+    "role" = ""
+    "secondary_ip_range" = tolist([
       {
-        "name" = "projects/project-name/locations/us-east4/keyRings/keyring-name/cryptoKeys/keyring-version-name/cryptoKeyVersions/1"
-        "state" = "ENABLED"
+        "ip_cidr_range" = "x.x.x.x/14"
+        "range_name" = "pods"
+      },
+      {
+        "ip_cidr_range" = "x.x.x.x/20"
+        "range_name" = "services"
       },
     ])
-    "purpose" = "ENCRYPT_DECRYPT"
-    "rotation_period" = "xyxyxyxs"
-    "skip_initial_version_creation" = false
-    "terraform_labels" = tomap({
-      "team" = "update-the-team-name"
-    })
+    "self_link" = "https://www.googleapis.com/compute/v1/projects/project-name/regions/gcp-region-name/subnetworks/subnet-xxx-xxx"
+    "stack_type" = "IPV4_ONLY"
     "timeouts" = null /* object */
-    "version_template" = tolist([
-      {
-        "algorithm" = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        "protection_level" = "SOFTWARE"
-      },
-    ])
   }
 }
-qualified_key_ids = {
-  "keyring-version-name" = "projects/project-name/locations/us-east4/keyRings/keyring-name/cryptoKeys/keyring-version-name"
+vpc-network = {
+  "id" = "projects/project-name/global/networks/vpc-name-here"
+  "name" = "vpc-name-here"
+  "self_link" = "https://www.googleapis.com/compute/v1/projects/project-name/global/networks/vpc-name-here"
+}
+vpc-subnet_ids = {
+  "gcp-region-name/subnet-xxx-xxx" = "projects/project-name/regions/gcp-region-name/subnetworks/subnet-xxx-xxx"
+}
+vpc-subnet_ips = {
+  "gcp-region-name/subnet-xxx-xxx" = "x.x.x.x/22"
 }
 
 
