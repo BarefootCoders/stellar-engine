@@ -25,11 +25,16 @@ Obtains access credentials for your user account via a web-based authorization f
 | iam bindings| associates IAM policies with members | `list(string)`|  `[]` | yes |
 | default|contains the duration, roation, protection, algorithm of the keys  | `list(string)` | `[]` | yes |
 
-## How to deploy the Terraform Code. The Deployment Steps
+## How to deploy the Terraform Code. The Deployment Steps                  
+<img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
+
 You should see this README and some terraform files.
 1. Update the Variables in the variables.tf and also the properties within the keys variables. For reference update the following variables and associated properties
 2. There is a sample ```terraform.tfvars.sample``` available as well.
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
+
+Verification of a successful deployment? 
+The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
 
 ```bash
 terraform init
