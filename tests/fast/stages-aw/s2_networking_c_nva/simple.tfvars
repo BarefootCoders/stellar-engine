@@ -12,14 +12,14 @@ dns = {
   enable_logging = true
 }
 enable_cloud_nat   = true
-essential_contacts = "gcp-network-admins@fast.example.com"
+essential_contacts = "gcp-vpc-network-admins@fast.example.com"
 folder_ids = {
   networking      = null
   networking-dev  = null
   networking-prod = null
 }
 groups = {
-  gcp-network-admins = "gcp-network-admins"
+  gcp-vpc-network-admins = "gcp-vpc-network-admins"
 }
 service_accounts = {
   data-platform-dev    = "string"

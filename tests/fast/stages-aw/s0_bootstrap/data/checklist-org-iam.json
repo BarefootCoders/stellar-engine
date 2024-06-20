@@ -38,7 +38,7 @@
         }
       },
       {
-        "principal": "group:gcp-network-admins@fast.example.com",
+        "principal": "group:gcp-vpc-network-admins@fast.example.com",
         "group_id": "NETWORK_ADMINS",
         "role": [
           "roles/compute.networkAdmin",

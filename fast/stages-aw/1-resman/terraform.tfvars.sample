@@ -4,11 +4,11 @@ tenants = {
    descriptive_name = "tenant_name"
    compliance = {
      regime   = "IL5"
-     location = "us-east4"
+     location = "US"
    }
    locations = {
-     gcs = "region"
-     kms = "region"
+     gcs = "us-east4"
+     kms = "us-east4"
    }
  },
 }
