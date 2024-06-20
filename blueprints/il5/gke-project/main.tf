@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
 # Terraform Provider for Google Cloud Platform
 provider "google" {
   project = var.project_id
@@ -83,16 +84,16 @@ module "cluster" {
   }
   default_nodepool = {
     initial_node_count       = var.gke_initial_node_per_zone
-    remove_default_node_pool = false
+    remove_default_node_pool = var.remove_default_node_pool
   }
   node_config = {
-    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-gke"
+    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-k8s"
     service_account   = google_service_account.gke.email
     tags              = var.node_config_tags
   }
   private_cluster_config = {
-    enable_private_endpoint = false
-    master_global_access    = false
+    enable_private_endpoint = var.gke_cluster_enable_private_endpoint
+    master_global_access    = var.gke_cluster_master_global_access
   }
   depends_on = [module.vpc, module.kms]
 }
@@ -110,7 +111,7 @@ module "cluster_nodepool" {
     create = false
   }
   node_config = {
-    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-gke"
+    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-k8s"
     disk_size_gb      = var.node_disk_size_gb
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"

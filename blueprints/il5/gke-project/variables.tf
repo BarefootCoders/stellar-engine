@@ -76,6 +76,12 @@ variable "gke_initial_node_per_zone" {
   #default     = 1
 }
 
+variable "remove_default_node_pool" {
+  description = "The Default NodePool remove it or not"
+  type        = bool
+  # default     = false
+}
+
 variable "node_config_tags" {
   description = "The Tags on the Node Configuration"
   type        = list(string)
@@ -83,11 +89,17 @@ variable "node_config_tags" {
   # default     = ["node-config-gke", "intial-nodeconfig-gke"]  
 }
 
-# variable "gke_nat_name" {
-#   description = "The GKE Cloud NAT to name"
-#   type        = string
-#   # default     = "nat-gke-kubernetes"
-# }
+variable "gke_cluster_enable_private_endpoint" {
+  description = "The Private Cluster configuration to enable private end point"
+  type        = bool
+  # default     = false
+}
+
+variable "gke_cluster_master_global_access" {
+  description = "The Private Cluster configuration to check the master Global Access"
+  type        = bool
+  # default     = false
+}
 
 variable "gke_nodepool_name" {
   description = "The GKE Kubernetes Cluster Name"
@@ -98,13 +110,13 @@ variable "gke_nodepool_name" {
 variable "node_machine_type" {
   description = "The Node Machine type to be used in the NodePool"
   type        = string
-  default     = "e2-medium"
+  # default     = "e2-medium"
 }
 
 variable "node_disk_size_gb" {
   description = "The disk size in GB to be given to each node"
   type        = number
-  # default     = 15
+  # default     = 20
 }
 
 variable "nodepool_node_count" {
@@ -133,7 +145,6 @@ variable "keyring" {
   #  name     = "gkekeyring"
   #}
   # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
-
 }
 
 variable "keys" {
@@ -189,6 +200,3 @@ variable "keys" {
   }
   nullable = false
 }
-
-
-
