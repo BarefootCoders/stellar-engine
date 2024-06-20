@@ -15,17 +15,12 @@ Obtains access credentials for your user account via a web-based authorization f
 |------|-------------|------|---------|:--------:|
 | project_id | Project ID GCP | `string` | n/a | yes |
 | region |region/location of project | `string` | n/a | yes |
-| name|The name of dataflow instance.| `string` | n/a | yes |
 | email|The email of the user| `string` | n/a | yes |
-| service_account_email|This is the email of the service account. | `string` | n/a | yes |
-| zone |zone of the bastion instance | `string` | n/a | yes |
 | compute_service_account_id |The compute service account id.| `string` | n/a | yes |
-| kms_key_self_link |This is the self link of the KMS key for disk encryption.| `string` | n/a | yes |
-| temp_gcs_location |The location in which the dataflow job will be deployed.| `string` | n/a | yes |
-| template_gcs_path |The path in which the dataflow job will be deployed.| `string` | n/a | yes |
 | bucket_name |Name of bucket| `string` | n/a | yes |
-| keyring | Keyring name | `string` | n/a | yes |
-| keys | Key names. | `list(string)` | `[]` | yes |
+| dataflow_service_account_id |Name of dataflow service account| `string` | n/a | yes |
+| keyring | Keyring name | `KMS keyring to use for encryption. Use terraform import 'module.kms.google_kms_key_ring.default[0]' projects/<your-project>/locations/<your location>/keyRings/<your-keyring> if you want to use an existing keyring` | n/a | yes |
+| keys | Key names. | `Key to use for encryption - defaults to the name "bastion". Use terraform import 'module.kms.google_kms_crypto_key.default["bastion"]' projects/<your-project>/locations/<your-location>/keyRings/<your-keyring>/cryptoKeys/bastion if you want to use an existing key` | `[]` | yes |
 | iam | Identity and Access Management. |`list(string)` |  `[]` | yes |
 | iam bindings| associates IAM policies with members | `list(string)`|  `[]` | yes |
 | default|contains the duration, roation, protection, algorithm of the keys  | `list(string)` | `[]` | yes |
@@ -43,3 +38,10 @@ terraform apply
 ```
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
+
+module.kms.google_kms_crypto_key_iam_binding.authoritative["my-key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Modifying... [id=projects/my-dev-repo/locations/us-east4/keyRings/my-keyring/cryptoKeys/my-key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
+module.kms.google_kms_crypto_key_iam_binding.authoritative["my-key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Modifications complete after 5s [id=projects/my-dev-repo/locations/us-east4/keyRings/my-keyring/cryptoKeys/my-key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
+google_storage_bucket.bucket: Creating...
+google_storage_bucket.bucket: Creation complete after 1s [id=bucket-name]
+
+Apply complete! Resources: 1 added, 1 changed, 0 destroyed.

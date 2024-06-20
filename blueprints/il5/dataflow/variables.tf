@@ -24,11 +24,6 @@ variable "region" {
   default     = "us-east4"
 }
 
-variable "name" {
-  description = "The name of dataflow instance."
-  type        = string
-}
-
 variable "email" {
   description = "The email of the user."
   type        = string
@@ -41,7 +36,6 @@ variable "keyring" {
     name     = string
   })
 }
-
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
@@ -78,39 +72,12 @@ variable "keys" {
   }))
 }
 
-variable "service_account_email" {
-  description = "This is the email of the service account."
-  type        = string
-}
-
-variable "zone" {
-  description = "The zone in which the dataflow job will be deployed."
-  type        = string
-}
-
-variable "compute_service_account_id" {
-  description = "The compute service account id."
-  type        = string
-}
-
-variable "kms_key_self_link" {
-  description = "This is the self link of the KMS key for disk encryption."
-  type        = string
-}
-
-variable "temp_gcs_location" {
-  description = "The location in which the dataflow job will be deployed."
-  type        = string
-  default     = "us-east4"
-}
-
-variable "template_gcs_path" {
-  description = "The path in which the dataflow job will be deployed."
-  type        = string
-  default     = "us-east4"
-}
-
 variable "bucket_name" {
+  description = "This is the name of the bucket."
+  type        = string
+}
+
+variable "dataflow_service_account_id" {
   description = "This is the name of the bucket."
   type        = string
 }

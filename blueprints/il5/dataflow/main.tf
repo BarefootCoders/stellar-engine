@@ -22,10 +22,33 @@ provider "google" {
 #Current Project
 data "google_project" "current" {}
 
-# Custom service account with compute engine role  
-resource "google_service_account" "compute" {
-  account_id = var.compute_service_account_id
-  project    = var.project_id
+data "google_storage_project_service_account" "gcs_account" {}
+
+resource "google_kms_crypto_key_iam_binding" "binding" {
+  crypto_key_id = module.kms.keys.keysummer1.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  members       = ["serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"]
+}
+
+# Create the Dataflow service account
+resource "google_service_account" "dataflow" {
+  account_id   = var.dataflow_service_account_id
+  display_name = "Dataflow Service Account"
+  project      = var.project_id
+}
+
+resource "google_storage_bucket" "bucket" {
+  name     = var.bucket_name
+  location = var.region
+
+  encryption {
+    default_kms_key_name = module.kms.keys.keysummer1.id
+  }
+  uniform_bucket_level_access = true
+
+  # Ensure the KMS crypto-key IAM binding for the service account exists prior to the
+  # bucket attempting to utilise the crypto-key.
+  depends_on = [google_kms_crypto_key_iam_binding.binding]
 }
 
 #Google KMS Module
@@ -37,41 +60,10 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
       [
-        "serviceAccount:${google_service_account.compute.email}",
+        "serviceAccount:${google_service_account.dataflow.email}",
         "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
         "user:${var.email}",
     ])
   }
   keyring = var.keyring
-}
-
-#Making dataflow bucket
-resource "google_storage_bucket" "dataflow_bucket" {
-  name                        = var.bucket_name
-  location                    = var.region
-  uniform_bucket_level_access = true
-  encryption {
-    default_kms_key_name = module.kms.keys.default.id
-  }
-  lifecycle_rule {
-    action {
-      type = "Delete"
-    }
-    condition {
-      age = 25
-    }
-  }
-}
-
-#Using the terraform dataflow module
-module "dataflow_job" {
-  source                = "terraform-google-modules/dataflow/google"
-  version               = "~> 1.0"
-  project_id            = var.project_id
-  name                  = var.name
-  template_gcs_path     = var.template_gcs_path
-  temp_gcs_location     = var.temp_gcs_location
-  region                = var.region
-  service_account_email = var.service_account_email
-  zone                  = var.zone
 }

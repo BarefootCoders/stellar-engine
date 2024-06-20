@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+output "dataflow_service_account_email" {
+  description = "Email of dataflow service account"
+  value       = google_service_account.dataflow.email
+}
 output "bucket_name" {
-  description = "The name of the bucket"
-  value       = google_storage_bucket.dataflow_bucket.name
-}
-
-output "bucket_url" {
-  description = "The URL of the created bucket"
-  value       = "https://console.cloud.google.com/storage/browser/${google_storage_bucket.dataflow_bucket.name}?project=${var.project_id}"
-}
-
-output "kms_key_self_link" {
-  description = "The self link of the default KMS key"
-  value       = module.kms.keys.default.id
-}
-
-output "compute_service_account_email" {
-  description = "The email of the compute service account"
-  value       = google_service_account.compute.email
+  description = "Name of Google Cloud storage bucket"
+  value       = google_storage_bucket.bucket.name
 }

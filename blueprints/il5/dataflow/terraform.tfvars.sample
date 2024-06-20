@@ -1,23 +1,15 @@
-project_id            = "my-tenent-il5-repo"
+project_id            = "my-il5-repo"
 
-service_account_email = "my-email@gmail.com"
+email                 = "test@email.com"
 
-email                 = "my-email@gmail.com"
+bucket_name           = "my-bucket"
 
-name                  = "sample-dataflow-name"
-
-zone                  = "us-east4"
-
-template_gcs_path     = "gs://my-bucket/template/template_file"
-
-bucket_name           = "sample-bucket-name"
+dataflow_service_account_id = "dataflow-user"
 
 keyring = {
   location = "us-east4"
-  name     = "my-sample-keyring"
+  name     = "my-keyring"
 }
-
-kms_key_self_link = "projects/my-project/locations/my-location/keyRings/my-sample-keyring/cryptoKeys/default"
 
 keys = {
   "default" = {
@@ -31,12 +23,10 @@ keys = {
       protection_level = "HSM"
     }
     iam = {
-      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:my-email@gmail.com"]
+      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:test@email.com"]
     }
     lifecycle = {
       prevent_destroy = true
     }
   }
 }
-
-compute_service_account_id = "compute-two"
