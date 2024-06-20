@@ -50,6 +50,7 @@ locals {
     }
     (local.principals.gcp-organization-admins) = {
       authoritative = [
+        "roles/axt.admin",
         "roles/cloudasset.owner",
         "roles/cloudsupport.admin",
         "roles/compute.osAdminLogin",
@@ -59,7 +60,8 @@ locals {
         "roles/resourcemanager.organizationAdmin",
         "roles/resourcemanager.projectCreator",
         "roles/resourcemanager.tagAdmin",
-        "roles/iam.workforcePoolAdmin"
+        "roles/iam.workforcePoolAdmin",
+        "roles/assuredworkloads.admin"
       ]
       additive = concat(
         [
@@ -135,11 +137,13 @@ locals {
     }
     (module.automation-tf-resman-sa.iam_email) = {
       authoritative = [
+        "roles/assuredworkloads.admin",
         "roles/logging.admin",
         "roles/resourcemanager.folderAdmin",
         "roles/resourcemanager.projectCreator",
         "roles/resourcemanager.tagAdmin",
-        "roles/resourcemanager.tagUser"
+        "roles/resourcemanager.tagUser",
+        "roles/assuredworkloads.admin"
       ]
       additive = concat(
         [
@@ -152,6 +156,7 @@ locals {
     }
     (module.automation-tf-resman-r-sa.iam_email) = {
       authoritative = [
+        "roles/assuredworkloads.reader",
         "roles/logging.viewer",
         "roles/resourcemanager.folderViewer",
         "roles/resourcemanager.tagViewer",

@@ -127,6 +127,7 @@ module "automation-project" {
   services = concat(
     [
       "accesscontextmanager.googleapis.com",
+      "assuredworkloads.googleapis.com",
       "bigquery.googleapis.com",
       "bigqueryreservation.googleapis.com",
       "bigquerystorage.googleapis.com",
