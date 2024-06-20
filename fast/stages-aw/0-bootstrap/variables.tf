@@ -167,6 +167,7 @@ variable "locations" {
     gcs     = optional(string, "EU")
     logging = optional(string, "global")
     pubsub  = optional(list(string), [])
+    kms     = optional(string, "EU")
   })
   nullable = false
   default  = {}
