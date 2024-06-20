@@ -38,7 +38,7 @@ locals {
         ]
       )
     }
-    (local.principals.gcp-network-admins) = {
+    (local.principals.gcp-vpc-network-admins) = {
       authoritative = [
         "roles/cloudasset.owner",
         "roles/cloudsupport.techSupportEditor",

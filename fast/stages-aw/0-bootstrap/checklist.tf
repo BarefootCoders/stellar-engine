@@ -21,7 +21,7 @@ locals {
     DEVOPS         = local.principals.gcp-devops
     # LOGGING_ADMINS
     # MONITORING_ADMINS
-    NETWORK_ADMINS  = local.principals.gcp-network-admins
+    NETWORK_ADMINS  = local.principals.gcp-vpc-network-admins
     ORG_ADMINS      = local.principals.gcp-organization-admins
     SECURITY_ADMINS = local.principals.gcp-security-admins
   }

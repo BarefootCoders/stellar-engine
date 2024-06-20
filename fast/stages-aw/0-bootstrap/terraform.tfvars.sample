@@ -4,7 +4,7 @@ billing_account = {
   id = "012345-67890A-BCDEF0"
 }
 
-# locations for GCS, BigQuery, and logging buckets created here
+# locations for GCS, BigQuery, KMS, and logging buckets created here
 locations = {
   bq      = "us-east4"
   gcs     = "us-east4"

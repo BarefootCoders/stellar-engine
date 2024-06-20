@@ -43,7 +43,7 @@ Legend: <code>+</code> additive, <code>•</code> conditional.
 
 | members | roles |
 |---|---|
-|<b>gcp-network-admins</b><br><small><i>group</i></small>|[roles/editor](https://cloud.google.com/iam/docs/understanding-roles#editor) |
+|<b>gcp-vpc-network-admins</b><br><small><i>group</i></small>|[roles/editor](https://cloud.google.com/iam/docs/understanding-roles#editor) |
 |<b>prod-resman-net-0</b><br><small><i>serviceAccount</i></small>|[roles/compute.xpnAdmin](https://cloud.google.com/iam/docs/understanding-roles#compute.xpnAdmin) <br>[roles/logging.admin](https://cloud.google.com/iam/docs/understanding-roles#logging.admin) <br>[roles/owner](https://cloud.google.com/iam/docs/understanding-roles#owner) <br>[roles/resourcemanager.folderAdmin](https://cloud.google.com/iam/docs/understanding-roles#resourcemanager.folderAdmin) <br>[roles/resourcemanager.projectCreator](https://cloud.google.com/iam/docs/understanding-roles#resourcemanager.projectCreator) |
 |<b>prod-resman-net-0r</b><br><small><i>serviceAccount</i></small>|[roles/resourcemanager.folderViewer](https://cloud.google.com/iam/docs/understanding-roles#resourcemanager.folderViewer) <br>[roles/viewer](https://cloud.google.com/iam/docs/understanding-roles#viewer) |
 

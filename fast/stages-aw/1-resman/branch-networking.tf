@@ -44,7 +44,7 @@ module "branch-network-folder" {
   parent = "organizations/${var.organization.id}"
   name   = "Networking"
   iam_by_principals = {
-    (local.principals.gcp-network-admins) = [
+    (local.principals.gcp-vpc-network-admins) = [
       # owner and viewer roles are broad and might grant unwanted access
       # replace them with more selective custom roles for production deployments
       "roles/editor",

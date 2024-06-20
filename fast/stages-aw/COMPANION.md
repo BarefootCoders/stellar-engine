@@ -12,7 +12,7 @@ The detailed explanation of each stage, their configuration, possible modificati
 
 - `gcp-billing-admins@`
 - `gcp-devops@`
-- `gcp-network-admins@`
+- `gcp-vpc-network-admins@`
 - `gcp-organization-admins@`
 - `gcp-security-admins@`
 - `gcp-support@`
