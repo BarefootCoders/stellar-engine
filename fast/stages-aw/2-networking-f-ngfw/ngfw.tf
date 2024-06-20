@@ -57,9 +57,6 @@ data "google_compute_image" "vmseries" {
   most_recent = true
   project     = "paloaltonetworksgcp-public"
 }
-data "google_compute_default_service_account" "gce_account" {
-  project = module.landing-project.project_id
-}
 
 resource "tls_private_key" "ngfw-ssh" {
   algorithm = "RSA"
