@@ -32,7 +32,7 @@ resource "google_assured_workloads_workload" "assured_workload_folder" {
   location          = var.compliance.location
   organization      = var.compliance.organization
 
-  provisioned_resources_parent = var.parent
+  provisioned_resources_parent = strcontains(var.parent, "folders/") ? var.parent : ""
 
   resource_settings {
     resource_type = "CONSUMER_FOLDER"
