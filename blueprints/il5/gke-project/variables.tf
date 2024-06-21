@@ -28,7 +28,7 @@ variable "gke_service_account_id" {
   # default     = "gke-service_account_1"
 }
 
-variable "vpc_name_1" {
+variable "vpc_name" {
   description = "The VPC Name"
   type        = string
   # default     = "vpc-gke-kubernetes"

@@ -15,9 +15,8 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
-1. Update the Variables in the variables.tf 
-2. There is a sample ```terraform.tfvars.sample``` available as well.
-3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
+1. Create an ```terraform.tfvars```. Copy the content from the  sample ```terraform.tfvars.sample```. Update the values in the ```terraform.tfvars```
+2. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
 
 ```bash
 terraform init

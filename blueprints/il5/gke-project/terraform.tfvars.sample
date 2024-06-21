@@ -1,15 +1,16 @@
-project_id                           = "update-your-project_id"
-email                                = "update-your-email-address-here"
-group_email                          = "update-group-email-address-here"
-region                               = "us-east4"
-gke_service_account_id               = "the-gke-service-account-ID"
-vpc_name_1                           = "name-of-the-gke-vpc"
+project_id  = "update-your-project_id"
+email       = "update-your-email-address-here"
+group_email = "update-group-email-address-here"
+region      = "us-east4"
+# Provide the name to be given to the GKE Service Account.
+gke_service_account_id               = "gke-service-account"
+vpc_name                             = "name-of-the-gke-vpc"
 subnet_name_1                        = "name-of-the-subnet"
 subnet_ip_cidr_range_1               = "10.0.4.0/22"
 subnet_secondary_ip_range_pods_1     = "10.4.0.0/14"
 subnet_secondary_ip_range_services_1 = "10.0.32.0/20"
 gke_vpc_master_ipv4_cidr_block       = "192.168.0.0/28"
-gke_cluster_name                     = "gke-k8-cluster_name"
+gke_cluster_name                     = "gke-cluster-name"
 gke_initial_node_per_zone            = 1
 remove_default_node_pool             = false
 node_config_tags                     = ["node-config-gke", "intial-nodeconfig-gke"]
@@ -34,7 +35,7 @@ keys = {
     }
     version_template = {
       algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-      protection_level = "SOFTWARE"
+      protection_level = "HSM"
     }
     iam = {
       "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-your-email-address-here", "group:update-group-email-address-here"]
