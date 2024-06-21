@@ -34,6 +34,7 @@ fast/**/terraform-*.auto.tfvars.json
 fast/**/[0-9]*.auto.tfvars*
 **/node_modules
 fast/**/globals.auto.tfvars.json
+fast/**/*.auto.tfvars.json
 cloud_sql_proxy
 examples/cloud-operations/binauthz/tenant-setup.yaml
 examples/cloud-operations/binauthz/app/app.yaml
