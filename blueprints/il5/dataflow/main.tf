@@ -27,7 +27,7 @@ data "google_storage_project_service_account" "gcs_account" {}
 resource "google_kms_crypto_key_iam_binding" "binding" {
   crypto_key_id = module.kms.keys.keysummer1.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  members       = ["serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"]
+  members       = [data.google_storage_project_service_account.gcs_account.member]
 }
 
 # Create the Dataflow service account
