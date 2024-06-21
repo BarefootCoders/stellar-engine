@@ -87,7 +87,7 @@ module "cluster" {
     remove_default_node_pool = var.remove_default_node_pool
   }
   node_config = {
-    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-k8s"
+    boot_disk_kms_key =  module.kms.keys.key-k8s.id
     service_account   = google_service_account.gke.email
     tags              = var.node_config_tags
   }
@@ -110,8 +110,8 @@ module "cluster_nodepool" {
   service_account = {
     create = false
   }
-  node_config = {
-    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-k8s"
+  node_config = {        
+    boot_disk_kms_key =  module.kms.keys.key-k8s.id
     disk_size_gb      = var.node_disk_size_gb
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"
