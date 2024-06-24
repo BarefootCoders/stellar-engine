@@ -1,5 +1,5 @@
 ## Introduction to Data-flow 
-Google manages all of the resources needed to run Dataflow, and this implies that dataflow is a fully managed service. When one runs a Dataflow job, they don't need to manage or provision these virtual machines.  When one runs a Dataflow job, the Dataflow service assigns a pool of worker VMs to execute the pipeline. Furthermore, dataflow is distributed accorss various VMs. This optimizes work based on the characteristics of the pipeline. Also, Dataflow can autoscale by stopping some worker VMs if less is needed as well as provisioning extra worker VM's.
+This project will set up a dataflow job that can read messages from a Google Pub/Sub topic and writes them to a Google BigQuery table. Google manages all of the resources needed to run Dataflow, and this implies that dataflow is a fully managed service. When one runs a Dataflow job, they don't need to manage or provision these virtual machines.  When one runs a Dataflow job, the Dataflow service assigns a pool of worker VMs to execute the pipeline. Furthermore, dataflow is distributed accorss various VMs. This optimizes work based on the characteristics of the pipeline. Also, Dataflow can autoscale by stopping some worker VMs if less is needed as well as provisioning extra worker VM's. 
 
 1. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` is assigned
 Obtains access credentials for your user account via a web-based authorization flow. When this command completes successfully, it sets the active account in the current configuration to the account specified.
@@ -18,6 +18,15 @@ Obtains access credentials for your user account via a web-based authorization f
 | email|The email of the user| `string` | n/a | yes |
 | storage_class|The storage class of the bucket| `string` | n/a | yes |
 | prefix|The prefix for every resource| `string` | n/a | yes |
+| bigquery_dataset_id|The id of the dataset| `string` | n/a | yes |
+| pubsub_topic_name|The name of the topic| `string` | n/a | yes |
+| pubsub_subscription_name|The name of the subscription| `string` | n/a | yes |
+| input_topic|The name of the input within the parameters| `string` | n/a | yes |
+| output_table|The name of the output| `string` | n/a | yes |
+| bigquery_table_id|The name of the BigQuery table within the parameters| `string` | n/a | yes |
+| dataflow_name|The name of the dataflow job| `string` | n/a | yes |
+| zone|The zone of the project| `string` | n/a | yes |
+| template_gcs_path |The template used for the dataflow job| `string` | n/a | yes |
 | compute_service_account_id |The compute service account id.| `string` | n/a | yes |
 | bucket_name |Name of bucket| `string` | n/a | yes |
 | dataflow_service_account_id |Name of dataflow service account| `string` | n/a | yes |
@@ -59,9 +68,16 @@ module.gcs.google_storage_bucket.bucket: Creating...
 module.gcs.google_storage_bucket.bucket: Creation complete after 3s [id=dev-bucket-name]
 google_kms_crypto_key_iam_binding.binding: Creation complete after 5s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/cryptoKeys/key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
 
-Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
+
+Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
 
 Outputs:
 
+bigquery_dataset_id = "my-dataset"
+bigquery_table_id = "my-bigquery-table-id"
 bucket_name = "my-bucket"
-dataflow_service_account_email = "dataflow-user@tnbsea-email-dev.iam.gserviceaccount.com"
+dataflow_job_name = "my-dataflow-job-name"
+dataflow_service_account_email = "dataflow-user@my-project-id-dev.iam.gserviceaccount.com"
+pubsub_topic_name = "topic"
+temp_gcs_location = "gs://gs://my-bucket/temp//tmp_dir"
+template_gcs_path = "gs://dataflow-templates-us-east4/latest/PubSub_to_BigQuery"

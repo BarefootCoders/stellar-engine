@@ -1,22 +1,31 @@
-project_id            = "my-il5-repo"
+project_id                  = "my-project"
 
-email                 = "test@email.com"
+email                       = "email@google.com"
 
-bucket_name           = "my-bucket"
+bucket_name                 = "my-bucket"
 
 dataflow_service_account_id = "dataflow-user"
 
-storage_class               = "STANDARD"
+dataflow_name               = "pubsub-to-bigquery-job"
 
-prefix                      = "dev"
+zone                        = "us-east4"
+
+template_gcs_path           = "gs://dataflow-templates-us-east4/latest/PubSub_to_BigQuery"
+
+bigquery_dataset_id         = "my-dataset"
+
+pubsub_topic_name           = "topic"
+
+pubsub_subscription_name    = "my-subscription"
+
+temp_gcs_location           = "gs://my-bucket/temp/"
 
 keyring = {
   location = "us-east4"
-  name     = "my-keyring"
+  name     = "my-key"
 }
-
 keys = {
-  "default" = {
+  "my-key" = {
     rotation_period            = "7776000s"
     destroy_scheduled_duration = "2592000s"
     labels = {
@@ -27,10 +36,21 @@ keys = {
       protection_level = "HSM"
     }
     iam = {
-      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:test@email.com"]
+      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:email@google.com"]
     }
     lifecycle = {
       prevent_destroy = true
     }
   }
 }
+storage_class = "STANDARD"
+
+bigquery_table_id = "my-table"
+
+prefix        = "dev"
+
+input_topic ="projects/my-project-id/topics/topic"
+
+output_table = "my-project-id.my-dataset.my-table"
+
+

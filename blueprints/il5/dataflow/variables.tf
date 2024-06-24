@@ -29,6 +29,21 @@ variable "email" {
   type        = string
 }
 
+variable "bigquery_dataset_id" {
+  description = "The dataset of bigquery."
+  type        = string
+}
+
+variable "pubsub_topic_name" {
+  description = "The topic name of pub sub"
+  type        = string
+}
+
+variable "pubsub_subscription_name" {
+  description = "The sunscription name of pub sub"
+  type        = string
+}
+
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
@@ -89,5 +104,41 @@ variable "storage_class" {
 
 variable "prefix" {
   description = "This is the prefix for all resources."
+  type        = string
+}
+
+variable "dataflow_name" {
+  description = "This is the name of the dataflow job."
+  type        = string
+}
+
+variable "zone" {
+  description = "This is the name of the zone."
+  type        = string
+  default     = "us-east4"
+}
+
+variable "template_gcs_path" {
+  description = "This is the template path of the dataflow job."
+  type        = string
+}
+
+variable "temp_gcs_location" {
+  description = "This is the temporary gcs path."
+  type        = string
+}
+
+variable "input_topic" {
+  description = "This is the value of input topic."
+  type        = string
+}
+
+variable "output_table" {
+  description = "This is the value of input topic."
+  type        = string
+}
+
+variable "bigquery_table_id" {
+  description = "This is the temorary directory of bigQuery."
   type        = string
 }

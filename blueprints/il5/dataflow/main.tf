@@ -22,7 +22,25 @@ provider "google" {
 #Current Project
 data "google_project" "current" {}
 
+#Existing gcs account
 data "google_storage_project_service_account" "gcs_account" {}
+
+#Existing BigQuery dataset
+data "google_bigquery_dataset" "dataset" {
+  dataset_id = var.bigquery_dataset_id
+  project    = var.project_id
+}
+
+#Existing Pub/Sub Topic
+data "google_pubsub_topic" "topic" {
+  name    = var.pubsub_topic_name
+  project = var.project_id
+}
+#Existing Pub/Sub Subscription
+data "google_pubsub_subscription" "subscription" {
+  name    = var.pubsub_subscription_name
+  project = var.project_id
+}
 
 resource "google_kms_crypto_key_iam_binding" "binding" {
   crypto_key_id = module.kms.keys.keysummer3.id
@@ -62,4 +80,39 @@ module "kms" {
     ])
   }
   keyring = var.keyring
+}
+
+# Terraform Dataflow job
+module "dataflow_job" {
+  source                = "terraform-google-modules/dataflow/google"
+  version               = "~> 1.0"
+  project_id            = var.project_id
+  name                  = var.dataflow_name
+  template_gcs_path     = var.template_gcs_path
+  temp_gcs_location     = var.temp_gcs_location
+  region                = var.region
+  service_account_email = google_service_account.dataflow.email
+  zone                  = var.zone
+  parameters = {
+    inputTopic      = "projects/${var.project_id}/topics/${var.pubsub_topic_name}"
+    outputTableSpec = "${var.project_id}:${var.bigquery_dataset_id}.${var.bigquery_table_id}"
+  }
+}
+
+#Granting dataflow access to BigQuery dataset
+resource "google_project_iam_binding" "dataflow_bigquery_access" {
+  project = var.project_id
+  role    = "roles/bigquery.user"
+  members = [
+    "serviceAccount:${google_service_account.dataflow.email}"
+  ]
+}
+
+#Granting dataflow access to BigQuery dataset
+resource "google_project_iam_binding" "dataflow_pubsub_access" {
+  project = var.project_id
+  role    = "roles/pubsub.subscriber"
+  members = [
+    "serviceAccount:${google_service_account.dataflow.email}"
+  ]
 }
