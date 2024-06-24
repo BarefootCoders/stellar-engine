@@ -90,6 +90,8 @@ module "vpc" {
       ip_cidr_range = local.project_contents[each.value.name].subnetcidr
     }
   ]
+
+  depends_on = [ module.projects ]
 }
 
 
@@ -101,4 +103,6 @@ module "peering" {
   prefix        = var.prefix
   local_network = data.google_compute_network.vpc.self_link
   peer_network  = each.value.self_link
+
+  depends_on = [ module.projects, module.vpc ]
 }

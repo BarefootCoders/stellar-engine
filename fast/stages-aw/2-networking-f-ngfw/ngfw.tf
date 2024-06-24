@@ -143,6 +143,13 @@ resource "google_storage_bucket_iam_binding" "binding" {
   ]
 }
 
+resource "time_sleep" "wait_30_seconds" {
+  depends_on = [module.landing-project]
+
+  create_duration = "60s"
+
+}
+
 # Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
@@ -165,7 +172,8 @@ module "kms" {
   }
   depends_on = [
     module.ngfw-service-account,
-    module.landing-project
+    module.landing-project,
+    time_sleep.wait_30_seconds
    ]
 }
 
