@@ -42,7 +42,8 @@ module "compute-engine-vm" {
     subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-so"
   }]
   encryption = {
-    kms_key_self_link = module.kms.keys.key-so.id
+    #kms_key_self_link = module.kms.keys.key-so.id
+    kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
   }
   service_account = {
     email = google_service_account.compute.email
@@ -56,10 +57,12 @@ module "compute-engine-vm" {
       initialize_params = {
         image = "debian-cloud/debian-10"
       }
-      kms_key_self_link = module.kms.keys.key-so.id
+      #kms_key_self_link = module.kms.keys.key-so.id
+      kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
     }
   ]
   depends_on = [module.kms, google_service_account.compute]
+  #depends_on = [google_service_account.compute]
 }
 
 # Google KMS Module
