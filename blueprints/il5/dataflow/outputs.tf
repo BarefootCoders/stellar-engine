@@ -19,5 +19,5 @@ output "dataflow_service_account_email" {
 }
 output "bucket_name" {
   description = "Name of Google Cloud storage bucket"
-  value       = google_storage_bucket.bucket.name
+  value       = module.gcs.bucket.name
 }

@@ -81,3 +81,13 @@ variable "dataflow_service_account_id" {
   description = "This is the name of the bucket."
   type        = string
 }
+
+variable "storage_class" {
+  description = "This is the storage class of the storage bucket."
+  type        = string
+}
+
+variable "prefix" {
+  description = "This is the prefix for all resources."
+  type        = string
+}

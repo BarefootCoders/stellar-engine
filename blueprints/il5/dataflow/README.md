@@ -16,6 +16,8 @@ Obtains access credentials for your user account via a web-based authorization f
 | project_id | Project ID GCP | `string` | n/a | yes |
 | region |region/location of project | `string` | n/a | yes |
 | email|The email of the user| `string` | n/a | yes |
+| storage_class|The storage class of the bucket| `string` | n/a | yes |
+| prefix|The prefix for every resource| `string` | n/a | yes |
 | compute_service_account_id |The compute service account id.| `string` | n/a | yes |
 | bucket_name |Name of bucket| `string` | n/a | yes |
 | dataflow_service_account_id |Name of dataflow service account| `string` | n/a | yes |
@@ -44,9 +46,22 @@ terraform apply
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 
-module.kms.google_kms_crypto_key_iam_binding.authoritative["my-key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Modifying... [id=projects/my-dev-repo/locations/us-east4/keyRings/my-keyring/cryptoKeys/my-key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
-module.kms.google_kms_crypto_key_iam_binding.authoritative["my-key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Modifications complete after 5s [id=projects/my-dev-repo/locations/us-east4/keyRings/my-keyring/cryptoKeys/my-key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
-google_storage_bucket.bucket: Creating...
-google_storage_bucket.bucket: Creation complete after 1s [id=bucket-name]
+module.kms.google_kms_key_ring.default[0]: Creating...
+module.kms.google_kms_key_ring.default[0]: Creation complete after 1s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring]
+module.kms.google_kms_key_ring_iam_binding.authoritative["roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creating...
+module.kms.google_kms_crypto_key.default["key"]: Creating...
+module.kms.google_kms_crypto_key.default["key"]: Creation complete after 1s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/cryptoKeys/key]
+module.kms.google_kms_crypto_key_iam_binding.authoritative["key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creating...
+module.kms.google_kms_key_ring_iam_binding.authoritative["roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creation complete after 5s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/roles/cloudkms.cryptoKeyEncrypterDecrypter]
+module.kms.google_kms_crypto_key_iam_binding.authoritative["key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creation complete after 5s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/cryptoKeys/key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
+google_kms_crypto_key_iam_binding.binding: Creating...
+module.gcs.google_storage_bucket.bucket: Creating...
+module.gcs.google_storage_bucket.bucket: Creation complete after 3s [id=dev-bucket-name]
+google_kms_crypto_key_iam_binding.binding: Creation complete after 5s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/cryptoKeys/key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
 
-Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
+Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+bucket_name = "my-bucket"
+dataflow_service_account_email = "dataflow-user@tnbsea-email-dev.iam.gserviceaccount.com"

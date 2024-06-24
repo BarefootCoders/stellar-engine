@@ -6,6 +6,10 @@ bucket_name           = "my-bucket"
 
 dataflow_service_account_id = "dataflow-user"
 
+storage_class               = "STANDARD"
+
+prefix                      = "dev"
+
 keyring = {
   location = "us-east4"
   name     = "my-keyring"

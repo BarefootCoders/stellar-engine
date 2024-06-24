@@ -25,7 +25,7 @@ data "google_project" "current" {}
 data "google_storage_project_service_account" "gcs_account" {}
 
 resource "google_kms_crypto_key_iam_binding" "binding" {
-  crypto_key_id = module.kms.keys.keysummer1.id
+  crypto_key_id = module.kms.keys.keysummer3.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   members       = [data.google_storage_project_service_account.gcs_account.member]
 }
@@ -37,18 +37,14 @@ resource "google_service_account" "dataflow" {
   project      = var.project_id
 }
 
-resource "google_storage_bucket" "bucket" {
-  name     = var.bucket_name
-  location = var.region
-
-  encryption {
-    default_kms_key_name = module.kms.keys.keysummer1.id
-  }
-  uniform_bucket_level_access = true
-
-  # Ensure the KMS crypto-key IAM binding for the service account exists prior to the
-  # bucket attempting to utilise the crypto-key.
-  depends_on = [google_kms_crypto_key_iam_binding.binding]
+module "gcs" {
+  source         = "../../../modules/gcs"
+  prefix         = var.prefix
+  project_id     = var.project_id
+  location       = var.region
+  storage_class  = var.storage_class
+  encryption_key = module.kms.keys.keysummer3.id
+  name           = var.bucket_name
 }
 
 #Google KMS Module
@@ -62,7 +58,7 @@ module "kms" {
       [
         "serviceAccount:${google_service_account.dataflow.email}",
         "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-        "user:${var.email}",
+        "user:${var.email}"
     ])
   }
   keyring = var.keyring
