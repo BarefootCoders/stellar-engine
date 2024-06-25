@@ -31,19 +31,19 @@ resource "google_service_account" "compute" {
 }
 
 # Google KMS Module
-# module "kms" {
-#   source     = "../../../modules/kms"
-#   project_id = var.project_id
-#   keys       = var.keys
-#   iam = {
-#     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-#       google_service_account.compute.member,
-#       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-#       "user:${var.email}"
-#     ]
-#   }
-#   keyring = var.keyring
-# }
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = var.project_id
+  keys       = var.keys
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      google_service_account.compute.member,
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+      "user:${var.email}"
+    ]
+  }
+  keyring = var.keyring
+}
 
 
 # Using the Google Compute Engine VM Module for Security Onion
@@ -76,9 +76,7 @@ module "compute-engine" {
   }
   tags = ["security-onion"]
   encryption = {
-    # kms_key_self_link = module.kms.keys.key-so.id   
-    kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
- 
+    kms_key_self_link = module.kms.keys.key-so.id
   }
   service_account = {
     email = google_service_account.compute.email
@@ -159,8 +157,8 @@ module "nat-b" {
 
 # Google Computer Firewall
 resource "google_compute_firewall" "defaulta" {
-  name     = "allow-traffic-a"
-  network = module.vpc-a.network.self_link  
+  name    = "allow-traffic-a"
+  network = module.vpc-a.network.self_link
   allow {
     protocol = "all"
   }
