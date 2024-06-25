@@ -23,201 +23,158 @@ provider "google" {
 # Work on the Current Project
 data "google_project" "current" {}
 
+
 # Custom service account with compute engine role  
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
   project    = var.project_id
 }
-# Google Compute Engine VM Module
-# module "security-onion-vm" {
-#   source        = "../../../modules/compute-vm"
-#   project_id    = var.project_id
-#   zone          = var.zone
-#   name          = "security-on-image-gcp"
-#   instance_type = var.instance_type
 
-#   boot_disk = {
-#     initialize_params = {
-#       size = 200
-#       image = "security-onion-2" # Use an appropriate Ubuntu image
-#       type  = "pd-ssd"
-#     }
+# Google KMS Module
+# module "kms" {
+#   source     = "../../../modules/kms"
+#   project_id = var.project_id
+#   keys       = var.keys
+#   iam = {
+#     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+#       google_service_account.compute.member,
+#       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+#       "user:${var.email}"
+#     ]
 #   }
-
-#   network_interfaces = [{
-#     network    = module.vpc.network.self_link
-#     subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-onion-a"
-#   }]
-#   # Define metadata, including the startup script
-#   metadata = {
-#     startup-script = file("${path.module}/startup-script.sh")
-#   }
-#   tags = ["security-onion"]
-
-#   encryption = {
-#     #kms_key_self_link = module.kms.keys.key-so.id
-#     kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
-#   }
-#   service_account = {
-#     email = google_service_account.compute.email
-#   }
-#   # # Persistent Disk Attached to the Compute Engine with KMS
-#   # attached_disks = [
-#   #   {
-#   #     auto_delete = var.auto_delete
-#   #     size        = 100
-#   #     name        = "data-disk"
-#   #     initialize_params = {       
-#   #       image = "ubuntu-2004-focal-v20240614"       
-#   #     }
-#   #     #kms_key_self_link = module.kms.keys.key-so.id
-#   #     kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
-#   #   }
-#   # ]
-
-#   #depends_on = [module.kms, google_service_account.compute]
-#   depends_on = [google_service_account.compute, module.vpc, module.nat]
+#   keyring = var.keyring
 # }
 
-# Google Compute Engine VM Module
-module "compute-engine-vm" {
+
+# Using the Google Compute Engine VM Module for Security Onion
+module "compute-engine" {
   source        = "../../../modules/compute-vm"
   project_id    = var.project_id
   zone          = var.zone
   name          = var.instance_name
   instance_type = var.instance_type
-
   boot_disk = {
     initialize_params = {
-      size  = 200
-      image = "ubuntu-2004-focal-v20240614" # Use an appropriate Ubuntu image
+      size  = var.boot_disk_size_gb
+      image = var.boot_disk_image
       type  = "pd-ssd"
     }
   }
-
-  network_interfaces = [{
-    network    = module.vpc.network.self_link
-    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-onion-a"
-  }]
+  network_interfaces = [
+    {
+      network    = module.vpc-a.network.self_link
+      subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/${var.subnet_a_name}"
+    },
+    {
+      network    = module.vpc-b.network.self_link
+      subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/${var.subnet_b_name}"
+    }
+  ]
   # Define metadata, including the startup script
   metadata = {
     startup-script = file("${path.module}/startup-script.sh")
   }
   tags = ["security-onion"]
-
   encryption = {
-    #kms_key_self_link = module.kms.keys.key-so.id
+    # kms_key_self_link = module.kms.keys.key-so.id   
     kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
+ 
   }
   service_account = {
     email = google_service_account.compute.email
   }
-  # Persistent Disk Attached to the Compute Engine with KMS
+  # Persistent Disk Attached to the Compute Engine
   attached_disks = [
     {
       auto_delete = var.auto_delete
-      size        = 100
+      size        = var.boot_disk_size_gb
       name        = "data-disk"
       initialize_params = {
-        image = "ubuntu-2004-focal-v20240614"
+        image = var.boot_disk_image
       }
-      #kms_key_self_link = module.kms.keys.key-so.id
-      kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
     }
   ]
-
-  #depends_on = [module.kms, google_service_account.compute]
-  depends_on = [google_service_account.compute, module.vpc, module.nat]
+  depends_on = [google_service_account.compute, module.vpc-a, module.vpc-b, module.nat-a, module.nat-b]
 }
 
 
-# Google Compute Engine VM Module
-module "compute-engine-vm-one" {
-  source        = "../../../modules/compute-vm"
-  project_id    = var.project_id
-  zone          = var.zone
-  name          = "second-ubuntu-script-one"
-  instance_type = var.instance_type
-
-  boot_disk = {
-    initialize_params = {
-      size  = 200
-      image = "ubuntu-2004-focal-v20240614" # Use an appropriate Ubuntu image
-      type  = "pd-ssd"
-    }
-  }
-
-  network_interfaces = [{
-    network    = module.vpc.network.self_link
-    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-onion-a"
-  }]
-  # Define metadata, including the startup script
-  metadata = {
-    startup-script = file("${path.module}/startup-script-one.sh")
-  }
-  tags = ["security-onion"]
-
-  encryption = {
-    #kms_key_self_link = module.kms.keys.key-so.id
-    kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
-  }
-  service_account = {
-    email = google_service_account.compute.email
-  }
-  # Persistent Disk Attached to the Compute Engine with KMS
-  attached_disks = [
-    {
-      auto_delete = var.auto_delete
-      size        = 100
-      name        = "data-disk"
-      initialize_params = {
-        image = "ubuntu-2004-focal-v20240614"
-      }
-      #kms_key_self_link = module.kms.keys.key-so.id
-      kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
-    }
-  ]
-
-  #depends_on = [module.kms, google_service_account.compute]
-  depends_on = [google_service_account.compute, module.vpc, module.nat]
-}
-
-# Google Cloud NAT Module - Simple Cloud NAT management
-module "nat" {
-  source         = "../../../modules/net-cloudnat"
-  project_id     = var.project_id
-  region         = var.location
-  name           = "nat-secutity-onion"
-  router_network = module.vpc.name
-  #depends_on     = [module.vpc, module.kms]
-  depends_on = [module.vpc]
-}
-
-
-
-module "vpc" {
+# Google VPC Module - First VPC
+module "vpc-a" {
   source                  = "../../../modules/net-vpc"
   project_id              = var.project_id
-  name                    = "vpc-so-kc"
+  name                    = var.vpc_a_name
   auto_create_subnetworks = false
   subnets = [
     {
-      ip_cidr_range = "10.0.4.0/22"
-      name          = "subnet-onion-a"
+      ip_cidr_range = var.subnet_a_ip_cidr
+      name          = var.subnet_a_name
       region        = var.location
       secondary_ip_ranges = {
-        pods     = "10.4.0.0/14"
-        services = "10.0.32.0/20"
+        pods     = var.subnet_a_secondary_ip_cidr_1
+        services = var.subnet_a_secondary_ip_cidr_2
       }
     }
   ]
-  #depends_on = [module.kms]
+}
+
+
+# Google VPC Module - Second VPC
+module "vpc-b" {
+  source                  = "../../../modules/net-vpc"
+  project_id              = var.project_id
+  name                    = var.vpc_b_name
+  auto_create_subnetworks = false
+  subnets = [
+    {
+      ip_cidr_range = var.subnet_b_ip_cidr
+      name          = var.subnet_b_name
+      region        = var.location
+      secondary_ip_ranges = {
+        pods     = var.subnet_b_secondary_ip_cidr_1
+        services = var.subnet_b_secondary_ip_cidr_2
+      }
+    }
+  ]
+}
+
+# Google Cloud NAT Module - Simple Cloud NAT management for VPC A
+module "nat-a" {
+  source         = "../../../modules/net-cloudnat"
+  project_id     = var.project_id
+  region         = var.location
+  name           = var.nat_a_name
+  router_network = module.vpc-a.name
+  depends_on     = [module.vpc-a]
+}
+
+# Google Cloud NAT Module - Simple Cloud NAT management for VPC B
+module "nat-b" {
+  source         = "../../../modules/net-cloudnat"
+  project_id     = var.project_id
+  region         = var.location
+  name           = var.nat_b_name
+  router_network = module.vpc-b.name
+  depends_on     = [module.vpc-b]
 }
 
 # Google Computer Firewall
-resource "google_compute_firewall" "default" {
-  name    = "allow-ssh-in"
-  network = module.vpc.network.self_link
+resource "google_compute_firewall" "defaulta" {
+  name     = "allow-traffic-a"
+  network = module.vpc-a.network.self_link  
+  allow {
+    protocol = "all"
+  }
+  # Allowing to connect only within the VPC CIDR Range
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = []
+}
+
+
+# Google Computer Firewall
+resource "google_compute_firewall" "defaultb" {
+  name    = "allow-traffic-b"
+  network = module.vpc-b.network.self_link
+
   allow {
     protocol = "all"
   }

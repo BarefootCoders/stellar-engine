@@ -1,12 +1,11 @@
 #!/bin/bash
-# Update package list and install necessary packages
-sudo apt-get update
-sudo apt-get install -y software-properties-common
+#Update and install necessary packages
+sudo yum update
+echo "Step 1 yum update" > /var/log/startup-script.log
 
-# Install Security Onion
-sudo add-apt-repository -y ppa:securityonion/stable
-sudo apt-get update
-sudo apt-get install -y securityonion-all
-
-# Start Security Onion setup (note: this is interactive; adjust as needed)
-sudo sosetup
+sudo yum -y install git
+echo "Step 2 Install Git" > /var/log/startup-script.log
+git clone https://github.com/Security-Onion-Solutions/securityonion
+cd securityonion
+#sudo bash so-setup-network
+echo "Step 3 Git Clone" > /var/log/startup-script.log
