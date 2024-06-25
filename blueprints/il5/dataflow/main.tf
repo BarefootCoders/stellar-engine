@@ -108,7 +108,7 @@ resource "google_project_iam_binding" "dataflow_bigquery_access" {
   ]
 }
 
-#Granting dataflow access to BigQuery dataset
+#Granting dataflow access to pub/sub 
 resource "google_project_iam_binding" "dataflow_pubsub_access" {
   project = var.project_id
   role    = "roles/pubsub.subscriber"
