@@ -1,8 +1,8 @@
 labels:
-  team: rhino
-parent: "folders/675955513147"
-name: rhino
-descriptive_name: rhino
+  team: team
+parent: "folders/123456789"
+name: name
+descriptive_name: team
 services:
 - compute.googleapis.com
 - storage.googleapis.com
