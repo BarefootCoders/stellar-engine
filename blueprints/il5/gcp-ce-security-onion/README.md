@@ -23,19 +23,13 @@ terraform init
 terraform plan
 terraform apply
 ```
-
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 
-The Output will look like following
-
 ## Verification of a successful Terraform/Infrastructure deployment?
-
 - Go to the Google Compute Engine (GCE) in the GCP Console. Select the VM instance.
-
 ![Google Compute Engine](./images/ce1.png?raw=true "Google Compute Engine")
 - Click on the Instance Name inside the Google Compute Engine Panel
 ![Google Compute Engine so](./images/ce2.png?raw=true "Google Compute Engine so")
-
 
 ## Configuration of the Security Onion 
 - After the Terraform deployment of there are installation steps needed to configure the Security Onion. 

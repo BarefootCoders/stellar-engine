@@ -1,42 +1,71 @@
-# Google Compute Engine VM with Security Onion 
-Security Onion is a  open-source software suite designed for network security monitoring (NSM) and intrusion detection (IDS). It is a solution for monitoring, alerting, and defending enterprise networks.
-
- ## Pre-requisite
-1. The Principal (user or group) must have permission at GCP Level for deployment of Cloud KMS (Admin), Able to Deploy a Google VPC, Able to create GCP Compute Engine  VM.
-2. Have access to the GCP Project ID
-3.  You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project. __Note__: To grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
-4. __Important Note__: The project is scoped around the computer engine VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects. 
-
-
-## How to deploy the Terraform Code. The Deployment Steps
-You should see this README and some terraform files.
-1. Create an ```terraform.tfvars```. Copy the content from the  sample ```terraform.tfvars.sample```. Update the values in the ```terraform.tfvars```
-2. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
-
-```bash
-terraform init
-terraform plan
-terraform apply
+# Step-by-Step Installation Security Onion
+- This guide provide step by step installation of the Security Onion involves several steps to set up the system and configure it for network security monitoring.
+- Begin Installation: Follow the on-screen instructions to start the installation process. 
+- Security Onion offers options for standalone, distributed, or evaluation mode. This page provides details of deployment on a single-server setup
+-  Login to the Google Compute Engine (VM)  using GCloud
 ```
-
-
-It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
-
-The Output will look like following
-
-## Verification of a successful Terraform/Infrastructure deployment?
-
-- Go to the Google Compute Engine (GCE) in the GCP Console. Select the VM instance.
-
-![Google Compute Engine](./images/gke1.png?raw=true "Google Compute Engine")
-- Click on the Instance Name inside the Google Compute Engine Panel
- 
- 
-
-## Configuration of the Security Onion 
-
-## Cleanup
-Once the project is deployed, to ensure clean up, please apply following command.
-```bash
-terraform destory
+gcloud compute ssh --zone "us-east4-a" "security-onio" --tunnel-through-iap --project "project-name"
 ```
+- Once on the Operating System terminal
+
+```
+sudo su -
+cd /securityonion
+sudo bash so-setup-network
+```
+- It will start the installation process. Click Yes to continue
+![Google Compute Engine](../images/so1.png?raw=true "Google Compute Engine")
+ 
+- Select the installation Option (For the GCP Blueprint project, we attempted with EVAL)
+![Security Onion ](../images/so2.png?raw=true "Security Onion ")
+
+- Once prompted Type AGREE on the Elastic License version and select OK
+![Security Onion ](../images/so3.png?raw=true "Security Onion ")
+
+- Type the hostname try keeping a short hostname seconion
+![Security Onion ](../images/so4.png?raw=true "Security Onion ")
+
+- Select Yes in the network install we assume the management, interface, DNS, Hostname, etc are already set up.
+![Security Onion ](../images/so5.png?raw=true "Security Onion ")
+
+- Select Yes in the Using DHCP
+![Security Onion ](../images/so6.png?raw=true "Security Onion ")
+
+- Select the NIC  eth0
+![Security Onion ](../images/so7.png?raw=true "Security Onion ")
+
+- Select Direct to connect to Internet
+![Security Onion ](../images/so8.png?raw=true "Security Onion ")
+
+- Select Yes on Docker IP Range  
+![Security Onion ](../images/so9.png?raw=true "Security Onion ")
+
+- Select the NICs to Monitor Interface
+![Security Onion ](../images/so10.png?raw=true "Security Onion ")
+
+- Enter the email address of the Security Admin
+![Security Onion ](../images/so11.png?raw=true "Security Onion ")
+
+- Enter the password 
+![Security Onion ](../images/so12.png?raw=true "Security Onion ")
+
+- Important STEP:  Need External IP with DNS Setup. (Assured work load)
+![Security Onion ](../images/so14.png?raw=true "Security Onion ")
+
+- Select Yes to web interface
+![Security Onion ](../images/so15.png?raw=true "Security Onion ")
+
+- Enter the Single IP Address or range of CIDR 
+![Security Onion ](../images/so16.png?raw=true "Security Onion ")
+
+- Select No on SOC Telemetry 
+![Security Onion ](../images/so17.png?raw=true "Security Onion ")
+
+- Review the Options
+![Security Onion ](../images/so18.png?raw=true "Security Onion ")
+
+- It will take about 30-40 minutes for Security Onion to completed the installation
+Once done, you will see following message
+![Security Onion](../images/so19.png?raw=true "Security Onion ")
+- The console window will show following
+![Security Onion](../images/so20.png?raw=true "Security Onion ")
