@@ -43,7 +43,7 @@ data "google_pubsub_subscription" "subscription" {
 }
 
 resource "google_kms_crypto_key_iam_binding" "binding" {
-  crypto_key_id = module.kms.keys.keysummer3.id
+  crypto_key_id = module.kms.keys.key-dataflow.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   members       = [data.google_storage_project_service_account.gcs_account.member]
 }
@@ -61,7 +61,7 @@ module "gcs" {
   project_id     = var.project_id
   location       = var.region
   storage_class  = var.storage_class
-  encryption_key = module.kms.keys.keysummer3.id
+  encryption_key = module.kms.keys.key-dataflow.id
   name           = var.bucket_name
 }
 
