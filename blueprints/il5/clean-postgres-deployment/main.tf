@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 resource "google_project_service_identity" "gcp_sa_cloud_sql" {
   project  = var.project_id
   provider = google-beta
   service  = "sqladmin.googleapis.com"
 }
+
 resource "google_sql_database_instance" "postgres" {
   name                = var.database_name
   database_version    = var.database_version
@@ -25,10 +27,8 @@ resource "google_sql_database_instance" "postgres" {
   encryption_key_name = google_kms_crypto_key.crypto_key1.id
   deletion_protection = false
   project             = var.project_id
-
   settings {
     tier = var.database_instance_tier
-
     ip_configuration {
       ipv4_enabled    = true
       private_network = data.google_compute_network.vpc_network.self_link
@@ -53,7 +53,6 @@ resource "google_kms_crypto_key" "crypto_key1" {
 resource "google_kms_crypto_key_iam_binding" "crypto_key" {
   crypto_key_id = google_kms_crypto_key.crypto_key1.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-
   members = [
     "serviceAccount:${google_project_service_identity.gcp_sa_cloud_sql.email}",
   ]
