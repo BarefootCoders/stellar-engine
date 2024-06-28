@@ -12,8 +12,22 @@ Obtains access credentials for your user account via a web-based authorization f
 1. Have access to the GCP Project ID
 2. You will need an existing BigQuery [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project). In this project code, you will need to use data source to locate your with dataset and table.
 3. Have an existing Pub/Sub [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects)with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project). In this project code, you will need to will need to use data source to locate your topic and subscription. 
-4. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
-5. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
+4. Enable Cloud Storage API and grant key admin permissions for your key. [https://console.cloud.google.com/storage]
+5. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
+6. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
+
+## Troubleshooting Errors
+1.
+a. To check existing topic 
+gcloud pubsub topics list --project= project-id
+
+b. To create a topic 
+gcloud pubsub topics create my-topic-name --project=project-id
+
+2.
+a. To check existing subscription
+ gcloud pubsub subscriptions list --project= project-id
+b. gcloud pubsub subscriptions create my-subscription--topic=my-topic --project=project-id
 
 ## Inputs
 
