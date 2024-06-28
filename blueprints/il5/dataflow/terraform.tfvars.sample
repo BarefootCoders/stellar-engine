@@ -14,7 +14,7 @@ keyring = {
   name     = "dataflow-keyring"
 }
 keys = {
-  "dataflow-key" = {
+  "key-dataflow" = {
     rotation_period            = "7776000s"
     destroy_scheduled_duration = "2592000s"
     labels = {
