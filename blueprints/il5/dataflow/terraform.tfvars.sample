@@ -33,13 +33,10 @@ keys = {
   }
 }
 storage_class = "STANDARD"
-
 bigquery_table_id = "my-table"
-
 prefix        = "dev"
-
 input_topic ="projects/my-project-id/topics/topic"
-
 output_table = "my-project-id.my-dataset.my-table"
+
 
 
