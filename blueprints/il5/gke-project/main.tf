@@ -90,7 +90,7 @@ module "cluster" {
     remove_default_node_pool = var.remove_default_node_pool
   }
   node_config = {
-    boot_disk_kms_key = module.kms.keys.key-gkeb.id
+    boot_disk_kms_key = module.kms.keys.key-gke.id
     service_account   = google_service_account.gke.email
     tags              = var.node_config_tags
   }
@@ -120,7 +120,7 @@ module "cluster_nodepool" {
     create = false
   }
   node_config = {
-    boot_disk_kms_key = module.kms.keys.key-gkeb.id
+    boot_disk_kms_key = module.kms.keys.key-gke.id
     disk_size_gb      = var.node_disk_size_gb
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"
