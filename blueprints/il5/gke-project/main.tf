@@ -81,13 +81,16 @@ module "cluster" {
     master_ipv4_cidr_block = var.gke_vpc_master_ipv4_cidr_block
     network                = module.vpc.self_link
     subnetwork             = module.vpc.subnet_self_links["${var.region}/${var.subnet_name_1}"]
+    master_authorized_ranges  = {
+      internal-vms = var.master_authorized_ranges_ip_ranges
+    }    
   }
   default_nodepool = {
     initial_node_count       = var.gke_initial_node_per_zone
     remove_default_node_pool = var.remove_default_node_pool
   }
   node_config = {
-    boot_disk_kms_key = module.kms.keys.key-gke.id
+    boot_disk_kms_key = module.kms.keys.key-gkeb.id
     service_account   = google_service_account.gke.email
     tags              = var.node_config_tags
   }
@@ -117,7 +120,7 @@ module "cluster_nodepool" {
     create = false
   }
   node_config = {
-    boot_disk_kms_key = module.kms.keys.key-gke.id
+    boot_disk_kms_key = module.kms.keys.key-gkeb.id
     disk_size_gb      = var.node_disk_size_gb
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"

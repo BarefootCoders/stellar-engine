@@ -64,6 +64,12 @@ variable "gke_vpc_master_ipv4_cidr_block" {
   # default     = "192.168.0.0/28"
 }
 
+variable "master_authorized_ranges_ip_ranges" {
+  description = "The CIDR Range for the GKE Nodes Pool when enabled Private End Point with master aurhotized ranges of CIDR"
+  type        = string
+  # default     = "10.0.0.0/8"
+}
+
 variable "gke_cluster_name" {
   description = "The GKE Kubernetes Cluster Name"
   type        = string
