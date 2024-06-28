@@ -1,5 +1,5 @@
-project_id                   = "project-id"
-email                        = "email-address-here"
+project_id = "project-id"
+email      = "email-address-here"
 # Provide the name to be given to the Computer Engine Service Account.
 compute_service_account_id   = "computeserviceo"
 location                     = "us-east4"
@@ -19,9 +19,9 @@ subnet_b_ip_cidr             = "10.1.9.128/25"
 subnet_b_secondary_ip_cidr_1 = "10.1.10.0/25"
 subnet_b_secondary_ip_cidr_2 = "10.1.10.128/25"
 source_ranges_cidrs          = ["0.0.0.0/0"]
-nat_a_name  = "nat-so-a"
-nat_b_name  = "nat-so-b"
-auto_delete = true
+nat_a_name                   = "nat-so-a"
+nat_b_name                   = "nat-so-b"
+auto_delete                  = true
 keyring = {
   location = "us-east4"
   name     = "sokeyring"

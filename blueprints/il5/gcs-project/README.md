@@ -19,6 +19,11 @@ autoclass { enabled = true }
 ## Pre-requisite
 1. The Principal (user or group) must have Cloud KMS Admin permission at the GCP Level.
 
+## Disclaimer
+- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+
+
 ## Deployment Steps
 You should see this README and some terraform files.
 1.  Update the Variables in the variables.tf that are marked as "# TODO: Update"
