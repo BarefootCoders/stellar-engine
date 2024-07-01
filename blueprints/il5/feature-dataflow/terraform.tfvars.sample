@@ -9,6 +9,7 @@ bigquery_dataset_id         = "my-dataset"
 pubsub_topic_name           = "topic"
 pubsub_subscription_name    = "my-subscription"
 temp_gcs_location           = "gs://my-bucket/temp/"
+network                     = "my-network"
 keyring = {
   location = "us-east4"
   name     = "dataflow-keyring"

@@ -29,6 +29,11 @@ variable "email" {
   type        = string
 }
 
+variable "network" {
+  description = "The network of the data pipeline."
+  type        = string
+}
+
 variable "bigquery_dataset_id" {
   description = "The dataset of bigquery."
   type        = string
