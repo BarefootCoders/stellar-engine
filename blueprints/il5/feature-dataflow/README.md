@@ -36,6 +36,7 @@ b. gcloud pubsub subscriptions create my-subscription--topic=my-topic --project=
 | project_id | Project ID GCP | `string` | n/a | yes |
 | region |region/location of project | `string` | n/a | yes |
 | email|The email of the user| `string` | n/a | yes |
+| network|The network of the data pipeline.| `string` | n/a | yes |
 | storage_class|The storage class of the bucket| `string` | n/a | yes |
 | prefix|The prefix for every resource| `string` | n/a | yes |
 | bigquery_dataset_id|The id of the dataset| `string` | n/a | yes |

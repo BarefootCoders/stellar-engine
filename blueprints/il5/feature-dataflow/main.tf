@@ -82,28 +82,36 @@ module "kms" {
 }
 
 # Terraform Dataflow job
-module "dataflow_job" {
-  source                = "terraform-google-modules/dataflow/google"
-  version               = "~> 1.0"
-  project_id            = var.project_id
+# module "dataflow_job" {
+#   source                = "terraform-google-modules/dataflow/google"
+#   version               = "~> 1.0"
+#   project_id            = var.project_id
+#   name                  = var.dataflow_name
+#   template_gcs_path     = var.template_gcs_path
+#   temp_gcs_location     = var.temp_gcs_location
+#   region                = var.region
+#   service_account_email = google_service_account.dataflow.email
+#   zone                  = var.zone
+#   parameters = {
+#     inputTopic      = "projects/${var.project_id}/topics/${var.pubsub_topic_name}"
+#     outputTableSpec = "${var.project_id}:${var.bigquery_dataset_id}.${var.bigquery_table_id}"
+#   }
+# }
+
+resource "google_dataflow_job" "job" {
   name                  = var.dataflow_name
   template_gcs_path     = var.template_gcs_path
   temp_gcs_location     = var.temp_gcs_location
-  region                = var.region
   service_account_email = google_service_account.dataflow.email
+  project               = var.project_id
+  region                = var.region
+  network               = var.network
   zone                  = var.zone
-  parameters = {
+ parameters = {
     inputTopic      = "projects/${var.project_id}/topics/${var.pubsub_topic_name}"
     outputTableSpec = "${var.project_id}:${var.bigquery_dataset_id}.${var.bigquery_table_id}"
   }
 }
-
-module "service-account-mlops" {
-  source     = "../../../modules/iam-service-account"
-  name       = 
-  project_id = module.project.project_id
-}
-
 # #Granting dataflow access to BigQuery dataset
 resource "google_project_iam_binding" "dataflow_bigquery_access" {
   project = var.project_id

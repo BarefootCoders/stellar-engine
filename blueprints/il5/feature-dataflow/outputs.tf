@@ -22,21 +22,6 @@ output "bucket_name" {
   value       = module.gcs.bucket.name
 }
 
-output "dataflow_job_name" {
-  description = "Name of dataflow job name"
-  value       = module.dataflow_job.name
-}
-
-output "template_gcs_path" {
-  description = "Name of template_gcs_path"
-  value       = module.dataflow_job.template_gcs_path
-}
-
-output "temp_gcs_location" {
-  description = "Name of template_gcs_location"
-  value       = module.dataflow_job.temp_gcs_location
-}
-
 output "pubsub_topic_name" {
   description = "Name of pubsub topic."
   value       = data.google_pubsub_topic.topic.name
