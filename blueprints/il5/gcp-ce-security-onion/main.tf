@@ -74,7 +74,7 @@ module "compute-engine-vm" {
   }
   tags = ["security-onion"]
   encryption = {
-    kms_key_self_link = module.kms.keys.key-so.id
+    kms_key_self_link = module.kms.keys.default.id
   }
   service_account = {
     email = google_service_account.compute.email

@@ -43,7 +43,7 @@ module "shielded-vm" {
   instance_type = var.instance_type
   network_interfaces = [{
     network = module.vpc.network.self_link
-    subnetwork = module.vpc.subnet_self_links["${var.location}/${subnet_name}"]
+    subnetwork = module.vpc.subnet_self_links["${var.location}/${var.subnet_name}"]
   }]
   encryption = {
     kms_key_self_link = module.kms.keys.default.id
