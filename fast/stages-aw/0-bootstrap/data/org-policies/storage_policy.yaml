@@ -18,11 +18,11 @@ storage.publicAccessPrevention:
 # SERVICE_ACCOUNT_HMAC_SIGNED_REQUESTS. Use in:ALL_HMAC_SIGNED_REQUESTS
 # to include both.
 # COULD HAVE
-storage.restrictAuthTypes:
-  rules:
-  - allow:
-      values:
-        - in:ALL_HMAC_SIGNED_REQUESTS
+# storage.restrictAuthTypes:
+#   rules:
+#   - allow:
+#       values:
+#         - in:ALL_HMAC_SIGNED_REQUESTS
 
 # This list constraint defines the set of durations for retention policies that
 # can be set on Cloud Storage buckets. By default, if no organization policy is

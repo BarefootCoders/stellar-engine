@@ -65,7 +65,7 @@ compute.requireVpcFlowLogs:
   - allow:
       values:
         - ESSENTIAL
- 
+
 # This list constraint defines the type of protocol forwarding rule objects
 # with target instance that a user can create. When this constraint is enforced,
 # new forwarding rule objects with target instance will be limited to internal
@@ -103,7 +103,7 @@ compute.restrictProtocolForwardingCreationForTypes:
 # VPC network. The allowed/denied list of IP addresses must be specified as
 # valid IP-v4 addresses in the form: IP_V4_ADDRESS.
 # SHOULD HAVE
-compute.restrictVpnPeerIPs:
+# compute.restrictVpnPeerIPs:
 #   rules:
 #   - allow:
 #       all: true
