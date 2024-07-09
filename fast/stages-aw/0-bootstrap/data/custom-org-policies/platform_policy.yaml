@@ -8,11 +8,11 @@
 # resource moves. Values specified in allow/deny lists must be in the form:
 #   under:organizations/ORGANIZATION_ID.
 # SHOULD HAVE
-# resourcemanager.allowedImportSources:
-#   rules:
-#   - allow:
-#       values:
-#         - under:organizations/<org_id>
+resourcemanager.allowedImportSources:
+  rules:
+  - allow:
+      values:
+        - under:organizations/${organization_id}
 
 # This list constraint defines the set of external Organizations to which resources
 # can be moved, and denies all moves to all other Organizations. By default,
@@ -23,11 +23,11 @@
 # resource moves. Values specified in allow/deny lists must be in the form:
 #   under:organizations/ORGANIZATION_ID.
 # SHOULD HAVE
-# resourcemanager.allowedExportDestinations:
-#   rules:
-#   - allow:
-#       values:
-#         - under:organizations/<org_id>
+resourcemanager.allowedExportDestinations:
+  rules:
+  - allow:
+      values:
+        - under:organizations/${organization_id}
 
 # This list constraint defines the set of domains that email addresses added to
 # Essential Contacts can have. By default, email addresses with any domain can
@@ -41,4 +41,30 @@ essentialcontacts.allowedContactDomains:
   rules:
   - allow:
       values:
-        - ${domain_name}
+        - "@${domain_name}"
+
+
+# This list constraint defines one or more Cloud Identity or Google Workspace
+# customer IDs whose principals can be added to IAM policies. By default, all
+# user identities are allowed to be added to IAM policies. Only allowed values
+# can be defined in this constraint, denied values are not supported. If this
+# constraint is active, only principals that belong to the allowed customer IDs
+# can be added to IAM policies.
+# MUST HAVE
+# Recommendation:
+#   This policy is strongly advised. Enforce at the organisation level but be
+# cautious of potential issues. When this policy is enforced, even if the user
+# has setIamPolicy on the APIs of Google Cloud services, they won't be allowed
+# to add users of non-authorized domains. This also blocks the exposure of
+# data; for example, a user won't be able to set permission to allUsers or
+# authentificatedUsers in Cloud Storage to make the buckets public.
+#  use `gcloud organizations list` to query the domain id and/or directory
+# customer id.
+iam.allowedPolicyMemberDomains:
+  rules:
+    - allow:
+        values:
+          - ${customer_id}
+%{ for domain in allowed_domains ~}
+          - ${domain}
+%{ endfor ~}

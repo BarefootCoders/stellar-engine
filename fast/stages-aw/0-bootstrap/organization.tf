@@ -96,17 +96,20 @@ locals {
   ))
 
   # Some of the org policies require templating to construct, they have been moved to data/custom-org-policies
-   # load org policy yaml files from a subdirectory
+  # load org policy yaml files from a subdirectory
   _org_policies_raw = merge([
-    for f in try(fileset("./data/custom-org-policies/", "*_policy.yml"), []) :
+    for f in try(fileset("./data/custom-org-policies/", "*_policy.yaml"), []) :
     yamldecode(templatefile("./data/custom-org-policies/${f}", {
       # NOTE:
       # If there are more variables need to be substituted, put them
       # into a separate yaml file or map, use the following line to
       # loop throught them. For list values use yamlencode() function.
       # for k, v in local.common_settings : k => v
-      organization_id: var.organization.id
-      domain_name: var.organization.domain
+      organization_id : var.organization.id
+      domain_name : var.organization.domain
+      customer_id : var.organization.customer_id
+      drs_tag_name : local.drs_tag_name
+      allowed_domains : var.org_policies_config.constraints.allowed_policy_member_domains
       }
   ))]...)
   # formalize the policies
@@ -150,6 +153,8 @@ import {
       "compute.requireOsLogin",
       "compute.skipDefaultNetworkCreation",
       "compute.vmExternalIpAccess",
+      "compute.setNewProjectDefaultToZonalDNSOnly",
+      "essentialcontacts.allowedContactDomains",
       "iam.allowedPolicyMemberDomains",
       "iam.automaticIamGrantsForDefaultServiceAccounts",
       "iam.disableServiceAccountKeyCreation",
@@ -257,34 +262,8 @@ module "organization" {
       type                 = attrs.type
     }
   }
-  org_policies = var.bootstrap_user != null ? {} : merge(
-    {
-      "iam.allowedPolicyMemberDomains" = {
-        rules = [
-          {
-            allow = { values = local.drs_domains }
-            condition = {
-              expression = (
-                "!resource.matchTag('${local.drs_tag_name}', 'allowed-policy-member-domains-all')"
-              )
-            }
-          },
-          {
-            allow = { all = true }
-            condition = {
-              expression = (
-                "resource.matchTag('${local.drs_tag_name}', 'allowed-policy-member-domains-all')"
-              )
-              title = "allow-all"
-            }
-          },
-        ]
-      }
-      # "gcp.resourceLocations" = {}
-      # "iam.workloadIdentityPoolProviders" = {}
-    },
-    local._org_policies_raw
-  )
+  org_policies = var.bootstrap_user != null ? {} : local.org_policies
+
   tags = {
     (var.org_policies_config.tag_name) = {
       description = "Organization policy conditions."

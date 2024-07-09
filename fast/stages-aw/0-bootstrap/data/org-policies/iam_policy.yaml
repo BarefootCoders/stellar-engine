@@ -6,29 +6,6 @@
 #   - allow:
 #       all: true
 
-# This list constraint defines one or more Cloud Identity or Google Workspace
-# customer IDs whose principals can be added to IAM policies. By default, all
-# user identities are allowed to be added to IAM policies. Only allowed values
-# can be defined in this constraint, denied values are not supported. If this
-# constraint is active, only principals that belong to the allowed customer IDs
-# can be added to IAM policies.
-# MUST HAVE
-# Recommendation:
-#   This policy is strongly advised. Enforce at the organisation level but be
-# cautious of potential issues. When this policy is enforced, even if the user
-# has setIamPolicy on the APIs of Google Cloud services, they won't be allowed
-# to add users of non-authorized domains. This also blocks the exposure of
-# data; for example, a user won't be able to set permission to allUsers or
-# authentificatedUsers in Cloud Storage to make the buckets public.
-#  use `gcloud organizations list` to query the domain id and/or directory
-# customer id.
-# iam.allowedPolicyMemberDomains:
-#   rules:
-#     - allow:
-#         values:
-#           - <domain_id>    # for GCP
-#           - <customer_id>  # for workspace
-
 # This boolean constraint, when enforced, prevents the default App Engine and
 # Compute Engine service accounts that are created in your projects from being
 # automatically granted any IAM role on the project when the accounts are
