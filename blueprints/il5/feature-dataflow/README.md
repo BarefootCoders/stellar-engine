@@ -14,6 +14,14 @@ Obtains access credentials for your user account via a web-based authorization f
 3. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
 4. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
+## Give these permissions to your publisher service account                           
+Backup and DR Cloud Storage Operator
+Cloud Dataflow Service Agent
+Dataflow Developer
+IAM OAuth Client Admin
+IAM OAuth Client Viewer
+Pub/Sub Publisher
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -47,16 +55,16 @@ Obtains access credentials for your user account via a web-based authorization f
 You should see this README and some terraform files.
 1. Create an ```terraform.tfvars```. Copy the content from the  sample ```terraform.tfvars.sample```. Update the values in the ```terraform.tfvars```
 2. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
-
-Verification of a successful deployment? 
-The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
-<img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
-
 ```bash
 terraform init
 terraform plan
 terraform apply
 ```
+
+Verification of a successful deployment? 
+The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
+<img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
+
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 
