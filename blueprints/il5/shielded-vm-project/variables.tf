@@ -62,6 +62,12 @@ variable "instance_name" {
   default     = "shieled-vm-inst"
 }
 
+variable "disksize" {
+  description = "Provide the Size of the size in GB"
+  type        = number
+  default     = 40
+}
+
 variable "vpc_name" {
   description = "The name of the VPC"
   type        = string

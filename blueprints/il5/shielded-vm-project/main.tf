@@ -42,7 +42,7 @@ module "shielded-vm" {
   }
   instance_type = var.instance_type
   network_interfaces = [{
-    network = module.vpc.network.self_link
+    network    = module.vpc.network.self_link
     subnetwork = module.vpc.subnet_self_links["${var.location}/${var.subnet_name}"]
   }]
   encryption = {
@@ -54,7 +54,7 @@ module "shielded-vm" {
   attached_disks = [
     {
       auto_delete = true
-      size        = 40
+      size        = var.disksize
       name        = "data-disk"
       initialize_params = {
         image = "debian-cloud/debian-10"

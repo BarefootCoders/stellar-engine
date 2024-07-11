@@ -29,7 +29,7 @@ data "google_project" "current" {}
 resource "google_service_account" "gke" {
   account_id = var.gke_service_account_id
   project    = var.project_id
-} 
+}
 
 
 # #Create KMS Key Ring and Crypto Key using the kms module
@@ -91,7 +91,7 @@ module "cluster" {
     remove_default_node_pool = false
   }
   node_config = {
-    boot_disk_kms_key = module.kms.keys.default.id    
+    boot_disk_kms_key = module.kms.keys.default.id
     service_account   = google_service_account.gke.email
     tags              = var.node_config_tags
   }
