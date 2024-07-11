@@ -42,6 +42,19 @@ data "google_pubsub_subscription" "subscription" {
   project = var.project_id
 }
 
+  
+data "google_bigquery_default_service_account" "bq_sa" {}
+
+module "bigquery-dataset" {
+  source         = "../../../modules/bigquery-dataset"
+  location       = var.region
+  project_id     = var.project_id
+  id             = var.bigquery_dataset_id
+  description    = "This dataset has customer managed encrypted keys, is updated in real-time, and accessed by restricted roles."
+  encryption_key = module.kms.keys.default.id
+  depends_on     = [module.kms]
+}
+
 resource "google_kms_crypto_key_iam_binding" "binding" {
   crypto_key_id = module.kms.keys.key-dataflow.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
