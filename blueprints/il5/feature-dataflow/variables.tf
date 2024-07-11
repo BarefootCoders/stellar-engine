@@ -20,7 +20,7 @@ variable "project_id" {
 
 variable "location" {
   description = "location of dataset."
-  type = string
+  type        = string
 }
 
 variable "region" {
