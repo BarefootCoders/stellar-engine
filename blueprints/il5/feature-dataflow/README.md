@@ -52,6 +52,10 @@ Verification of a successful deployment?
 The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
 <img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
 
+The dataflow job will look like this in your Google Cloud Console. 
+![image](https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/18e5070d-1c91-4d3b-a824-faf46db9551e)
+
+
 ```bash
 terraform init
 terraform plan
