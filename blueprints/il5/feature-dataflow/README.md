@@ -55,6 +55,18 @@ Pub/Sub Publisher
 You should see this README and some terraform files.
 1. Create an ```terraform.tfvars```. Copy the content from the  sample ```terraform.tfvars.sample```. Update the values in the ```terraform.tfvars```
 2. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
+<<<<<<< HEAD
+=======
+
+Verification of a successful deployment? 
+The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
+<img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
+
+The dataflow job will look like this in your Google Cloud Console. 
+![image](https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/18e5070d-1c91-4d3b-a824-faf46db9551e)
+
+
+>>>>>>> 2cb246fed05e3c1793105383c6e0448958baf56d
 ```bash
 terraform init
 terraform plan
