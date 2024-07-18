@@ -63,7 +63,6 @@ test-blueprints:   # This job runs in the test stage.
         - kms-project
         - vpc-peering-project
         - bastion-pattern
-        - cloud-router
         - gcs-project
         - pub-sub-project
   script:
