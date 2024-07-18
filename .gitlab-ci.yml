@@ -22,6 +22,11 @@ stages:          # List of stages for jobs, and their order of execution
 
 test-stages-aw:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
+  image:
+    name: hashicorp/terraform:1.9.2
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   parallel:
     matrix:
       - STAGES: stages-aw
@@ -33,6 +38,7 @@ test-stages-aw:   # This job runs in the test stage.
          - 2-security
          - 3-project-factory
   script:
+    - cd "fast/${STAGES}/${STAGE}/"
     - terraform init
     - terraform fmt
     - terraform validate
