@@ -42,3 +42,32 @@ test-stages-aw:   # This job runs in the test stage.
     - terraform init
     - terraform fmt
     - terraform validate
+
+test-blueprints:   # This job runs in the test stage.
+  stage: test    # It only starts when the job in the build stage completes successfully.
+  image:
+    name: hashicorp/terraform:1.9.2
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  parallel:
+    matrix:
+      - BLUEPRINT:
+        - bq-project
+        - compute-persistent-disk
+        - gke-project
+        - shielded-vm-project
+        - artifact-registies
+        - clean-postgres-deployment
+        - gcp-ce-security-onion
+        - kms-project
+        - vpc-peering-project
+        - bastion-pattern
+        - cloud-router
+        - gcs-project
+        - pub-sub-project
+  script:
+    - cd "blueprints/il5/${BLUEPRINT}/"
+    - terraform init
+    - terraform fmt
+    - terraform validate
