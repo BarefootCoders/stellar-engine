@@ -1,0 +1,42 @@
+project_id                  = "my-project"
+location                    = "us-east4"
+email                       = "email@google.com"
+bucket_name                 = "dataflow-bucket"
+dataflow_service_account_id = "dataflow-user"
+dataflow_name               = "pubsub-to-bigquery-job"
+zone                        = "us-east4-b"
+template_gcs_path           = "gs://dataflow-templates-us-east4/latest/PubSub_to_BigQuery"
+dataset_id                  = "BigQuery-dataset"
+pubsub_topic_name           = "pb-topic"
+pubsub_subscription_name    = "my-subscription"
+temp_gcs_location           = "gs://dev-dataflow-bucket/temp"
+network                     = "my-vpc"
+allowed_persistence_regions = ["us-east4"]
+keyring = {
+  location = "us-east4"
+  name     = "keyring-dataflow"
+}
+keys = {
+  "key-dataflow" = {
+    rotation_period            = "7776000s"
+    destroy_scheduled_duration = "2592000s"
+    labels = {
+      "team" = "update-label-team"
+    }
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "HSM"
+    }
+    iam = {
+      "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:email@google.com"]
+    }
+    lifecycle = {
+      prevent_destroy = true
+    }
+  }
+}
+storage_class = "STANDARD"
+prefix        = "dev"
+input_topic = "projects/my-project/topics/topic"
+output_table = "my-project.BigQuery-dataset.table-bq"
+bigquery_table_id = "table-bq"
