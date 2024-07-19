@@ -23,12 +23,18 @@ provider "google" {
 
 data "google_project" "current" {}
 
-# Existing GCS account
-data "google_storage_project_service_account" "gcs_account" {}
-resource "google_kms_crypto_key_iam_binding" "binding" {
-  crypto_key_id = module.kms.keys.key-dataflow.id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  members       = [data.google_storage_project_service_account.gcs_account.member]
+# Create the GCS service account
+resource "google_service_account" "gcs" {
+  account_id   = "gcs-service-account"
+  display_name = "GCS Service Account"
+  project      = var.project_id
+}
+
+# Bind the storage.admin role to the GCS service account 
+resource "google_project_iam_member" "gcs_storage_admin" {
+  project = var.project_id
+  role    = "roles/storage.admin"
+  member  = "serviceAccount:${google_service_account.gcs.email}"
 }
 
 # Create the Dataflow service account
@@ -38,6 +44,31 @@ resource "google_service_account" "dataflow" {
   project      = var.project_id
 }
 
+# Bind the necessary roles to the Dataflow service account 
+resource "google_project_iam_member" "dataflow_storage_admin" {
+  project = var.project_id
+  role    = "roles/storage.admin"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_kms_admin" {
+  project = var.project_id
+  role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_pubsub_editor" {
+  project = var.project_id
+  role    = "roles/pubsub.editor"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_bigquery_admin" {
+  project = var.project_id
+  role    = "roles/bigquery.admin"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
 # Google Cloud Storage Module
 module "gcs" {
   source         = "../../../modules/gcs"
@@ -45,7 +76,7 @@ module "gcs" {
   project_id     = var.project_id
   location       = var.region
   storage_class  = var.storage_class
-  encryption_key = module.kms.keys.key-dataflow.id
+  encryption_key = module.kms.keys.key-dataflow-job.id
   name           = var.bucket_name
 }
 
@@ -58,7 +89,7 @@ module "kms" {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
       [
         "serviceAccount:${google_service_account.dataflow.email}",
-        "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+        "serviceAccount:${google_service_account.gcs.email}",
         "user:${var.email}"
       ]
     )
@@ -85,7 +116,7 @@ resource "google_bigquery_table" "table" {
 resource "google_pubsub_topic" "topic" {
   name         = "pb-topic"
   project      = var.project_id
-  kms_key_name = module.kms.keys.key-dataflow.id
+  kms_key_name = module.kms.keys.key-dataflow-job.id
 }
 
 # Pub/Sub Subscription
@@ -103,14 +134,10 @@ resource "google_dataflow_job" "job" {
   service_account_email = google_service_account.dataflow.email
   project               = var.project_id
   region                = var.region
-  network               = var.network
+  network               = var.network_name
   zone                  = var.zone
   parameters = {
     inputTopic      = "projects/${var.project_id}/topics/${google_pubsub_topic.topic.name}"
     outputTableSpec = "${var.project_id}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.table.table_id}"
   }
 }
-
-
-
-

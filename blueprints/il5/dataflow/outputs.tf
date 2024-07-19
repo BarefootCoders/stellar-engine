@@ -40,7 +40,7 @@ output "pubsub_subscription_name" {
 
 output "kms_key_name" {
   description = "Name of the KMS key used for encryption"
-  value       = module.kms.keys.key-dataflow.id
+  value       = module.kms.keys.key-dataflow-job.id
 }
 
 output "gcs_bucket_name" {

@@ -34,8 +34,18 @@ variable "email" {
   type        = string
 }
 
-variable "network" {
-  description = "The network of the data pipeline."
+variable "network_name" {
+  description = "The email of the user."
+  type        = string
+}
+
+variable "subnet_name" {
+  description = "The email of the user."
+  type        = string
+}
+
+variable "subnet_ip" {
+  description = "The email of the user."
   type        = string
 }
 
