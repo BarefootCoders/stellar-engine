@@ -31,4 +31,5 @@ module "bastion-vm" {
       kms_key_self_link = module.kms["primary"].keys.default.id
     }
   ]
+  depends_on = [module.kms, module.kms["primary"], module.kms["secondary"]]
 }

@@ -67,6 +67,7 @@ module "prod-spoke-project" {
       }
     }
   }
+  depends_on = [module.kms]
 }
 
 module "prod-spoke-vpc" {

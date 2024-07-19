@@ -45,7 +45,7 @@ module "tenant-top-folder" {
   source   = "../../../modules/folder"
   for_each = var.tenants
   parent   = module.tenant-tenants-folder.id
-  name     = try(each.value.compliance.regime != "", false) ? "${each.value.descriptive_name}-${each.value.compliance.regime}" : each.value.descriptive_name
+  name     = try(each.value.compliance.regime != "", false) ? lower(replace("${each.value.descriptive_name}-${each.value.compliance.regime}", "_", "-")) : lower(each.value.descriptive_name)
   iam_by_principals = {
     (each.value.admin_principal) = ["roles/browser"]
   }

@@ -60,11 +60,12 @@ compute.disableVpcInternalIpv6:
 #   COMPREHENSIVE (allows values == 1.0)
 # ].
 # COULD HAVE
-compute.requireVpcFlowLogs:
-  rules:
-  - allow:
-      values:
-        - ESSENTIAL
+# compute.requireVpcFlowLogs:
+#   rules:
+#   - allow:
+#       values:
+#         - ESSENTIAL
+
 
 # This list constraint defines the type of protocol forwarding rule objects
 # with target instance that a user can create. When this constraint is enforced,

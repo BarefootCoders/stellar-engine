@@ -46,8 +46,8 @@ locals {
       zone   = v[1]
     }
   }
-  nva_zones                     = ["b", "c"]
-  cidr_ranges                   = yamldecode(file("${path.module}/data/cidrs.yaml"))
+  nva_zones   = ["b", "c"]
+  cidr_ranges = yamldecode(file("${path.module}/data/cidrs.yaml"))
 
   cloud_compute_service_account = "service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com"
 }
@@ -106,7 +106,7 @@ module "ngfw-service-account" {
       "roles/compute.viewer"
     ]
   }
-  depends_on = [ module.landing-project, google_project_iam_custom_role.ngfw-custom-role ]
+  depends_on = [module.landing-project, google_project_iam_custom_role.ngfw-custom-role]
 }
 
 data "external" "openssl" {
@@ -130,7 +130,7 @@ module "ngfw-bootstrap-bucket" {
   storage_class  = "REGIONAL"
   name           = "ngfw-bootstrap-${each.value}"
   location       = upper(each.value)
-  depends_on     = [module.kms]
+  depends_on     = [module.kms, module.kms["primary"], module.kms["secondary"]]
 }
 
 resource "google_storage_bucket_iam_binding" "binding" {
@@ -157,7 +157,8 @@ module "kms" {
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "serviceAccount:service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com",
+      "serviceAccount:service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com",      
+      "serviceAccount:service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com",
       "serviceAccount:${local.cloud_compute_service_account}"
     ]
   }
@@ -172,8 +173,8 @@ module "kms" {
   depends_on = [
     module.ngfw-service-account,
     module.landing-project,
-    time_sleep.wait_180_seconds
-   ]
+    time_sleep.wait_180_seconds    
+  ]
 }
 
 resource "google_storage_bucket_object" "config_folders" {
@@ -297,6 +298,7 @@ module "ngfw-template" {
   service_account = {
     email = module.ngfw-service-account.email
   }
+  depends_on = [module.kms, module.kms["secondary"], module.kms["primary"]]
 }
 
 module "nva-mig" {
