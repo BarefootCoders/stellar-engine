@@ -144,11 +144,6 @@ variable "template_gcs_path" {
   type        = string
 }
 
-variable "temp_gcs_location" {
-  description = "This is the temporary gcs path."
-  type        = string
-}
-
 variable "input_topic" {
   description = "This is the value of input topic."
   type        = string

@@ -119,7 +119,7 @@ module "gcs" {
       ]
     )
   }
-  depends_on = [ module.kms ]
+  depends_on = [module.kms]
 }
 
 # Google KMS Module
@@ -137,8 +137,6 @@ module "kms" {
     )
   }
   keyring = var.keyring
-
-  # depends_on = [ module.gcs.serviceAccount ]
 }
 
 # BigQuery Dataset
@@ -182,7 +180,7 @@ resource "google_pubsub_subscription" "subscription" {
 resource "google_dataflow_job" "job" {
   name                  = var.dataflow_name
   template_gcs_path     = var.template_gcs_path
-  temp_gcs_location     = var.temp_gcs_location
+  temp_gcs_location     = "gs://${module.gcs.bucket.name}/temp"
   service_account_email = google_service_account.dataflow.email
   project               = var.project_id
   region                = var.region
@@ -192,6 +190,8 @@ resource "google_dataflow_job" "job" {
     inputTopic      = "projects/${var.project_id}/topics/${google_pubsub_topic.topic.name}"
     outputTableSpec = "${var.project_id}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.table.table_id}"
   }
+
+  depends_on = [module.gcs]
 }
 
 
