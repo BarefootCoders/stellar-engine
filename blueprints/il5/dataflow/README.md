@@ -60,10 +60,11 @@ You should see this README and some terraform files.
 
 Verification of a successful deployment? 
 The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
-<img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
+
 
 The dataflow job will look like this in your Google Cloud Console. 
-![image](https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/18e5070d-1c91-4d3b-a824-faf46db9551e)
+![image](https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/18e5070d-1c91-4<img width="1118" alt="Screenshot 2024-07-22 at 12 44 47 AM" src="https://github.com/user-attachments/assets/ddd1c6a1-49ee-40c5-97a5-deee134c6e31">
+d3b-a824-faf46db9551e)
 
 
 >>>>>>> 2cb246fed05e3c1793105383c6e0448958baf56d
@@ -74,8 +75,14 @@ terraform apply
 ```
 
 Verification of a successful deployment? 
-The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
-<img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
+
+This is how the dataflow job should look like in the GCP console. 
+<img width="1302" alt="new" src="https://github.com/user-attachments/assets/91d338d7-f6d6-4f29-9efd-e5970b8f157a">
+
+
+This is how the graph in the dataflow job looks like in GCP colsole.  
+
+<img width="541" alt="Screenshot 2024-07-22 at 12 28 23 AM" src="https://github.com/user-attachments/assets/be8f4ee8-36ca-4a5b-bcfe-5e7f5cdfc3d3">
 
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
