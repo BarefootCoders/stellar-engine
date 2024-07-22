@@ -22,12 +22,6 @@ provider "google" {
 
 data "google_project" "current" {}
 
-# Create the Dataflow service account
-resource "google_service_account" "dataflow" {
-  account_id   = var.dataflow_service_account_id
-  display_name = "Dataflow Service Account"
-  project      = var.project_id
-}
 
 # Bind the necessary roles to the Dataflow service account
 resource "google_project_iam_member" "dataflow_worker" {
@@ -42,55 +36,41 @@ resource "google_project_iam_member" "dataflow_network_user" {
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
-
-
-
-
-# resource "google_project_iam_member" "dataflow_storage_viewer" {
-#   project = var.project_id
-#   role    = "roles/storage.objectViewer"
-#   member  = "serviceAccount:${google_service_account.dataflow.email}"
-# }
-
-# resource "google_project_iam_member" "dataflow_storage_creator" {
-#   project = var.project_id
-#   role    = "roles/storage.objectCreator"
-#   member  = "serviceAccount:${google_service_account.dataflow.email}"
-# }
-
-
-
-
+### TODO - replace in pubsub iam module
 resource "google_project_iam_member" "dataflow_pubsub_subscriber" {
   project = var.project_id
   role    = "roles/pubsub.subscriber"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
+### TODO - replace in pubsub iam module
 resource "google_project_iam_member" "dataflow_pubsub_viewer" {
   project = var.project_id
   role    = "roles/pubsub.viewer"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
-resource "google_project_iam_member" "dataflow_pubsub_subscriber_1" {
+### TODO - replace in pubsub iam module
+resource "google_project_iam_member" "dataflow_gcs_pubsub_subscriber" {
   project = var.project_id
   role    = "roles/pubsub.subscriber"
   member  = "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
-
-resource "google_project_iam_member" "dataflow_pubsub_viewer_1" {
+### TODO - replace in pubsub iam module
+resource "google_project_iam_member" "dataflow_gcs_pubsub_viewer" {
   project = var.project_id
   role    = "roles/pubsub.viewer"
   member  = "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
+### TODO - replace in bigquery iam module
 resource "google_project_iam_member" "dataflow_bigquery_editor" {
   project = var.project_id
   role    = "roles/bigquery.dataEditor"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
+### TODO - replace in bigquery iam module
 resource "google_project_iam_member" "dataflow_bigquery_job_user" {
   project = var.project_id
   role    = "roles/bigquery.jobUser"
@@ -139,14 +119,15 @@ module "kms" {
   keyring = var.keyring
 }
 
+## TODO - change to use BQ module
 # BigQuery Dataset
 resource "google_bigquery_dataset" "dataset" {
   dataset_id  = var.dataset_id
   project     = var.project_id
   location    = var.location
-  description = "This dataset has customer managed encrypted keys."
 }
 
+## TODO - change to use BQ module
 # BigQuery Table
 resource "google_bigquery_table" "table" {
   table_id   = var.bigquery_table_id
@@ -156,6 +137,7 @@ resource "google_bigquery_table" "table" {
   deletion_protection = false
 }
 
+### TODO - change to use pubsub module
 # Pub/Sub Topic
 resource "google_pubsub_topic" "topic" {
   name         = "pb-topic"
@@ -163,9 +145,9 @@ resource "google_pubsub_topic" "topic" {
   kms_key_name = module.kms.keys.key-dataflow-job.id
 
   depends_on = [module.kms]
-
 }
 
+### TODO - change to use pubsub module
 # Pub/Sub Subscription
 resource "google_pubsub_subscription" "subscription" {
   name    = "pb-topic-subscription"
@@ -173,7 +155,13 @@ resource "google_pubsub_subscription" "subscription" {
   project = var.project_id
 
   depends_on = [module.kms]
+}
 
+# Create the Dataflow service account
+resource "google_service_account" "dataflow" {
+  account_id   = var.dataflow_service_account_id
+  display_name = "Dataflow Service Account"
+  project      = var.project_id
 }
 
 # Dataflow Job
