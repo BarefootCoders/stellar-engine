@@ -15,7 +15,6 @@
  */
 
 # Terraform Provider for Google Cloud Platform
-
 provider "google" {
   project = var.project_id
   region  = var.region
@@ -30,10 +29,16 @@ resource "google_service_account" "gcs" {
   project      = var.project_id
 }
 
-# Bind the storage.admin role to the GCS service account 
-resource "google_project_iam_member" "gcs_storage_admin" {
+# Bind the necessary roles to the GCS service account
+resource "google_project_iam_member" "gcs_storage_viewer" {
   project = var.project_id
-  role    = "roles/storage.admin"
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.gcs.email}"
+}
+
+resource "google_project_iam_member" "gcs_storage_creator" {
+  project = var.project_id
+  role    = "roles/storage.objectCreator"
   member  = "serviceAccount:${google_service_account.gcs.email}"
 }
 
@@ -44,28 +49,52 @@ resource "google_service_account" "dataflow" {
   project      = var.project_id
 }
 
-# Bind the necessary roles to the Dataflow service account 
-resource "google_project_iam_member" "dataflow_storage_admin" {
+# Bind the necessary roles to the Dataflow service account
+resource "google_project_iam_member" "dataflow_worker" {
   project = var.project_id
-  role    = "roles/storage.admin"
+  role    = "roles/dataflow.worker"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
-resource "google_project_iam_member" "dataflow_kms_admin" {
+resource "google_project_iam_member" "dataflow_network_user" {
   project = var.project_id
-  role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  role    = "roles/compute.networkUser"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
-resource "google_project_iam_member" "dataflow_pubsub_editor" {
+resource "google_project_iam_member" "dataflow_storage_viewer" {
   project = var.project_id
-  role    = "roles/pubsub.editor"
+  role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
-resource "google_project_iam_member" "dataflow_bigquery_admin" {
+resource "google_project_iam_member" "dataflow_storage_creator" {
   project = var.project_id
-  role    = "roles/bigquery.admin"
+  role    = "roles/storage.objectCreator"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_pubsub_subscriber" {
+  project = var.project_id
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_pubsub_viewer" {
+  project = var.project_id
+  role    = "roles/pubsub.viewer"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_bigquery_editor" {
+  project = var.project_id
+  role    = "roles/bigquery.dataEditor"
+  member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_bigquery_job_user" {
+  project = var.project_id
+  role    = "roles/bigquery.jobUser"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
@@ -141,3 +170,9 @@ resource "google_dataflow_job" "job" {
     outputTableSpec = "${var.project_id}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.table.table_id}"
   }
 }
+
+
+
+
+
+
