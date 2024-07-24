@@ -19,7 +19,7 @@ keyring = {
   name     = "keyring-dataflow-job"
 }
 keys = {
-  "key-dataflow-job" = {
+  "dataflow-job" = {
     rotation_period            = "7776000s"
     destroy_scheduled_duration = "2592000s"
     labels = {

@@ -12,15 +12,8 @@ Obtains access credentials for your user account via a web-based authorization f
 1. Have access to the GCP Project ID
 2. Enable Cloud Storage API and grant key admin permissions for your key. [https://console.cloud.google.com/storage]
 3. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
-4. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
-
-## Give these permissions to your publisher service account                           
-Backup and DR Cloud Storage Operator
-Cloud Dataflow Service Agent
-Dataflow Developer
-IAM OAuth Client Admin
-IAM OAuth Client Viewer
-Pub/Sub Publisher
+4. An existing VNET and Subnet (specified in the tfvars file).
+5. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
 ## Inputs
 
@@ -55,61 +48,9 @@ Pub/Sub Publisher
 You should see this README and some terraform files.
 1. Create an ```terraform.tfvars```. Copy the content from the  sample ```terraform.tfvars.sample```. Update the values in the ```terraform.tfvars```
 2. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
-<<<<<<< HEAD
-=======
 
-Verification of a successful deployment? 
-The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
-
-
-The dataflow job will look like this in your Google Cloud Console. 
-![image](https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/18e5070d-1c91-4<img width="1118" alt="Screenshot 2024-07-22 at 12 44 47 AM" src="https://github.com/user-attachments/assets/ddd1c6a1-49ee-40c5-97a5-deee134c6e31">
-d3b-a824-faf46db9551e)
-
-
->>>>>>> 2cb246fed05e3c1793105383c6e0448958baf56d
 ```bash
 terraform init
 terraform plan
 terraform apply
 ```
-
-Verification of a successful deployment? 
-
-This is how the dataflow job should look like in the GCP console. 
-<img width="1302" alt="new" src="https://github.com/user-attachments/assets/91d338d7-f6d6-4f29-9efd-e5970b8f157a">
-
-
-This is how the graph in the dataflow job looks like in GCP colsole.  
-
-<img width="541" alt="Screenshot 2024-07-22 at 12 28 23 AM" src="https://github.com/user-attachments/assets/be8f4ee8-36ca-4a5b-bcfe-5e7f5cdfc3d3">
-
-
-It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
-
-module.kms.google_kms_key_ring.default[0]: Creating...
-module.kms.google_kms_key_ring.default[0]: Creation complete after 1s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring]
-module.kms.google_kms_key_ring_iam_binding.authoritative["roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creating...
-module.kms.google_kms_crypto_key.default["key"]: Creating...
-module.kms.google_kms_crypto_key.default["key"]: Creation complete after 1s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/cryptoKeys/key]
-module.kms.google_kms_crypto_key_iam_binding.authoritative["key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creating...
-module.kms.google_kms_key_ring_iam_binding.authoritative["roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creation complete after 5s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/roles/cloudkms.cryptoKeyEncrypterDecrypter]
-module.kms.google_kms_crypto_key_iam_binding.authoritative["key.roles/cloudkms.cryptoKeyEncrypterDecrypter"]: Creation complete after 5s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/cryptoKeys/key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
-google_kms_crypto_key_iam_binding.binding: Creating...
-module.gcs.google_storage_bucket.bucket: Creating...
-module.gcs.google_storage_bucket.bucket: Creation complete after 3s [id=dev-bucket-name]
-google_kms_crypto_key_iam_binding.binding: Creation complete after 5s [id=projects/my-project-id/locations/us-east4/keyRings/my-keyring/cryptoKeys/key/roles/cloudkms.cryptoKeyEncrypterDecrypter]
-
-
-Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
-
-Outputs:
-
-bigquery_dataset_id = "my-dataset"
-bigquery_table_id = "my-bigquery-table-id"
-bucket_name = "my-bucket"
-dataflow_job_name = "my-dataflow-job-name"
-dataflow_service_account_email = "dataflow-user@my-project-id-dev.iam.gserviceaccount.com"
-pubsub_topic_name = "topic"
-temp_gcs_location = "gs://gs://my-bucket/temp//tmp_dir"
-template_gcs_path = "gs://dataflow-templates-us-east4/latest/PubSub_to_BigQuery"
