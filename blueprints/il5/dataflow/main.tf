@@ -21,48 +21,18 @@ provider "google" {
 }
 
 data "google_project" "current" {}
+data "google_compute_default_service_account" "default" {}
 
-# data "google_compute_default_service_account" "default" {}
-
-# Create the Dataflow service account
-# resource "google_service_account" "dataflow" {
-#   account_id   = var.dataflow_service_account_id
-#   display_name = "Dataflow Service Account"
-#   project      = var.project_id
-# }
-
-# Bind the necessary roles to the Dataflow service account
 resource "google_project_iam_member" "dataflow_worker" {
   project = var.project_id
-  role    = "roles/dataflow.admin"
-  # member  = "serviceAccount:${google_service_account.dataflow.email}"
-  member = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-  # member = data.google_compute_default_service_account.default.member
-  # member = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  role    = "roles/dataflow.worker"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "dataflow_network_user" {
   project = var.project_id
-  role    = "roles/compute.admin"
-  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-  # member  = "serviceAccount:${google_service_account.dataflow.email}"
-  # member = data.google_compute_default_service_account.default.member
-  # member = "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com
-}
-
-### TODO - replace in bigquery iam module
-resource "google_project_iam_member" "dataflow_bigquery_editor" {
-  project = var.project_id
-  role    = "roles/bigquery.dataEditor"
-  # member  = "serviceAccount:${google_service_account.dataflow.email}"
-  member = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-}
-
-### TODO - replace in bigquery iam module
-resource "google_project_iam_member" "dataflow_bigquery_job_user" {
-  project = var.project_id
-  role    = "roles/bigquery.jobUser"
-  # member  = "serviceAccount:${google_service_account.dataflow.email}"
+  role    = "roles/compute.networkUser"
+  # role = "roles/compute.admin"
   member = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
@@ -76,19 +46,25 @@ module "gcs" {
   encryption_key = module.kms.keys.dataflow-job.id
   name           = var.bucket_name
 
+  objects_to_upload = {
+    sample-data = {
+      name         = "sample.txt"
+      source       = "input/sample.txt"
+      content_type = "text/csv"
+    }
+  }
+
+  force_destroy = true
+
   iam = {
     "roles/storage.objectViewer" = concat(
       [
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
-        # "serviceAccount:${google_service_account.dataflow.email}",
-        # "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
       ]
     ),
     "roles/storage.objectCreator" = concat(
       [
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
-        # "serviceAccount:${google_service_account.dataflow.email}",
-        # "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
       ]
     )
   }
@@ -103,35 +79,14 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
       [
-        # "serviceAccount:${google_service_account.dataflow.email}",
         "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",                          # Worker service account
         "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
-        "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
-      ]
+        "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"]
     )
   }
   keyring = var.keyring
 }
-
-## TODO - change to use BQ module
-# BigQuery Dataset
-resource "google_bigquery_dataset" "dataset" {
-  dataset_id = var.dataset_id
-  project    = var.project_id
-  location   = var.location
-}
-
-## TODO - change to use BQ module
-# BigQuery Table
-resource "google_bigquery_table" "table" {
-  table_id   = var.bigquery_table_id
-  dataset_id = google_bigquery_dataset.dataset.dataset_id
-  project    = var.project_id
-
-  deletion_protection = false
-}
-
 
 module "pubsub" {
   source        = "../../../modules/pubsub"
@@ -146,26 +101,23 @@ module "pubsub" {
     "roles/pubsub.subscriber" = concat(
       [
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
-        # "serviceAccount:${google_service_account.dataflow.email}",
-        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
+        # "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
       ]
     ),
     "roles/pubsub.viewer" = concat(
       [
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
-        # "serviceAccount:${google_service_account.dataflow.email}",
-        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
+        # "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
       ]
     )
   }
 }
 
-# 
-
 # Dataflow Job
 resource "google_dataflow_job" "job" {
-  name              = var.dataflow_name
-  template_gcs_path = var.template_gcs_path
+  name = var.dataflow_name
+  # template_gcs_path = var.template_gcs_path
+  template_gcs_path = "gs://dataflow-templates/latest/Word_Count"
   temp_gcs_location = "gs://${module.gcs.bucket.name}/temp"
   # service_account_email = google_service_account.dataflow.email
   project      = var.project_id

@@ -21,13 +21,6 @@ provider "google" {
 
 data "google_project" "current" {}
 
-# resource "google_service_account" "dataflow" {
-#   account_id   = var.dataflow_service_account_id
-#   display_name = "Dataflow Service Account"
-#   project      = var.project_id
-# }
-
-
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
@@ -36,7 +29,6 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
       [
-        # "serviceAccount:${google_service_account.dataflow.email}",
         "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",                 # Compute Service Account
         "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",                          # Worker Service account
@@ -69,14 +61,12 @@ module "gcs" {
   iam = {
     "roles/storage.objectViewer" = concat(
       [
-        # "serviceAccount:${google_service_account.dataflow.email}",
         "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"                           # Worker Service account      ]
       ]
     )
     "roles/storage.objectCreator" = concat(
       [
-        # "serviceAccount:${google_service_account.dataflow.email}",
         "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
         "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"                           # Worker Service account
       ]
@@ -88,55 +78,16 @@ module "gcs" {
   depends_on = [module.kms]
 }
 
-# resource "google_project_iam_member" "dataflow_worker_1" {
-#   project = var.project_id
-#   role    = "roles/dataflow.worker"
-#   member  = "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com"
-#   # member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-#   # member = "serviceAccount:${google_service_account.dataflow.email}"
-# }
-
-# resource "google_project_iam_member" "dataflow_network_user_1" {
-#   project = var.project_id
-#   role    = "roles/compute.networkUser"
-#   member  = "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com"
-#   # member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-#   # member = "serviceAccount:${google_service_account.dataflow.email}"
-# }
-
-# resource "google_project_iam_member" "dataflow_worker_kms" {
-#   project = var.project_id
-#   role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-#   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-# }
-
-
-# #KMS Roles
-# resource "google_project_iam_member" "dataflow_service_kms" {
-#   project = var.project_id
-#   role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-#   member  = "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com"
-# }
-
-# resource "google_project_iam_member" "dataflow_service_kms" {
-#   project = var.project_id
-#   role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-#   member  = "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com"
-# }
-
 resource "google_project_iam_member" "dataflow_worker" {
   project = var.project_id
-  # role    = "roles/dataflow.admin"
   role   = "roles/dataflow.worker"
   member = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-  # member = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
 resource "google_project_iam_member" "dataflow_network_user" {
   project = var.project_id
   role    = "roles/compute.networkUser"
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-  # member = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
 resource "google_dataflow_job" "job" {
@@ -147,7 +98,6 @@ resource "google_dataflow_job" "job" {
 
   # service_account_email = google_service_account.dataflow.email
 
-  # template_gcs_path = var.template_gcs_path
   template_gcs_path = var.template_gcs_path
   temp_gcs_location = "gs://${module.gcs.bucket.name}/temp"
 
