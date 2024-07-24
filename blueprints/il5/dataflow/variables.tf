@@ -34,7 +34,7 @@ variable "network_name" {
   type        = string
 }
 
-variable "subnet_name" {
+variable "subnet" {
   description = "The email of the user."
   type        = string
 }
@@ -123,6 +123,16 @@ variable "storage_class" {
   type        = string
 }
 
+variable "inputFile" {
+  description = "This is the input file."
+  type        = string
+}
+
+variable "output" {
+  description = "This is the output file."
+  type        = string
+}
+
 variable "prefix" {
   description = "This is the prefix for all resources."
   type        = string
@@ -141,20 +151,5 @@ variable "zone" {
 
 variable "template_gcs_path" {
   description = "This is the template path of the dataflow job."
-  type        = string
-}
-
-variable "input_topic" {
-  description = "This is the value of input topic."
-  type        = string
-}
-
-variable "output_table" {
-  description = "This is the value of input topic."
-  type        = string
-}
-
-variable "bigquery_table_id" {
-  description = "This is the temorary directory of bigQuery."
   type        = string
 }
