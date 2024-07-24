@@ -1,3 +1,0 @@
-hello this 
-is a sample file for
-a dataflow job

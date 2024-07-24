@@ -39,32 +39,6 @@ variable "subnet" {
   type        = string
 }
 
-variable "subnet_ip" {
-  description = "The email of the user."
-  type        = string
-}
-
-variable "dataset_id" {
-  description = "The dataset of bigquery."
-  type        = string
-}
-
-variable "pubsub_topic_name" {
-  description = "The topic name of pub sub"
-  type        = string
-}
-
-variable "allowed_persistence_regions" {
-  description = "The allowed persistence regions for the Pub/Sub topic"
-  type        = list(string)
-  default     = ["us-east4"]
-}
-
-variable "pubsub_subscription_name" {
-  description = "The sunscription name of pub sub"
-  type        = string
-}
-
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
@@ -113,24 +87,14 @@ variable "bucket_name" {
   type        = string
 }
 
-variable "dataflow_service_account_id" {
-  description = "This is the name of the dataflow service accoount id."
-  type        = string
-}
-
 variable "storage_class" {
   description = "This is the storage class of the storage bucket."
   type        = string
 }
 
-variable "inputFile" {
-  description = "This is the input file."
-  type        = string
-}
-
-variable "output" {
-  description = "This is the output file."
-  type        = string
+variable "parameters" {
+  description = "Daraflow Paramaters"
+  type = map(string)
 }
 
 variable "prefix" {
