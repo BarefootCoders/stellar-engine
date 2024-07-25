@@ -1,0 +1,38 @@
+project_id    = "project-id"
+prefix        = "prefix" # to generate a globally unique bucket name
+storage_class = "STANDARD"
+location      = "us-east4"
+dataflow_name = "dataflow-job-name"
+zone          = "us-east4-c"
+
+network      = "network"                           # must already exist
+subnet       = "regions/REGION/subnetworks/SUBNET" # must already exist
+
+bucket_name       = "bucket-name"
+template_gcs_path = "gs://dataflow-templates/latest/Word_Count" # Dataflow Template
+
+# Change this to match the Daraflow job you wish to run
+parameters = {
+  inputFile = "gs://dataflow-samples/shakespeare/kinglear.txt" 
+  output    = "gs://prefix-bucket-name/output" # must match prefix and bucket-name above
+}
+
+# If importing a keyring please follow the guide linked in README
+keyring = {
+  location = "us-east4"
+  name     = "dataflow"
+}
+
+keys = {
+  "dataflow-job" = { # do not modify this line
+    rotation_period            = "7776000s"
+    destroy_scheduled_duration = "2592000s"
+    version_template = {
+      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+      protection_level = "HSM"
+    }
+    lifecycle = {
+      prevent_destroy = false
+    }
+  }
+}
