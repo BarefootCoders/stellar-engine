@@ -36,6 +36,12 @@ variable "keyring" {
   }
 }
 
+variable "uniform_bucket_level_access" {
+  description = "Enable or disable uniform bucket level access"
+  type        = bool
+  default     = true
+}
+
 variable "prefix" {
   description = "Optional prefix used to generate the bucket name."
   type        = string
@@ -86,6 +92,16 @@ variable "storage_class" {
   validation {
     condition     = contains(["STANDARD", "MULTI_REGIONAL", "REGIONAL", "NEARLINE", "COLDLINE", "ARCHIVE"], var.storage_class)
     error_message = "Storage class must be one of STANDARD, MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, ARCHIVE."
+  }
+}
+
+variable "string_may_not_contain" {
+  type    = string
+  default = "test"
+
+  validation {
+    error_message = "Value cannot contain a \"/\"."
+    condition     = !can(regex("/", var.string_may_not_contain))
   }
 }
 

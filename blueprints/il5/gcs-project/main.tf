@@ -18,6 +18,7 @@ provider "google" {
   project = var.project_id
   region  = var.location
 }
+
 # Work on the Current Project
 data "google_project" "current" {}
 
@@ -44,8 +45,14 @@ module "gcs" {
   location       = var.location
   storage_class  = var.storage_class
   encryption_key = module.kms.keys.default.id
+  uniform_bucket_level_access = var.uniform_bucket_level_access
+  public_access_prevention    = var.public_access_prevention
   name           = var.name
   depends_on     = [module.kms]
+}
+
+resource "validation" "validation" {
+  name = var.string_may_not_contain
 }
 
 # Google KMS Module
