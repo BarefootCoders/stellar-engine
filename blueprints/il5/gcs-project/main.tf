@@ -18,6 +18,7 @@ provider "google" {
   project = var.project_id
   region  = var.location
 }
+
 # Work on the Current Project
 data "google_project" "current" {}
 
@@ -26,26 +27,22 @@ locals {
   cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
-# Google IAM Policy to the user as Admin
-data "google_iam_policy" "admin" {
-  binding {
-    role = "roles/storage.admin"
-    members = [
-      "user:${var.email}"
-    ]
-  }
-}
-
 # Google Cloud Storage Module 
 module "gcs" {
-  source         = "../../../modules/gcs"
-  prefix         = var.prefix
-  project_id     = var.project_id
-  location       = var.location
-  storage_class  = var.storage_class
-  encryption_key = module.kms.keys.default.id
-  name           = var.name
-  depends_on     = [module.kms]
+  source                      = "../../../modules/gcs"
+  prefix                      = var.prefix
+  project_id                  = var.project_id
+  location                    = var.location
+  storage_class               = var.storage_class
+  encryption_key              = module.kms.keys.default.id
+  uniform_bucket_level_access = var.uniform_bucket_level_access
+  public_access_prevention    = var.public_access_prevention
+  name                        = var.name
+  depends_on                  = [module.kms]
+
+  iam = {
+    "roles/storage.admin" = ["user:${var.email}"]
+  }
 }
 
 # Google KMS Module
@@ -54,7 +51,7 @@ module "kms" {
   project_id = var.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}", "serviceAccount:${local.cloud_storage_service_account}"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${local.cloud_storage_service_account}"]
   }
   keyring = var.keyring
 }

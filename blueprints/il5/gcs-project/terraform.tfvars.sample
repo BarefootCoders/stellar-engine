@@ -6,12 +6,11 @@ keyring = {
 }
 prefix                   = "prefix-name"
 name                     = "Name-of-the-Bucket"
-location                 = "location-of-bucket"
+location                 = "us-east4"
 autoclass                = true
-public_access_prevention = "enforced"
 storage_class            = "STANDARD"
 keys = {
-  "default" = {
+  "default" = { # do not change
     destroy_scheduled_duration    = null
     rotation_period               = null
     labels                        = null

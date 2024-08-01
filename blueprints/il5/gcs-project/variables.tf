@@ -17,7 +17,6 @@
 variable "project_id" {
   description = "Project ID"
   type        = string
-  # TODO: Update the Project ID , example project-abc-123
 }
 
 variable "keyring" {
@@ -26,21 +25,28 @@ variable "keyring" {
     location = string
     name     = string
   })
-  default = {
-    location = "us-east4"
-    name     = "gcs-keyring"
+}
 
-    # Example location = "us-east4"
-    # Example name     = "april"
-    # TODO: Update the name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
+variable "uniform_bucket_level_access" {
+  description = "Enable or disable uniform bucket level access"
+  type        = bool
+  default     = true
+}
+
+variable "public_access_prevention" {
+  description = "Enable or disable public access prevention"
+  type        = string
+  default     = "enforced"
+  validation {
+    condition     = contains(["enforced", "inherited"], var.public_access_prevention)
+    error_message = "public_access_prevention must be either 'enforced' or 'inherited'."
   }
 }
 
 variable "prefix" {
   description = "Optional prefix used to generate the bucket name."
   type        = string
-  default     = ""
-  # TODO: Update the name of the prefix, for example "dino"
+  default     = "string"
   validation {
     condition     = var.prefix != ""
     error_message = "Prefix cannot be empty, please use null instead."
@@ -50,33 +56,23 @@ variable "prefix" {
 variable "name" {
   description = "Bucket name suffix."
   type        = string
-  # TODO: Update the name of the bucket suffix For example welcome-data
 }
 
 variable "location" {
   description = "Bucket location."
   type        = string
   default     = "us-east4"
-  # TODO: Update the Bucket Location. The Location for IL5 can be us-east4 or us-cental1
 }
 
 variable "email" {
-  # Example default = "admin.user-anme@example.google.com"
   description = "Email address of the user."
   type        = string
-  # TODO: Update the email address
 }
 
 variable "autoclass" {
   description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request."
   type        = bool
   default     = true
-}
-
-variable "public_access_prevention" {
-  description = "Prevents public access to a bucket. The default value is set to enforced and enabled with private access only. Enabling public access prevention. Acceptable values are inherited or enforced. If inherited, the bucket uses public access prevention, only if the bucket is subject to the public access prevention organization policy constraint."
-  type        = string
-  default     = "enforced"
 }
 
 variable "storage_class" {
