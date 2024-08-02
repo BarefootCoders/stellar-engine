@@ -29,12 +29,9 @@ module "bigquery-dataset" {
   project_id     = var.project_id
   id             = var.dataset_id
   encryption_key = module.kms.keys.default.id
-  depends_on     = [module.kms]
-  # iam = {
-  #   "roles/bigquery.dataOwner" = ["user:${var.email}"]
-  # }
-
+  description = var.dataset_description
   tables = var.tables
+  depends_on = [module.kms]
 }
 
 #Google KMS Module

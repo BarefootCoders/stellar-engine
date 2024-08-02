@@ -11,6 +11,8 @@ keyring = {
 
 tables = {}
 
+dataset_description = "N/A"
+
 keys = {
   "default" = {
     destroy_scheduled_duration    = null

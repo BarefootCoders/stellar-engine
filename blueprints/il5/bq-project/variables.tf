@@ -49,6 +49,10 @@ variable "tables" {
   default     = {}
 }
 
+variable "dataset_description" {
+  description = "Provides a discription of the deployed BigQuery Dataset."
+  type        = string
+}
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
