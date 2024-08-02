@@ -17,19 +17,16 @@
 variable "project_id" {
   description = "Project ID"
   type        = string
-  # Example default = "project-id-123"
 }
 
 variable "email" {
   description = "Email address of the user."
   type        = string
-  # Example default = "admin.user-anme@example.google.com"
 }
 
 variable "dataset_id" {
   description = "This is the dataset id"
   type        = string
-  #Example default = "dataset_01"
 }
 
 variable "location" {
@@ -44,14 +41,14 @@ variable "keyring" {
     location = string
     name     = string
   })
-  # Example
-  # default = {
-  #  location = "us-east4"
-  #  name     = "name-of-keyring"
-  #}
-  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
-
 }
+
+variable "tables" {
+  description = "BigQuery tables."
+  type        = map(map(string))
+  default     = {}
+}
+
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."

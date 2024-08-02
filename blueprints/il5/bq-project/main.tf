@@ -30,22 +30,11 @@ module "bigquery-dataset" {
   id             = var.dataset_id
   encryption_key = module.kms.keys.default.id
   depends_on     = [module.kms]
-  tables = {
-    bq-table = {
-      deletion_protection = false
-    }
-  }
-  iam = {
-    "roles/bigquery.dataEditor" = [
-      "serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"
-    ]
-    "roles/bigquery.dataOwner" = [
-      "serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"
-    ]
-    "roles/bigquery.dataViewer" = [
-      "serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"
-    ]
-  }
+  # iam = {
+  #   "roles/bigquery.dataOwner" = ["user:${var.email}"]
+  # }
+
+  tables = var.tables
 }
 
 #Google KMS Module
@@ -58,4 +47,3 @@ module "kms" {
   }
   keyring = var.keyring
 }
-
