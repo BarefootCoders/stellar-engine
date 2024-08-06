@@ -26,7 +26,6 @@ resource "google_service_account" "dataflow_worker" {
   display_name = "Dataflow Worker Storage Account"
 }
 
-
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
