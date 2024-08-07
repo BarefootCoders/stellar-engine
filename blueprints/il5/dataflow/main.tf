@@ -36,6 +36,51 @@ resource "google_compute_firewall" "dataflow" {
   source_ranges = var.allowed_source_ranges
 }
 
+
+# module "vpc" {
+#   source     = "./fabric/modules/net-vpc"
+#   project_id = var.project_id
+#   name       = "my-network"
+#   subnets = [
+#     # simple subnet
+#     {
+#       name          = "simple"
+#       region        = "europe-west1"
+#       ip_cidr_range = "10.0.0.0/24"
+#     },
+#     # custom description and PGA disabled
+#     {
+#       name                  = "no-pga"
+#       region                = "europe-west1"
+#       ip_cidr_range         = "10.0.1.0/24",
+#       description           = "Subnet b"
+#       enable_private_access = false
+#     },
+#     # secondary ranges
+#     {
+#       name          = "with-secondary-ranges"
+#       region        = "europe-west1"
+#       ip_cidr_range = "10.0.2.0/24"
+#       secondary_ip_ranges = {
+#         a = "192.168.0.0/24"
+#         b = "192.168.1.0/24"
+#       }
+#     },
+#     # enable flow logs
+#     {
+#       name          = "with-flow-logs"
+#       region        = "europe-west1"
+#       ip_cidr_range = "10.0.3.0/24"
+#       flow_logs_config = {
+#         flow_sampling        = 0.5
+#         aggregation_interval = "INTERVAL_10_MIN"
+#       }
+#     }
+#   ]
+# }
+
+
+
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
