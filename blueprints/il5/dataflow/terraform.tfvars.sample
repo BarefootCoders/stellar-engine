@@ -7,6 +7,7 @@ zone          = "us-east4-c"
 
 network      = "network"                           # must already exist
 subnet       = "regions/REGION/subnetworks/SUBNET" # must already exist
+allowed_source_ranges = ["0.0.0.0/0"]
 
 bucket_name       = "bucket-name"
 template_gcs_path = "gs://dataflow-templates/latest/Word_Count" # Dataflow Template

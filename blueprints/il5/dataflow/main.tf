@@ -26,6 +26,16 @@ resource "google_service_account" "dataflow_worker" {
   display_name = "Dataflow Worker Storage Account"
 }
 
+resource "google_compute_firewall" "dataflow" {
+  name    = "allow-dataflow"
+  network = var.network
+  allow {
+    protocol = "tcp"
+    ports    = var.allowed_firewall_ports
+  }
+  source_ranges = var.allowed_source_ranges
+}
+
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
@@ -56,7 +66,7 @@ module "gcs" {
   iam = {
     "roles/storage.objectAdmin" = concat(
       [
-        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service account
+        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service account 
       ]
     )
   }

@@ -112,3 +112,14 @@ variable "template_gcs_path" {
   description = "This is the template path of the dataflow job."
   type        = string
 }
+
+variable "allowed_firewall_ports" {
+  description = "The allowed ports for the firewall. Dataflow requires 12345 and 12346."
+  type        = list(string)
+  default     = [12345, 12346]
+}
+
+variable "allowed_source_ranges" {
+  description = "These are the allowed source ranges."
+  type        = list(string)
+}
