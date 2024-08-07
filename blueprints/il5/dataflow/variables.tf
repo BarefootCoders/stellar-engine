@@ -24,13 +24,18 @@ variable "region" {
   default     = "us-east4"
 }
 
-variable "network" {
-  description = "The email of the user."
+variable "network_name" {
+  description = "The network name."
   type        = string
 }
 
-variable "subnet" {
-  description = "The email of the user."
+variable "subnet_name" {
+  description = "The subnet name."
+  type        = string
+}
+
+variable "firewall_name" {
+  description = "The firewall name."
   type        = string
 }
 
@@ -122,4 +127,9 @@ variable "allowed_firewall_ports" {
 variable "allowed_source_ranges" {
   description = "These are the allowed source ranges."
   type        = list(string)
+}
+
+variable "ip_cidr_range" {
+  description = "IP CIDR Range for DataFlow subnet."
+  type = string
 }

@@ -27,8 +27,8 @@ resource "google_service_account" "dataflow_worker" {
 }
 
 resource "google_compute_firewall" "dataflow" {
-  name    = "allow-dataflow"
-  network = var.network
+  name    = var.firewall_name
+  network = module.vpc.self_link
   allow {
     protocol = "tcp"
     ports    = var.allowed_firewall_ports
@@ -36,50 +36,24 @@ resource "google_compute_firewall" "dataflow" {
   source_ranges = var.allowed_source_ranges
 }
 
+# Google VPC Module
+module "vpc" {
+  source                  = "../../../modules/net-vpc"
+  project_id              = var.project_id
+  name                    = var.network_name
+  auto_create_subnetworks = false
 
-# module "vpc" {
-#   source     = "./fabric/modules/net-vpc"
-#   project_id = var.project_id
-#   name       = "my-network"
-#   subnets = [
-#     # simple subnet
-#     {
-#       name          = "simple"
-#       region        = "europe-west1"
-#       ip_cidr_range = "10.0.0.0/24"
-#     },
-#     # custom description and PGA disabled
-#     {
-#       name                  = "no-pga"
-#       region                = "europe-west1"
-#       ip_cidr_range         = "10.0.1.0/24",
-#       description           = "Subnet b"
-#       enable_private_access = false
-#     },
-#     # secondary ranges
-#     {
-#       name          = "with-secondary-ranges"
-#       region        = "europe-west1"
-#       ip_cidr_range = "10.0.2.0/24"
-#       secondary_ip_ranges = {
-#         a = "192.168.0.0/24"
-#         b = "192.168.1.0/24"
-#       }
-#     },
-#     # enable flow logs
-#     {
-#       name          = "with-flow-logs"
-#       region        = "europe-west1"
-#       ip_cidr_range = "10.0.3.0/24"
-#       flow_logs_config = {
-#         flow_sampling        = 0.5
-#         aggregation_interval = "INTERVAL_10_MIN"
-#       }
-#     }
-#   ]
-# }
+  delete_default_routes_on_create = false
 
-
+  subnets = [
+    {
+      name                  = var.subnet_name
+      region                = var.region
+      enable_private_access = true
+      ip_cidr_range = var.ip_cidr_range
+    }
+  ]
+}
 
 module "kms" {
   source     = "../../../modules/kms"
@@ -140,11 +114,12 @@ resource "google_dataflow_job" "job" {
 
   parameters = var.parameters
 
-  network          = var.network
-  subnetwork       = var.subnet
+  network = module.vpc.name
+  subnetwork = "regions/${var.region}/subnetworks/${var.subnet_name}"
+  
   ip_configuration = "WORKER_IP_PRIVATE" # Required for IL5
 
   kms_key_name = module.kms.keys.dataflow-job.id
-
-  depends_on = [module.kms, module.gcs, google_project_iam_member.dataflow_worker]
+  
+  depends_on = [module.kms, module.gcs, module.vpc, google_project_iam_member.dataflow_worker]
 }
