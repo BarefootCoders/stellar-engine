@@ -15,8 +15,7 @@ limitations under the License.
 ## Requirements
 
 1. The Principal (user or group) must have Cloud KMS Admin permission at the GCP Level
-1. A VPC Network and Subnet
-1. [Enable Dataflow API](https://console.developers.google.com/apis/api/dataflow.googleapis.com/overview?project=tnbsea-dev-tapand-dev)
+1. [Enable Dataflow API](https://console.developers.google.com/apis/api/dataflow.googleapis.com/overview)
 
 ## Deployment Steps
 1. Update the variables in terraform.tfvars
@@ -42,6 +41,7 @@ Note: If you are using a KMS keyring that already exists, you must import it as 
 |------|--------|---------|
 | <a name="module_gcs"></a> [gcs](#module\_gcs) | ../../../modules/gcs | n/a |
 | <a name="module_kms"></a> [kms](#module\_kms) | ../../../modules/kms | n/a |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | ../../../modules/net-vpc | n/a |
 
 ## Resources
 
@@ -61,15 +61,17 @@ Note: If you are using a KMS keyring that already exists, you must import it as 
 | <a name="input_allowed_source_ranges"></a> [allowed\_source\_ranges](#input\_allowed\_source\_ranges) | These are the allowed source ranges. | `list(string)` | n/a | yes |
 | <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | This is the name of the bucket. | `string` | n/a | yes |
 | <a name="input_dataflow_name"></a> [dataflow\_name](#input\_dataflow\_name) | This is the name of the dataflow job. | `string` | n/a | yes |
+| <a name="input_firewall_name"></a> [firewall\_name](#input\_firewall\_name) | The firewall name. | `string` | n/a | yes |
+| <a name="input_ip_cidr_range"></a> [ip\_cidr\_range](#input\_ip\_cidr\_range) | IP CIDR Range for DataFlow subnet. | `string` | n/a | yes |
 | <a name="input_keyring"></a> [keyring](#input\_keyring) | Keyring attributes. | <pre>object({<br>    location = string<br>    name     = string<br>  })</pre> | n/a | yes |
 | <a name="input_keys"></a> [keys](#input\_keys) | Key names and base attributes. Set attributes to null if not needed. | <pre>map(object({<br>    destroy_scheduled_duration    = optional(string)<br>    rotation_period               = optional(string)<br>    labels                        = optional(map(string))<br>    purpose                       = optional(string, "ENCRYPT_DECRYPT")<br>    skip_initial_version_creation = optional(bool, false)<br>    version_template = optional(object({<br>      algorithm        = string<br>      protection_level = optional(string, "HSM")<br>    }))<br><br>    iam = optional(map(list(string)), {})<br>    iam_bindings = optional(map(object({<br>      members = list(string)<br>      role    = string<br>      condition = optional(object({<br>        expression  = string<br>        title       = string<br>        description = optional(string)<br>      }))<br>    })), {})<br>    iam_bindings_additive = optional(map(object({<br>      member = string<br>      role   = string<br>      condition = optional(object({<br>        expression  = string<br>        title       = string<br>        description = optional(string)<br>      }))<br>    })), {})<br>  }))</pre> | n/a | yes |
-| <a name="input_network"></a> [network](#input\_network) | The email of the user. | `string` | n/a | yes |
+| <a name="input_network_name"></a> [network\_name](#input\_network\_name) | The network name. | `string` | n/a | yes |
 | <a name="input_parameters"></a> [parameters](#input\_parameters) | Daraflow Paramaters | `map(string)` | n/a | yes |
 | <a name="input_prefix"></a> [prefix](#input\_prefix) | This is the prefix for all resources. | `string` | n/a | yes |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The ID of the project in which to provision resources. | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | The region in which to provision resources. | `string` | `"us-east4"` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | This is the storage class of the storage bucket. | `string` | n/a | yes |
-| <a name="input_subnet"></a> [subnet](#input\_subnet) | The email of the user. | `string` | n/a | yes |
+| <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | The subnet name. | `string` | n/a | yes |
 | <a name="input_template_gcs_path"></a> [template\_gcs\_path](#input\_template\_gcs\_path) | This is the template path of the dataflow job. | `string` | n/a | yes |
 | <a name="input_zone"></a> [zone](#input\_zone) | This is the name of the zone. | `string` | `"us-east4"` | no |
 
