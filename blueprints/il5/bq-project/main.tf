@@ -28,9 +28,10 @@ module "bigquery-dataset" {
   location       = var.location
   project_id     = var.project_id
   id             = var.dataset_id
-  description    = "This dataset has customer managed encrypted keys, is updated in real-time, and accessed by restricted roles."
   encryption_key = module.kms.keys.default.id
-  depends_on     = [module.kms]
+  description = var.dataset_description
+  tables = var.tables
+  depends_on = [module.kms]
 }
 
 #Google KMS Module

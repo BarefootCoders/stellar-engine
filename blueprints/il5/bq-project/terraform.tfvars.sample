@@ -2,10 +2,16 @@ project_id = "my-project-id"
 email      = "admin.user@example.google.com"
 dataset_id = "dataset-id"
 location   = "the-gcp-region"
+
 keyring = {
   location = "the-gcp-region"
   name     = "my-keyring"
 }
+
+tables = {}
+
+dataset_description = "N/A"
+
 keys = {
   "default" = {
     destroy_scheduled_duration    = null
