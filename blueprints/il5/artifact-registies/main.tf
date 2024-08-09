@@ -11,7 +11,7 @@ data "google_project" "project" {}
 
 resource "google_project_service" "api" {
   project = data.google_project.project.id
-    service = "artifactregistry.googleapis.com"
+  service = "artifactregistry.googleapis.com"
 }
 
 module "kms" {
