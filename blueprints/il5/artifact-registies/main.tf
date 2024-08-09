@@ -7,11 +7,11 @@ locals {
   docker-registries = merge(google_artifact_registry_repository.docker-repos, { "docker-hub" = google_artifact_registry_repository.docker-hub })
 }
 
-data "google_project" "project" {}
+   data "google_project" "project" {}
 
 resource "google_project_service" "api" {
   project = data.google_project.project.id
-  service = "artifactregistry.googleapis.com"
+    service    =  "artifactregistry.googleapis.com"
 }
 
 module "kms" {
