@@ -29,25 +29,7 @@ validate-formatting:
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-  # parallel:
-  #   matrix:
-  #     - BLUEPRINT:
-  #       - bq-project
-  #       - compute-persistent-disk
-  #       - gke-project
-  #       - shielded-vm-project
-  #       - artifact-registies
-  #       - clean-postgres-deployment
-  #       - gcp-ce-security-onion
-  #       - kms-project
-  #       - vpc-peering-project
-  #       - bastion-pattern
-  #       - gcs-project
-  #       - pub-sub-project
   script:
-    - cd "blueprints/il5/"
-    - terraform fmt -check --recursive
-    - cd "../../fast/stages-aw"
     - terraform fmt -check --recursive
 
 test-stages-aw:   # This job runs in the test stage.
