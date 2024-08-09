@@ -157,7 +157,7 @@ module "kms" {
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "serviceAccount:service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com",      
+      "serviceAccount:service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com",
       "serviceAccount:service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com",
       "serviceAccount:${local.cloud_compute_service_account}"
     ]
@@ -173,7 +173,7 @@ module "kms" {
   depends_on = [
     module.ngfw-service-account,
     module.landing-project,
-    time_sleep.wait_180_seconds    
+    time_sleep.wait_180_seconds
   ]
 }
 

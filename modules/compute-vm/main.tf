@@ -363,11 +363,11 @@ resource "google_compute_instance_template" "default" {
     resource_manager_tags = var.tag_bindings
     source_image          = var.boot_disk.initialize_params.image
     dynamic "disk_encryption_key" {
-        for_each = var.encryption != null ? [""] : []
-        content {
-          kms_key_self_link = var.encryption.kms_key_self_link
-        }
+      for_each = var.encryption != null ? [""] : []
+      content {
+        kms_key_self_link = var.encryption.kms_key_self_link
       }
+    }
 
   }
 

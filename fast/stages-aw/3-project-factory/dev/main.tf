@@ -91,7 +91,7 @@ module "vpc" {
     }
   ]
 
-  depends_on = [ module.projects ]
+  depends_on = [module.projects]
 }
 
 
@@ -104,5 +104,5 @@ module "peering" {
   local_network = data.google_compute_network.vpc.self_link
   peer_network  = each.value.self_link
 
-  depends_on = [ module.projects, module.vpc ]
+  depends_on = [module.projects, module.vpc]
 }
