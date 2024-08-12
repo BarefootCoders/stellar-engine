@@ -28,18 +28,8 @@ validate-stages-aw-formatting:
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-  parallel:
-    matrix:
-      - STAGES: stages-aw
-        STAGE:
-         - 0-bootstrap
-         - 1-resman
-         - 2-networking-c-nva
-         - 2-networking-f-ngfw
-         - 2-security
-         - 3-project-factory
   script:
-    - cd "fast/${STAGES}/${STAGE}/"
+    - cd "fast/stages-aw/"
     - terraform fmt -check --recursive
 
 validate-blueprints-formatting:  
@@ -49,23 +39,8 @@ validate-blueprints-formatting:
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-  parallel:
-    matrix:
-      - BLUEPRINT:
-        - bq-project
-        - compute-persistent-disk
-        - gke-project
-        - shielded-vm-project
-        - artifact-registies
-        - clean-postgres-deployment
-        - gcp-ce-security-onion
-        - kms-project
-        - vpc-peering-project
-        - bastion-pattern
-        - gcs-project
-        - pub-sub-project
   script:
-    - cd "blueprints/il5/${BLUEPRINT}/"
+    - cd "blueprints/il5/"
     - terraform fmt -check --recursive
 
 validate-stages-aw:   # This job runs in the test stage.
