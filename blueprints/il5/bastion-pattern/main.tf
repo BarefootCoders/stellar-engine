@@ -15,7 +15,7 @@
  */
 #Terraform Provider for Google Cloud Platform
 provider "google" {
-  project = var.project_id
+   project = var.project_id
   region  = var.location
 }
 

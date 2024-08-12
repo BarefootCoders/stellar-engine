@@ -35,5 +35,5 @@ locals {
     kms     = var.locations.kms
   }
   # naming: environment used in most resource names
-  prefix = join("-", compact([var.prefix, "prod"]))
+   prefix = join("-", compact([var.prefix, "prod"]))
 }
