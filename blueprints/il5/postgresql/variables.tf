@@ -128,3 +128,79 @@ variable "log_error_verbosity" {
   }
 }
 
+variable "log_connections" {
+  description = "Type \"on\" or \"off\" for log connections."
+  type        = string
+  default     = "on" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["on", "off"], var.log_connections)
+    error_message = "Only values \"on\" and \"off\" allowed."
+  }
+}
+
+variable "log_disconnections" {
+  description = "Type \"on\" or \"off\" Ffr log disconnections."
+  type        = string
+  default     = "on" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["on", "off"], var.log_disconnections)
+    error_message = "Only values \"on\" and \"off\" allowed."
+  }
+}
+
+variable "log_statement" {
+  description = "Type \"none\", \"ddl\", \"mod\", or \"all\" for log statements."
+  type        = string
+  default     = "ddl" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["none", "ddl", "mod", "all"], var.log_statement)
+    error_message = "Only values \"none\", \"ddl\", \"mod\", and \"all\" allowed."
+  }
+}
+
+variable "log_min_messages" {
+  description = "Type \"warning\", \"error\", \"log\", \"fatal\", or \"panic\" for log minimum level messages."
+  type        = string
+  default     = "error" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["warning", "error", "log", "fatal", "panic"], var.log_min_messages)
+    error_message = "Only values \"warning\", \"error\", \"log\", \"fatal\", and \"panic\" allowed."
+  }
+}
+
+variable "log_min_error_statement" {
+  description = "Type \"error\", \"log\", \"fatal\", and \"panic\" for log minimum error statements."
+  type        = string
+  default     = "error" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["error", "log", "fatal", "panic"], var.log_min_error_statement)
+    error_message = "Only values \"error\", \"log\", \"fatal\", and \"panic\" allowed."
+  }
+}
+
+variable "log_min_duration_statement" {
+  description = "Type a valid number of time to retain log statements or \"-1\" to disable."
+  type        = string
+  default     = "-1" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = var.log_min_duration_statement == "-1" || var.log_min_duration_statement >= 1 && floor(var.log_min_duration_statement) == var.log_min_duration_statement
+    error_message = "Only values \"-1\" or a valid whole number are allowed."
+  }
+}
+
+variable "enable_pgaudit" {
+  description = "Type \"on\" or \"off\" to enable cloudsql.enable_pgaudit."
+  type        = string
+  default     = "on" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["on", "off"], var.enable_pgaudit)
+    error_message = "Only values \"on\" and \"off\" allowed."
+  }
+}

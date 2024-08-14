@@ -92,14 +92,14 @@ module "postgres" {
   depends_on = [module.kms, resource.google_service_networking_connection.postgres]
 
   # CIS Compliance Benchmark 6.2
-    flags = {
-    log_error_verbosity = var.log_error_verbosity 
-    log_connections = "On" 
-    log_disconnections = "On"
-    log_statement = "ddl"
-    log_min_messages = "error"
-    log_min_error_statement = "error"
-    log_min_duration_statement = "-1"
-    "cloudsql.enable_pgaudit" = "on"
+  flags = {
+    log_error_verbosity        = var.log_error_verbosity
+    log_connections            = var.log_connections
+    log_disconnections         = var.log_disconnections
+    log_statement              = var.log_statement
+    log_min_messages           = var.log_min_messages
+    log_min_error_statement    = var.log_min_error_statement
+    log_min_duration_statement = var.log_min_duration_statement
+    "cloudsql.enable_pgaudit"  = var.enable_pgaudit
   }
 }
