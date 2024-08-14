@@ -144,7 +144,7 @@ variable "log_connections" {
 }
 
 variable "log_disconnections" {
-  description = "Type \"on\" or \"off\" Ffr log disconnections."
+  description = "Type \"on\" or \"off\" for log disconnections."
   type        = string
   default     = "on" # Required for CIS Compliance Benchmark 6.2
 
@@ -188,12 +188,12 @@ variable "log_min_error_statement" {
 }
 
 variable "log_min_duration_statement" {
-  description = "Type a valid number of time to retain log statements or \"-1\" to disable."
-  type        = string
+  description = "Type the minimum amount of execution time of a statement in milliseconds where the total duration of the statement is logged or \"-1\" to disable."
+  type        = number
   default     = "-1" # Required for CIS Compliance Benchmark 6.2
 
   validation {
-    condition     = var.log_min_duration_statement == "-1" || var.log_min_duration_statement >= 1 && floor(var.log_min_duration_statement) == var.log_min_duration_statement
+    condition     = var.log_min_duration_statement >= "-1" && floor(var.log_min_duration_statement) == var.log_min_duration_statement
     error_message = "Only values \"-1\" or a valid whole number are allowed."
   }
 }
