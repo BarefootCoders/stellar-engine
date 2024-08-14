@@ -90,4 +90,16 @@ module "postgres" {
   gcp_deletion_protection       = var.deletion_protection
 
   depends_on = [module.kms, resource.google_service_networking_connection.postgres]
+
+  # CIS Compliance Benchmark 6.2
+    flags = {
+    log_error_verbosity = var.log_error_verbosity 
+    log_connections = "On" 
+    log_disconnections = "On"
+    log_statement = "ddl"
+    log_min_messages = "error"
+    log_min_error_statement = "error"
+    log_min_duration_statement = "-1"
+    "cloudsql.enable_pgaudit" = "on"
+  }
 }

@@ -116,3 +116,15 @@ variable "keys" {
     })), {})
   }))
 }
+
+variable "log_error_verbosity" {
+  description = "Log error verbosity."
+  type        = string
+  default     = "default" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["default", "verbose"], var.log_error_verbosity)
+    error_message = "Only values \"default\" and \"verbose\" allowed."
+  }
+}
+
