@@ -118,7 +118,7 @@ variable "keys" {
 }
 
 variable "log_error_verbosity" {
-  description = "Log error verbosity."
+  description = "The log_error_verbosity flag controls the verbosity/details of messages logged."
   type        = string
   default     = "default" # Required for CIS Compliance Benchmark 6.2
 
@@ -129,7 +129,7 @@ variable "log_error_verbosity" {
 }
 
 variable "log_connections" {
-  description = "Type \"on\" or \"off\" for log connections."
+  description = "Enabling the log_connections setting causes each attempted connection to the server to be logged, along with successful completion of client authentication."
   type        = string
   default     = "on" # Required for CIS Compliance Benchmark 6.2
 
@@ -140,7 +140,7 @@ variable "log_connections" {
 }
 
 variable "log_disconnections" {
-  description = "Type \"on\" or \"off\" for log disconnections."
+  description = "Enabling the log_disconnections setting logs the end of each session, including the session duration."
   type        = string
   default     = "on" # Required for CIS Compliance Benchmark 6.2
 
@@ -151,7 +151,7 @@ variable "log_disconnections" {
 }
 
 variable "log_statement" {
-  description = "Type \"none\", \"ddl\", \"mod\", or \"all\" for log statements."
+  description = "The value of log_statement flag determines the SQL statements that are logged."
   type        = string
   default     = "ddl" # Required for CIS Compliance Benchmark 6.2
 
@@ -162,7 +162,7 @@ variable "log_statement" {
 }
 
 variable "log_min_messages" {
-  description = "Type \"warning\", \"error\", \"log\", \"fatal\", or \"panic\" for log minimum level messages."
+  description = "The log_min_messages flag defines the minimum message severity level that is considered as an error statement."
   type        = string
   default     = "error" # Required for CIS Compliance Benchmark 6.2
 
@@ -173,7 +173,7 @@ variable "log_min_messages" {
 }
 
 variable "log_min_error_statement" {
-  description = "Type \"error\", \"log\", \"fatal\", and \"panic\" for log minimum error statements."
+  description = "The log_min_error_statement flag defines the minimum message severity level that are considered as an error statement."
   type        = string
   default     = "error" # Required for CIS Compliance Benchmark 6.2
 
@@ -195,7 +195,7 @@ variable "log_min_duration_statement" {
 }
 
 variable "enable_pgaudit" {
-  description = "Type \"on\" or \"off\" to enable cloudsql.enable_pgaudit."
+  description = "This extension provides detailed session and object logging to comply with government, financial & ISO standards and provides auditing capabilities to mitigate threats by monitoring security events on the instance."
   type        = string
   default     = "on" # Required for CIS Compliance Benchmark 6.2
 
