@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
 variable "project_id" {
   description = "Project ID"
   type        = string

@@ -60,6 +60,12 @@ variable "billing_account" {
   }
 }
 
+variable "enable_cloud_nat" {
+  description = "Deploy Cloud NAT."
+  type        = bool
+  default     = false
+  nullable    = false
+}
 variable "custom_roles" {
   # tfdoc:variable:source 0-bootstrap
   description = "Custom roles defined at the org level, in key => id format."
@@ -69,6 +75,27 @@ variable "custom_roles" {
   default = null
 }
 
+# tflint-ignore: terraform_unused_declarations
+variable "locations" {
+  description = "Optional locations for GCS, BigQuery, and logging buckets created here."
+  type = object({
+    bq      = string
+    gcs     = string
+    logging = string
+    pubsub  = list(string)
+    kms     = string
+  })
+  default = {
+    bq      = "US"
+    gcs     = "US"
+    kms     = "nam9"
+    logging = "us"
+    pubsub  = []
+  }
+  nullable = false
+}
+
+# tflint-ignore: terraform_unused_declarations
 variable "dns" {
   description = "DNS configuration."
   type = object({
@@ -78,18 +105,25 @@ variable "dns" {
   default  = {}
   nullable = false
 }
-
-variable "enable_cloud_nat" {
-  description = "Deploy Cloud NAT."
-  type        = bool
-  default     = false
-  nullable    = false
-}
-
 variable "essential_contacts" {
   description = "Email used for essential contacts, unset if null."
   type        = string
   default     = null
+}
+
+variable "gcp_ranges" {
+  description = "GCP address ranges in name => range format."
+  type        = map(string)
+  default = {
+    gcp_dev_primary               = "10.68.0.0/16"
+    gcp_dev_secondary             = "10.84.0.0/16"
+    gcp_landing_landing_primary   = "10.64.0.0/17"
+    gcp_landing_landing_secondary = "10.80.0.0/17"
+    gcp_dmz_primary               = "10.64.127.0/17"
+    gcp_dmz_secondary             = "10.80.127.0/17"
+    gcp_prod_primary              = "10.72.0.0/16"
+    gcp_prod_secondary            = "10.88.0.0/16"
+  }
 }
 
 variable "factories_config" {
@@ -131,21 +165,6 @@ variable "folder_ids" {
     networking-dev  = string
     networking-prod = string
   })
-}
-
-variable "gcp_ranges" {
-  description = "GCP address ranges in name => range format."
-  type        = map(string)
-  default = {
-    gcp_dev_primary               = "10.68.0.0/16"
-    gcp_dev_secondary             = "10.84.0.0/16"
-    gcp_landing_landing_primary   = "10.64.0.0/17"
-    gcp_landing_landing_secondary = "10.80.0.0/17"
-    gcp_dmz_primary               = "10.64.127.0/17"
-    gcp_dmz_secondary             = "10.80.127.0/17"
-    gcp_prod_primary              = "10.72.0.0/16"
-    gcp_prod_secondary            = "10.88.0.0/16"
-  }
 }
 
 variable "organization" {
@@ -366,26 +385,6 @@ variable "keys" {
       iam_bindings          = {}
       iam_bindings_additive = {}
     }
-  }
-  nullable = false
-}
-
-variable "locations" {
-  # tfdoc:variable:source 0-bootstrap
-  description = "Optional locations for GCS, BigQuery, and logging buckets created here."
-  type = object({
-    bq      = string
-    gcs     = string
-    logging = string
-    pubsub  = list(string)
-    kms     = string
-  })
-  default = {
-    bq      = "US"
-    gcs     = "US"
-    kms     = "nam9"
-    logging = "us"
-    pubsub  = []
   }
   nullable = false
 }

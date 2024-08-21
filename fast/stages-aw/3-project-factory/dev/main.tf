@@ -43,7 +43,6 @@ data "google_compute_network" "vpc" {
   name    = regex("networks/([^/]+)$", var.vpc_self_links["prod-landing"])[0]
 }
 
-
 # Read the content of the YAML files
 data "local_file" "yaml_files" {
   for_each = toset(local.yaml_files)
@@ -95,8 +94,8 @@ module "vpc" {
 }
 
 
-# Create VPC peering using Google Module 
-# Google Cloud Platform (GCP) VPC peering has a maximum of 25 connections per project to a single VPC network. 
+# Create VPC peering using Google Module
+# Google Cloud Platform (GCP) VPC peering has a maximum of 25 connections per project to a single VPC network.
 module "peering" {
   source        = "../../../../modules/net-vpc-peering"
   for_each      = module.vpc

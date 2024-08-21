@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 locals {
   # convenience flags that express where billing account resides
   automation_resman_sa = try(

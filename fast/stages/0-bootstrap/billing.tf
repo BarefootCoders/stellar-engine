@@ -24,6 +24,7 @@ locals {
     module.automation-tf-bootstrap-sa.iam_email,
     module.automation-tf-resman-sa.iam_email
   ]
+
   billing_ext_viewers = [
     module.automation-tf-bootstrap-r-sa.iam_email,
     module.automation-tf-resman-r-sa.iam_email

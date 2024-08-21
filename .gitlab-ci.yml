@@ -21,8 +21,8 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
-validate-stages-aw-formatting:  
-  stage: lint    
+stages-aw-formatting:
+  stage: lint
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
@@ -32,8 +32,8 @@ validate-stages-aw-formatting:
     - cd "fast/stages-aw/"
     - terraform fmt -check --recursive
 
-validate-blueprints-formatting:  
-  stage: lint    
+blueprints-formatting:
+  stage: lint
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
@@ -43,13 +43,38 @@ validate-blueprints-formatting:
     - cd "blueprints/il5/"
     - terraform fmt -check --recursive
 
-validate-stages-aw:   # This job runs in the test stage.
+tflint-stages-aw:
+  stage: lint
+  image:
+    name: ghcr.io/terraform-linters/tflint:v0.52.0
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - ./generate-mocks.sh
+    - cd fast/stages-aw
+    - tflint --recursive
+
+tflint-blueprints:
+  stage: lint
+  image:
+    name: ghcr.io/terraform-linters/tflint:v0.52.0
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - cd blueprints/il5/
+    - tflint --recursive
+
+test-stages-aw:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  dependencies:
+    - tflint-stages-aw
   parallel:
     matrix:
       - STAGES: stages-aw
@@ -65,13 +90,15 @@ validate-stages-aw:   # This job runs in the test stage.
     - terraform init
     - terraform validate
 
-validate-blueprints:   # This job runs in the test stage.
+test-blueprints:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  dependencies:
+    - tflint-blueprints
   parallel:
     matrix:
       - BLUEPRINT:
@@ -87,6 +114,7 @@ validate-blueprints:   # This job runs in the test stage.
         - bastion-pattern
         - gcs-project
         - pub-sub-project
+        - dataflow
   script:
     - cd "blueprints/il5/${BLUEPRINT}/"
     - terraform init

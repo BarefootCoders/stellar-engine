@@ -15,7 +15,6 @@
  */
 
 # tfdoc:file:description Networking folder and hierarchical policy.
-
 locals {
   custom_roles = coalesce(var.custom_roles, {})
   # combine all regions from variables and subnets

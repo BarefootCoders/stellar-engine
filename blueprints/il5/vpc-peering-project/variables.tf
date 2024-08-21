@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
 variable "current_project_id" {
   description = "Project ID"
   type        = string
@@ -31,22 +41,16 @@ variable "vpc_name" {
   #Example   default     = "vpc-blueprint-connect"
 }
 
+variable "vpc_network_name" {
+  description = "The name of the VPC"
+  type        = string
+  #Example   default     = "vpc-blueprint-connect"
+}
+
 variable "subnet_prefix_name" {
   description = "The name of the Subnet Prefix"
   type        = string
   #Example   default     = "subnet-blueprint"
-}
-
-variable "peer_host_project_name" {
-  description = "The name of the Peering Host Project"
-  type        = string
-  #Example   default     = "peer-host-project-name"
-}
-
-variable "peer_network_name" {
-  description = "The Peer Network Project and and global Network Name"
-  type        = string
-  #Example   default = "peer-network-name"
 }
 
 variable "subnets_cidr_a" {

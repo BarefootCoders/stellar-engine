@@ -16,6 +16,11 @@ variable "group_email" {
   # default     = "group email address @ domain . com"
 }
 
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
 variable "region" {
   description = "The GCP region to use for the resources."
   type        = string
@@ -82,6 +87,7 @@ variable "gke_initial_node_per_zone" {
   #default     = 1
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "remove_default_node_pool" {
   description = "The Default NodePool remove it or not"
   type        = bool
@@ -92,7 +98,7 @@ variable "node_config_tags" {
   description = "The Tags on the Node Configuration"
   type        = list(string)
   nullable    = false
-  # default     = ["node-config-gke", "intial-nodeconfig-gke"]  
+  # default     = ["node-config-gke", "intial-nodeconfig-gke"]
 }
 
 variable "gke_cluster_enable_private_endpoint" {
@@ -132,7 +138,7 @@ variable "nodepool_node_count" {
     initial = number
   })
   nullable = false
-  # Example  
+  # Example
   # default = {
   #   initial = 1
   # }
@@ -145,12 +151,12 @@ variable "keyring" {
     location = string
     name     = string
   })
-  # Example  
+  # Example
   # default = {
   #  location = "us-east4"
   #  name     = "gkekeyring"
   #}
-  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
+  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
 }
 
 variable "keys" {

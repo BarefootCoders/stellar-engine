@@ -17,6 +17,7 @@
 locals {
   # routing_config should be aligned to the NVA network interfaces - i.e.
   # local.routing_config[0] sets up the first interface, and so on.
+  # tflint-ignore: terraform_unused_declarations
   routing_config = [
     {
       name                = "dmz"
@@ -101,7 +102,7 @@ module "ngfw-service-account" {
   source     = "../../../modules/iam-service-account"
   project_id = module.landing-project.project_id
   iam_project_roles = {
-    "${module.landing-project.project_id}" = [
+    (module.landing-project.project_id) = [
       google_project_iam_custom_role.ngfw-custom-role.id,
       "roles/compute.viewer"
     ]

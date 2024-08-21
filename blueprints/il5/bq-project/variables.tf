@@ -19,9 +19,15 @@ variable "project_id" {
   type        = string
 }
 
-variable "email" {
-  description = "Email address of the user."
+variable "region" {
+  description = "GCP Region to deploy into"
   type        = string
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+
 }
 
 variable "dataset_id" {

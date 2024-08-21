@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-# Work on the Current Project
-data "google_project" "current" {}
-
-
-# Terraform Provider for Google Cloud Platform
-provider "google" {
-  project = var.current_project_id
-  region  = var.location
-}
-
-
 # Get Peering Network Information with Peer Host Project 
 data "google_compute_network" "peer_vpc" {
-  project = var.peer_host_project_name
-  name    = var.peer_network_name
+  project = var.current_project_id
+  name    = var.vpc_network_name
 }
 
 # Google VPC Module
