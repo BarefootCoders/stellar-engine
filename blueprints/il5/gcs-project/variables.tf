@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
 
 variable "project_id" {
   description = "Project ID"
@@ -69,6 +78,7 @@ variable "email" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "autoclass" {
   description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request."
   type        = bool

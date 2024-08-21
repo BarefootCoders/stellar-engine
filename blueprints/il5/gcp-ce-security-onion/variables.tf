@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
 
 variable "project_id" {
   description = "Project ID"
@@ -158,12 +167,12 @@ variable "keyring" {
     location = string
     name     = string
   })
-  # Example  
+  # Example
   # default = {
   #  location = "us-east4"
   #  name     = "name-of-keyring"
   # }
-  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
+  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
 }
 
 variable "keys" {

@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-# Terraform Provider for Google Cloud Platform
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
-
 # Work on the Current Project
 data "google_project" "current" {}
 

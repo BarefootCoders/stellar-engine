@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
 data "google_project" "current" {}
 
 data "google_compute_network" "network" {

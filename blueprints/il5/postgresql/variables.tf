@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 variable "project_id" {
   description = "This is the project ID. Please set using a terraform.tfvars file."
   type        = string
@@ -58,11 +59,6 @@ variable "database_name" {
 
 variable "network_name" {
   description = "This is the name of the network."
-  type        = string
-}
-
-variable "private_service_connect_ip" {
-  description = "IP Address for Service connect."
   type        = string
 }
 
