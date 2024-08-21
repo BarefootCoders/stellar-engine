@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
 variable "project_id" {
-  type = string
-}
-
-variable "location" {
-  type    = string
-  default = "us-east4"
-}
-
-variable "email" {
-  type = string
-}
-
-variable "pubsub_subscription_name" {
   type = string
 }
 
@@ -62,57 +59,6 @@ variable "allowed_persistence_regions" {
   description = "The allowed persistence regions for the Pub/Sub topic"
   type        = list(string)
   default     = ["us-east4"]
-}
-
-variable "subscriptions" {
-  description = "A map of subscription configurations"
-  type = map(object({
-    labels                       = map(string)
-    ack_deadline_seconds         = number
-    message_retention_duration   = string
-    retain_acked_messages        = bool
-    filter                       = string
-    enable_message_ordering      = bool
-    enable_exactly_once_delivery = bool
-    expiration_policy_ttl        = string
-    dead_letter_policy = object({
-      topic                 = string
-      max_delivery_attempts = number
-    })
-
-    retry_policy = object({
-      maximum_backoff = string
-      minimum_backoff = string
-    })
-
-    push = object({
-      endpoint   = string
-      attributes = map(string)
-      oidc_token = object({
-        service_account_email = string
-        audience              = string
-      })
-    })
-
-    bigquery = object({
-      table               = string
-      use_topic_schema    = bool
-      write_metadata      = bool
-      drop_unknown_fields = bool
-    })
-
-    cloud_storage = object({
-      bucket          = string
-      filename_prefix = string
-      filename_suffix = string
-      max_duration    = string
-      max_bytes       = number
-      avro_config = object({
-        write_metadata = bool
-      })
-    })
-  }))
-  default = {}
 }
 
 variable "keys" {

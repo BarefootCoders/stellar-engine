@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
 variable "project_id" {
   description = "Project ID"
   type        = string
@@ -31,13 +41,6 @@ variable "group_email" {
   # Example default = "admins@example.com"
 }
 
-variable "location" {
-  description = "Location of the Shielded Compute VM"
-  type        = string
-  # Example default     = "us-east4"
-
-}
-
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
@@ -52,7 +55,6 @@ variable "keyring" {
   #}
   # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
 }
-
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."

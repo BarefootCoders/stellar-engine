@@ -45,8 +45,8 @@ locals {
       }
     ]
   ])
-  drs_domains = concat(
-    var.organization.customer_id == null ? [] : [var.organization.customer_id],
+  # tflint-ignore: terraform_unused_declarations
+  drs_domains = concat(var.organization.customer_id == null ? [] : [var.organization.customer_id],
     var.org_policies_config.constraints.allowed_policy_member_domains
   )
   drs_tag_name = "${var.organization.id}/${var.org_policies_config.tag_name}"

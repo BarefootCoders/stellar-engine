@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-# Terraform Provider for Google Cloud Platform
-provider "google" {
-  project = var.project_id
-  region  = var.location
-}
+
 
 # Google KMS Module
 module "kms" {

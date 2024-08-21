@@ -28,6 +28,14 @@ variable "billing_account" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
+variable "location" {
+  description = "Location of the Compute Engine VM"
+  type        = string
+  #Example
+  default = "us-east4"
+}
+
 variable "factories_config" {
   description = "Path to folder with YAML resource description data files."
   type = object({
@@ -52,13 +60,6 @@ variable "prefix" {
     condition     = try(length(var.prefix), 0) < 10
     error_message = "Use a maximum of 9 characters for prefix."
   }
-}
-
-variable "location" {
-  description = "Location of the Compute Engine VM"
-  type        = string
-  #Example
-  default = "us-east4"
 }
 
 variable "host_project_ids" {

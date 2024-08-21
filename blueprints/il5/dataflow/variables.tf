@@ -24,8 +24,18 @@ variable "region" {
   default     = "us-east4"
 }
 
+variable "project" {
+  description = "GCP Project to deploy Google into"
+  type        = string
+}
+
 variable "network_name" {
   description = "The network name."
+  type        = string
+}
+
+variable "dataflow_name" {
+  description = "Name of the Dataflow project"
   type        = string
 }
 
@@ -99,11 +109,6 @@ variable "parameters" {
 
 variable "prefix" {
   description = "This is the prefix for all resources."
-  type        = string
-}
-
-variable "dataflow_name" {
-  description = "This is the name of the dataflow job."
   type        = string
 }
 

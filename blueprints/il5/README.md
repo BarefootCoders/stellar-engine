@@ -13,8 +13,7 @@ The directory provide multiple Google Cloud Services that contains all the neces
 - By leveraging GCP's security capabilities and compliance frameworks, customers can enhance data protection, ensure regulatory compliance, and focus on their core business activities with confidence.
 - Assured Workloads provide a framework within GCP that adheres to specific security and compliance standards, ensuring that customers can confidently deploy and manage their workloads while meeting the IL standarads.
 
-## IL5 (Impact Level 5) Environment 
+## IL5 (Impact Level 5) Environment
 
 - IL5 (Impact Level 5) Environment in Google Cloud Platform (GCP) refers to a specific security compliance standard defined by the United States Department of Defense (DoD). IL5 mandates stringent security controls to protect Controlled Unclassified Information (CUI) that is sensitive but unclassified.
 - Assured Workloads and IL5 environments in Google Cloud Platform provide tailored solutions for organizations requiring robust security and compliance measures.
-

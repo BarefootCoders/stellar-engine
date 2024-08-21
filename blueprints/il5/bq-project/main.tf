@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-#Terraform Provider for Google Cloud Platform
-provider "google" {
-  project = var.project_id
-  region  = var.location
-}
-
-data "google_project" "current" {}
 data "google_bigquery_default_service_account" "bq_sa" {}
 
 module "bigquery-dataset" {

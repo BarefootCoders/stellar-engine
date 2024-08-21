@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "project_id" {
-  description = "This is the ID of project."
+variable "region" {
+  description = "GCP Region to deploy into"
   type        = string
 }
 
-variable "location" {
-  type    = string
-  default = "us-east4"
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+
+}
+
+variable "project_id" {
+  description = "This is the ID of project."
+  type        = string
 }
 
 variable "zone" {
@@ -51,21 +57,12 @@ variable "instance_name" {
   type        = string
 }
 
-variable "ip_cidr_range" {
-  type = string
-}
-
 variable "image" {
   type = string
 }
 
 variable "disk_name" {
   description = "This is the disk name."
-  type        = string
-}
-
-variable "kms_key_self_link" {
-  description = "This is the self link of the KMS key for disk encryption."
   type        = string
 }
 

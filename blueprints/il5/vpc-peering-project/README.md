@@ -1,6 +1,5 @@
 # Google Virtual Private Cloud (VPC) Project
-This blueprint contains all the necessary Terraform modules to build and deploy a Virtual Private Cloud (VPC) and allows creation and management of VPC networks including VPC Peering.
-
+This blueprint contains all of the necessary Terraform modules to build and deploy a Virtual Private Cloud (VPC) and allows creation and management of VPC networks including VPC Peering.
 
 ## Introduction
 Google Cloud VPC is global, scalable, and flexible. It provides networking for Compute Engine VM, GKE containers, and the App Engine environment.
@@ -12,15 +11,15 @@ Google Cloud VPC is global, scalable, and flexible. It provides networking for C
 ## Pre-requisite
 1. The Principal (user or group) must have GCP VPC Networking Admin permission at the GCP Level.
 2. Have access to the GCP Project ID
-3.  You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
+3.  You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the "Project owner" [IAM](https://cloud.google.com/iam) role on that project. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
 - An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
-1. Update the Variables in the variables.tf 
+1. Update the Variables in the variables.tf
 2. There is a sample ```terraform.tfvars.sample``` available as well.
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
 
