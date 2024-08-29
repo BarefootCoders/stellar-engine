@@ -30,7 +30,7 @@ variable "billing_account" {
 
 # tflint-ignore: terraform_unused_declarations
 variable "location" {
-  description = "Location of the Compute Engine VM"
+  description = "Location of the Compute Engine VM."
   type        = string
   #Example
   default = "us-east4"
@@ -64,7 +64,7 @@ variable "prefix" {
 
 variable "host_project_ids" {
   # tfdoc:variable:source 3-network
-  description = "Map of host projects from the networks stages"
+  description = "Map of host projects from the networks stages."
   type        = map(string)
   default     = {}
   nullable    = false
@@ -72,7 +72,7 @@ variable "host_project_ids" {
 
 variable "vpc_self_links" {
   # tfdoc:variable:source 3-network
-  description = "Map of projects and VPC from the networks stages"
+  description = "Map of projects and VPC from the networks stages."
   type        = map(string)
   default     = {}
   nullable    = false

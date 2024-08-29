@@ -20,7 +20,7 @@ variable "dataset_description" {
 }
 
 variable "dataset_id" {
-  description = "This is the dataset id"
+  description = "This is the dataset id."
   type        = string
 }
 
@@ -88,24 +88,24 @@ variable "keys" {
 }
 
 variable "location" {
-  description = "Location of the BigQuery Dataaset in GCP"
+  description = "Location of the BigQuery Dataaset in GCP."
   type        = string
   default     = "us-east4"
 }
 
 variable "project" {
-  description = "GCP Project to deploy into"
+  description = "GCP Project to deploy into."
   type        = string
 
 }
 
 variable "project_id" {
-  description = "Project ID"
+  description = "Project ID."
   type        = string
 }
 
 variable "region" {
-  description = "GCP Region to deploy into"
+  description = "GCP Region to deploy into."
   type        = string
 }
 

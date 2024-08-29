@@ -16,7 +16,7 @@
 
 output "private_service_connect_name" {
   value       = google_compute_global_address.private_service_connect.name
-  description = "Private service connect name"
+  description = "Private service connect name."
 
   depends_on = [
     google_compute_global_forwarding_rule.forwarding_rule_private_service_connect
@@ -25,7 +25,7 @@ output "private_service_connect_name" {
 
 output "private_service_connect_ip" {
   value       = google_compute_global_address.private_service_connect.address
-  description = "Private service connect ip"
+  description = "Private service connect ip."
 
   depends_on = [
     google_compute_global_forwarding_rule.forwarding_rule_private_service_connect
@@ -49,15 +49,15 @@ output "forwarding_rule_target" {
 
 output "dns_zone_googleapis_name" {
   value       = module.googleapis.name
-  description = "Name for Managed DNS zone for GoogleAPIs"
+  description = "Name for Managed DNS zone for GoogleAPIs."
 }
 
 output "dns_zone_gcr_name" {
   value       = module.gcr.name
-  description = "Name for Managed DNS zone for GCR"
+  description = "Name for Managed DNS zone for GCR."
 }
 
 output "dns_zone_pkg_dev_name" {
   value       = module.pkg_dev.name
-  description = "Name for Managed DNS zone for PKG_DEV"
+  description = "Name for Managed DNS zone for PKG_DEV."
 }

@@ -15,19 +15,19 @@
  */
 
 variable "allowed_firewall_ports" {
-  description = "The list of the Allowed Ports"
+  description = "The list of the Allowed Ports."
   type        = list(any)
   #Example default     = ["22", "443"]
 }
 
 variable "auto_delete" {
-  description = "Persistent Disk auto delete options"
+  description = "Persistent Disk auto delete options."
   type        = bool
   # Example default = true
 }
 
 variable "compute_service_account_id" {
-  description = "The Service Account for Compute Engine"
+  description = "The Service Account for Compute Engine."
   type        = string
   # Example default = "computeblue"
 }
@@ -39,20 +39,20 @@ variable "email" {
 }
 
 variable "instance_name" {
-  description = "Provide the name of the Compute Instance"
+  description = "Provide the name of the Compute Instance."
   type        = string
   #Example default     = "Compute-Instance-Name-1"
 }
 
 variable "instance_type" {
-  description = "The Machine Type for the Compute Engine VM"
+  description = "The Machine Type for the Compute Engine VM."
   type        = string
   default     = "e2-micro"
   #Example  default     = "e2-micro"
 }
 
 variable "ip_cidr_range" {
-  description = "The IP CIDR range for the VPC"
+  description = "The IP CIDR range for the VPC."
   type        = string
   #Example default = "10.0.1.0/24"
 }
@@ -125,36 +125,36 @@ variable "keys" {
 }
 
 variable "location" {
-  description = "Location of the Compute Engine VM"
+  description = "Location of the Compute Engine VM."
   type        = string
   default     = "us-east4"
 
 }
 
 variable "project" {
-  description = "GCP Project to deploy into"
+  description = "GCP Project to deploy into."
   type        = string
 }
 
 variable "project_id" {
-  description = "Project ID"
+  description = "Project ID."
   type        = string
   # Example default = "project-id-here"
 }
 
 variable "region" {
-  description = "GCP Region to deploy into"
+  description = "GCP Region to deploy into."
   type        = string
 }
 
 variable "source_ranges_allowed" {
-  description = "The List of the source IP CIDR range allowed to connect to the Compute Engine VM"
+  description = "The List of the source IP CIDR range allowed to connect to the Compute Engine VM."
   type        = list(any)
   #Example default = ["10.0.1.0/24"]
 }
 
 variable "zone" {
-  description = "Zone of the Compute Engine VM us-east4-c , us-east4-a, us-east4-b"
+  description = "Zone of the Compute Engine VM us-east4-c , us-east4-a, us-east4-b."
   type        = string
   default     = "us-east4-c"
 }

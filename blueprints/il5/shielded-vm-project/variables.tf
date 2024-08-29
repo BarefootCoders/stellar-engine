@@ -15,19 +15,19 @@
  */
 
 variable "allowed_firewall_ports" {
-  description = "The list of the Allowed Ports"
+  description = "The list of the Allowed Ports."
   type        = list(any)
   #Example  default     = ["22", "443"]
 }
 
 variable "compute_service_account_id" {
-  description = "The Service Account for Compute Engine"
+  description = "The Service Account for Compute Engine."
   type        = string
   # Example  default = "compute-service-account"
 }
 
 variable "disksize" {
-  description = "Provide the Size of the size in GB"
+  description = "Provide the Size of the size in GB."
   type        = number
   default     = 40
 }
@@ -39,20 +39,20 @@ variable "email" {
 }
 
 variable "instance_name" {
-  description = "Provide the name of the Compute Instance"
+  description = "Provide the name of the Compute Instance."
   type        = string
   default     = "shieled-vm-inst"
 }
 
 variable "instance_type" {
-  description = "The Machine Type for the Shielded Compute VM"
+  description = "The Machine Type for the Shielded Compute VM."
   type        = string
   default     = "e2-micro"
   #Example  default     = "e2-micro"
 }
 
 variable "ip_cidr_range" {
-  description = "The IP CIDR range for the VPC"
+  description = "The IP CIDR range for the VPC."
   type        = string
   #Example  default     = "10.0.1.0/24"
 }
@@ -125,46 +125,46 @@ variable "keys" {
 }
 
 variable "location" {
-  description = "Location of the Shielded Compute VM"
+  description = "Location of the Shielded Compute VM."
   type        = string
   default     = "us-east4"
 }
 
 variable "project" {
-  description = "GCP Project to deploy into"
+  description = "GCP Project to deploy into."
   type        = string
 }
 
 variable "project_id" {
-  description = "Project ID"
+  description = "Project ID."
   type        = string
 }
 
 variable "region" {
-  description = "GCP Region to deploy into"
+  description = "GCP Region to deploy into."
   type        = string
 }
 
 variable "source_ranges_allowed" {
-  description = "The List of the source IP CIDR range allowed to connect to the Shieled Compute VM"
+  description = "The List of the source IP CIDR range allowed to connect to the Shieled Compute VM."
   type        = list(any)
   # #Example   default     = ["10.0.1.0/24"]
 }
 
 variable "subnet_name" {
-  description = "The name of the subnet"
+  description = "The name of the subnet."
   type        = string
   #default     = "subnet-one"
 }
 
 variable "vpc_name" {
-  description = "The name of the VPC"
+  description = "The name of the VPC."
   type        = string
   #default     =  "vpc-shieledvm"
 }
 
 variable "zone" {
-  description = "Zone of the Shielded Compute VM us-east4-c , us-east4-a, us-east4-b"
+  description = "Zone of the Shielded Compute VM us-east4-c , us-east4-a, us-east4-b."
   type        = string
   default     = "us-east4-c"
 }

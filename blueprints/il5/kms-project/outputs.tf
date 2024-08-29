@@ -24,7 +24,6 @@ output "keyring-location" {
   value       = module.kms.location
 }
 
-
 output "keyring-name" {
   description = "Keyring name."
   value       = module.kms.name

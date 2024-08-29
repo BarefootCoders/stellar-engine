@@ -1,5 +1,5 @@
 variable "compute_vpc" {
-  description = "VPC for deploying the compute VM which will access the registry"
+  description = "VPC for deploying the compute VM which will access the registry."
   type        = string
   default     = ""
   nullable    = false
@@ -70,12 +70,12 @@ variable "keys" {
 ### Variables required for the demo consumer VM
 
 variable "project" {
-  description = "GCP Project to deploy Google Artifact Registries into"
+  description = "GCP Project to deploy Google Artifact Registries into."
   type        = string
 
 }
 
 variable "region" {
-  description = "GCP Region to deploy Google Artifact Registries into"
+  description = "GCP Region to deploy Google Artifact Registries into."
   type        = string
 }

@@ -110,12 +110,12 @@ variable "prefix" {
 }
 
 variable "project" {
-  description = "GCP Project to deploy into"
+  description = "GCP Project to deploy into."
   type        = string
 }
 
 variable "project_id" {
-  description = "Project ID"
+  description = "Project ID."
   type        = string
 }
 
@@ -130,7 +130,7 @@ variable "public_access_prevention" {
 }
 
 variable "region" {
-  description = "GCP Region to deploy into"
+  description = "GCP Region to deploy into."
   type        = string
 }
 

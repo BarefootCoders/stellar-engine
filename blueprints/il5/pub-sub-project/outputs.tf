@@ -16,10 +16,10 @@
 
 output "publisher_service_account_email" {
   value       = google_service_account.publisher.email
-  description = "The email of the publisher service account"
+  description = "The email of the publisher service account."
 }
 
 output "subscriber_service_account_email" {
   value       = google_service_account.subscriber.email
-  description = "The email of the subscriber service account"
+  description = "The email of the subscriber service account."
 }

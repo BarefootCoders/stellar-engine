@@ -15,7 +15,7 @@
  */
 
 variable "allowed_firewall_ports" {
-  description = "The allowed ports for the firewall"
+  description = "The allowed ports for the firewall."
   type        = list(string)
 }
 
@@ -120,7 +120,7 @@ variable "my_vpc" {
 }
 
 variable "project" {
-  description = "GCP Project to deploy into"
+  description = "GCP Project to deploy into."
   type        = string
 
 }
@@ -131,7 +131,7 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "GCP Region to deploy into"
+  description = "GCP Region to deploy into."
   type        = string
 }
 

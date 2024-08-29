@@ -31,7 +31,7 @@ variable "bucket_name" {
 }
 
 variable "dataflow_name" {
-  description = "Name of the Dataflow project"
+  description = "Name of the Dataflow project."
   type        = string
 }
 
@@ -94,7 +94,7 @@ variable "network_name" {
 }
 
 variable "parameters" {
-  description = "Daraflow Paramaters"
+  description = "Daraflow Paramaters."
   type        = map(string)
 }
 
@@ -104,7 +104,7 @@ variable "prefix" {
 }
 
 variable "project" {
-  description = "GCP Project to deploy Google into"
+  description = "GCP Project to deploy Google into."
   type        = string
 }
 

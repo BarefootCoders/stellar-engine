@@ -65,7 +65,7 @@ variable "firewall_source_range" {
 }
 
 variable "google_compute_global_address_name" {
-  description = "Global address for VPC name"
+  description = "Global address for VPC name."
   type        = string
   default     = "postgres"
 }

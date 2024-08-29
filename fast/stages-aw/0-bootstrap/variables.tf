@@ -293,7 +293,7 @@ variable "workload_identity_providers" {
 }
 
 variable "logging_kms_key" {
-  description = "value of the KMS key used for logging"
+  description = "value of the KMS key used for logging."
   type        = string
   default     = null
 }

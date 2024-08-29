@@ -15,16 +15,16 @@
  */
 
 output "compute_service_account_email" {
-  description = "The email of the compute service account"
+  description = "The email of the compute service account."
   value       = google_service_account.compute.email
 }
 
 output "subnet_self_link" {
-  description = "The self link of the subnet"
+  description = "The self link of the subnet."
   value       = data.google_compute_subnetwork.my_subnet.self_link
 }
 
 output "vpc_self_link" {
-  description = "The self link of the VPC"
+  description = "The self link of the VPC."
   value       = data.google_compute_network.my_vpc.self_link
 }

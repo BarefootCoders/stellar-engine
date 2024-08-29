@@ -15,7 +15,7 @@
  */
 
 variable "allowed_persistence_regions" {
-  description = "The allowed persistence regions for the Pub/Sub topic"
+  description = "The allowed persistence regions for the Pub/Sub topic."
   type        = list(string)
   default     = ["us-east4"]
 }
@@ -86,7 +86,7 @@ variable "keys" {
 }
 
 variable "project" {
-  description = "GCP Project to deploy into"
+  description = "GCP Project to deploy into."
   type        = string
 }
 
@@ -107,7 +107,7 @@ variable "pubsub_topic" {
 }
 
 variable "region" {
-  description = "GCP Region to deploy into"
+  description = "GCP Region to deploy into."
   type        = string
 }
 
