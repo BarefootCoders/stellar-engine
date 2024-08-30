@@ -120,8 +120,8 @@ test-blueprints:   # This job runs in the test stage.
     - terraform init
     - terraform validate
 
-check-docs-stages-aw:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
+check-docs-stages-aw: 
+  stage: test
   image:
     name: python:3.9.19
     entrypoint:
@@ -132,8 +132,8 @@ check-docs-stages-aw:   # This job runs in the test stage.
     - pip install click marko
     - python check_documentation.py fast/stages-aw
 
-check-docs-blueprints:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
+check-docs-blueprints:
+  stage: test 
   image:
     name: python:3.9.19
     entrypoint:
