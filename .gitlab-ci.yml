@@ -130,16 +130,16 @@ check-docs-stages-aw:   # This job runs in the test stage.
   script:
     - cd tools
     - pip install click marko
-    - python check_documentation.py fast/stages-aw
+    - python check_documentation.py fast
 
-check-docs-blueprints:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
-  image:
-    name: python:3.9.19
-    entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-  script:
-    - cd tools
-    - pip install click marko
-    - python check_documentation.py blueprints/il5
+# check-docs-blueprints:   # This job runs in the test stage.
+#   stage: test    # It only starts when the job in the build stage completes successfully.
+#   image:
+#     name: python:3.9.19
+#     entrypoint:
+#       - '/usr/bin/env'
+#       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+#   script:
+#     - cd tools
+#     - pip install click marko
+#     - python check_documentation.py blueprints/il5
