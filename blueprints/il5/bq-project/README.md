@@ -16,29 +16,35 @@ Google BigQuery is a fully-managed, serverless data system in which querying dat
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
 - An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+<!-- BEGIN TFDOC -->
+## Variables
 
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [dataset_description](variables.tf#L17) | Provides a discription of the deployed BigQuery Dataset. | <code>string</code> | ✓ |  |
+| [dataset_id](variables.tf#L22) | This is the dataset id. | <code>string</code> | ✓ |  |
+| [keyring](variables.tf#L27) | Keyring attributes. | <code title="object&#40;&#123;&#10;  location &#61; string&#10;  name     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [keys](variables.tf#L35) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string&#41;&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;HSM&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#10;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;&#10;&#10;&#10;default &#61; &#123;&#10;  &#34;default&#34; &#61; &#123;&#10;    destroy_scheduled_duration    &#61; null&#10;    rotation_period               &#61; null&#10;    labels                        &#61; null&#10;    purpose                       &#61; &#34;ENCRYPT_DECRYPT&#34;&#10;    skip_initial_version_creation &#61; false&#10;    version_template &#61; &#123;&#10;      algorithm        &#61; &#34;GOOGLE_SYMMETRIC_ENCRYPTION&#34;&#10;      protection_level &#61; &#34;HSM&#34;&#10;    &#125;&#10;&#10;&#10;    iam                   &#61; &#123;&#125;&#10;    iam_bindings          &#61; &#123;&#125;&#10;    iam_bindings_additive &#61; &#123;&#125;&#10;  &#125;&#10;&#125;">map&#40;object&#40;&#123;&#8230;&#125;</code> | ✓ |  |
+| [project](variables.tf#L96) | GCP Project to deploy into. | <code>string</code> | ✓ |  |
+| [project_id](variables.tf#L102) | Project ID. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L107) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
+| [location](variables.tf#L90) | Location of the BigQuery Dataaset in GCP. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [tables](variables.tf#L112) | BigQuery tables. | <code>map&#40;map&#40;string&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
 
-## Inputs
+## Outputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| project_id | Project ID GCP | `string` | n/a | yes |
-| id |Dataset id | 
-`string` | n/a | yes |
-| region |Region of the project | `string` | n/a | yes |
-| keyring | Keyring name | `string` | n/a | yes |
-| location | Location of dataset| `string` | n/a | yes |
-| keys | Key names. | 
-`list(string)` | `[]` | yes |
-| iam | Identity and Access Management. |
- `list(string)` |  `[]` | yes |
-| iam bindings| associates IAM policies with members | 
- `list(string)`|  `[]` | yes |
-| default|contains the duration, roation, protection, algorithm of the keys  | 
-`list(string)` | `[]` | yes |
-| email | User email. | 
-`string` | n/a | yes |
-
+| name | description | sensitive |
+|---|---|:---:|
+| [dataset_name](outputs.tf#L17) |  |  |
+| [keyring](outputs.tf#L21) |  |  |
+| [materialized_view_ids](outputs.tf#L25) |  |  |
+| [materialized_views](outputs.tf#L29) |  |  |
+| [self_link](outputs.tf#L33) |  |  |
+| [table_ids](outputs.tf#L37) |  |  |
+| [tables](outputs.tf#L41) |  |  |
+| [view_ids](outputs.tf#L45) |  |  |
+| [views](outputs.tf#L49) |  |  |
+<!-- END TFDOC -->
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
 1. Update the Variables in the variables.tf and also the properties within the keys variables. For reference update the following variables and associated properties

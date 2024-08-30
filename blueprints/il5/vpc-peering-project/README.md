@@ -22,191 +22,38 @@ You should see this README and some terraform files.
 1. Update the Variables in the variables.tf
 2. There is a sample ```terraform.tfvars.sample``` available as well.
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
+<!-- BEGIN TFDOC -->
+## Variables
 
-```bash
-terraform init
-terraform plan
-terraform apply
-```
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [current_project_id](variables.tf#L17) | Project ID. | <code>string</code> | ✓ |  |
+| [project](variables.tf#L29) | GCP Project to deploy into. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L34) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
+| [secondary_ip_ranges_cidr_a](variables.tf#L39) | The Secondary IP CIDR. | <code>string</code> | ✓ |  |
+| [secondary_ip_ranges_cidr_b](variables.tf#L45) | The Secondary IP CIDR. | <code>string</code> | ✓ |  |
+| [subnet_prefix_name](variables.tf#L51) | The name of the Subnet Prefix. | <code>string</code> | ✓ |  |
+| [subnets_cidr_a](variables.tf#L57) | The Subnet CIDR. | <code>string</code> | ✓ |  |
+| [subnets_cidr_b](variables.tf#L63) | The Subnet CIDR. | <code>string</code> | ✓ |  |
+| [subnets_cidr_c](variables.tf#L69) | The Subnet CIDR. | <code>string</code> | ✓ |  |
+| [vpc_name](variables.tf#L75) | The name of the VPC. | <code>string</code> | ✓ |  |
+| [vpc_network_name](variables.tf#L81) | The name of the VPC. | <code>string</code> | ✓ |  |
+| [location](variables.tf#L23) | Location of the Shielded Compute VM. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
 
-It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
+## Outputs
 
-The Output will look like following
-```
-Plan: 8 to add, 0 to change, 0 to destroy.
-
-Changes to Outputs:
-  + local_network_peering         = {
-      + export_custom_routes                = true
-      + export_subnet_routes_with_public_ip = true
-      + id                                  = (known after apply)
-      + import_custom_routes                = true
-      + import_subnet_routes_with_public_ip = null
-      + name                                = (known after apply)
-      + network                             = "https://www.googleapis.com/compute/v1/projects/yyyyyyy/global/networks/xxxxxxx"
-      + peer_network                        = (known after apply)
-      + stack_type                          = "IPV4_ONLY"
-      + state                               = (known after apply)
-      + state_details                       = (known after apply)
-      + timeouts                            = null
-    }
-  + peer_network_peering          = [
-      + {
-          + export_custom_routes                = true
-          + export_subnet_routes_with_public_ip = true
-          + id                                  = (known after apply)
-          + import_custom_routes                = true
-          + import_subnet_routes_with_public_ip = null
-          + name                                = (known after apply)
-          + network                             = (known after apply)
-          + peer_network                        = "https://www.googleapis.com/compute/v1/projects/yyyyyyy/global/networks/xxxxxxx"
-          + stack_type                          = "IPV4_ONLY"
-          + state                               = (known after apply)
-          + state_details                       = (known after apply)
-          + timeouts                            = null
-        },
-    ]
-  + subnet_ipv6_external_prefixes = {
-      + "us-east4/subnet-xxxxxx-a"                = (known after apply)
-      + "us-east4/subnet-xxxxxx-no-pga-b"         = (known after apply)
-      + "us-east4/subnet-xxxxxx-secondary-ranges" = (known after apply)
-    }
-  + subnet_regions                = {
-      + "us-east4/subnet-xxxxxx-a"                = "us-east4"
-      + "us-east4/subnet-xxxxxx-no-pga-b"         = "us-east4"
-      + "us-east4/subnet-xxxxxx-secondary-ranges" = "us-east4"
-    }
-  + subnet_secondary_ranges       = {
-      + "us-east4/subnet-xxxxxx-a"                = {}
-      + "us-east4/subnet-xxxxxx-no-pga-b"         = {}
-      + "us-east4/subnet-xxxxxx-secondary-ranges" = {
-          + a = "x.x.x.x/24"
-          + b = "x.x.x.x/24"
-        }
-    }
-  + subnet_self_links             = {
-      + "us-east4/subnet-xxxxxx-a"                = (known after apply)
-      + "us-east4/subnet-xxxxxx-no-pga-b"         = (known after apply)
-      + "us-east4/subnet-xxxxxx-secondary-ranges" = (known after apply)
-    }
-  + subnets                       = {
-      + "us-east4/subnet-xxxxxx-a"                = {
-          + creation_timestamp         = (known after apply)
-          + description                = "Subnet a simple subnet"
-          + external_ipv6_prefix       = (known after apply)
-          + fingerprint                = (known after apply)
-          + gateway_address            = (known after apply)
-          + id                         = (known after apply)
-          + internal_ipv6_prefix       = (known after apply)
-          + ip_cidr_range              = "x.x.x.x/25"
-          + ipv6_access_type           = null
-          + ipv6_cidr_range            = (known after apply)
-          + log_config                 = []
-          + name                       = "subnet-xxxxxx-a"
-          + network                    = "vpc-project-xxxxxx"
-          + private_ip_google_access   = true
-          + private_ipv6_google_access = (known after apply)
-          + project                    = "project-name"
-          + purpose                    = (known after apply)
-          + region                     = "us-east4"
-          + role                       = null
-          + secondary_ip_range         = []
-          + self_link                  = (known after apply)
-          + stack_type                 = (known after apply)
-          + timeouts                   = null
-        }
-      + "us-east4/subnet-xxxxxx-no-pga-b"         = {
-          + creation_timestamp         = (known after apply)
-          + description                = "Subnet b with no PGA"
-          + external_ipv6_prefix       = (known after apply)
-          + fingerprint                = (known after apply)
-          + gateway_address            = (known after apply)
-          + id                         = (known after apply)
-          + internal_ipv6_prefix       = (known after apply)
-          + ip_cidr_range              = "x.x.x.x/25"
-          + ipv6_access_type           = null
-          + ipv6_cidr_range            = (known after apply)
-          + log_config                 = []
-          + name                       = "subnet-xxxxxx-no-pga-b"
-          + network                    = "vpc-project-xxxxxx"
-          + private_ip_google_access   = false
-          + private_ipv6_google_access = (known after apply)
-          + project                    = "project-name"
-          + purpose                    = (known after apply)
-          + region                     = "us-east4"
-          + role                       = null
-          + secondary_ip_range         = []
-          + self_link                  = (known after apply)
-          + stack_type                 = (known after apply)
-          + timeouts                   = null
-        }
-      + "us-east4/subnet-xxxxxx-secondary-ranges" = {
-          + creation_timestamp         = (known after apply)
-          + description                = "Subnet c with secondary ranges"
-          + external_ipv6_prefix       = (known after apply)
-          + fingerprint                = (known after apply)
-          + gateway_address            = (known after apply)
-          + id                         = (known after apply)
-          + internal_ipv6_prefix       = (known after apply)
-          + ip_cidr_range              = "x.x.x.x/25"
-          + ipv6_access_type           = null
-          + ipv6_cidr_range            = (known after apply)
-          + log_config                 = []
-          + name                       = "subnet-xxxxxx-secondary-ranges"
-          + network                    = "vpc-project-xxxxxx"
-          + private_ip_google_access   = true
-          + private_ipv6_google_access = (known after apply)
-          + project                    = "project-xxxxxx"
-          + purpose                    = (known after apply)
-          + region                     = "us-east4"
-          + role                       = null
-          + secondary_ip_range         = [
-              + {
-                  + ip_cidr_range = "x.x.x.x/24"
-                  + range_name    = "a"
-                },
-              + {
-                  + ip_cidr_range = "x.x.x.x/24"
-                  + range_name    = "b"
-                },
-            ]
-          + self_link                  = (known after apply)
-          + stack_type                 = (known after apply)
-          + timeouts                   = null
-        }
-    }
-  + vpc-network                   = {
-      + id        = (known after apply)
-      + name      = "vpc-project-xxxxxx"
-      + self_link = (known after apply)
-    }
-  + vpc-network-id                = (known after apply)
-  + vpc-network-name              = "vpc-project-xxxxxx"
-  + vpc-network-self_link         = (known after apply)
-  + vpc-network_attachment_ids    = {}
-  + vpc-subnet_ids                = {
-      + "us-east4/subnet-xxxxxx-a"                = (known after apply)
-      + "us-east4/subnet-xxxxxx-no-pga-b"         = (known after apply)
-      + "us-east4/subnet-xxxxxx-secondary-ranges" = (known after apply)
-    }
-  + vpc-subnet_ips                = {
-      + "us-east4/subnet-xxxxxx-a"                = "x.x.x.x/25"
-      + "us-east4/subnet-xxxxxx-no-pga-b"         = "x.x.x.x/25"
-      + "us-east4/subnet-xxxxxx-secondary-ranges" = "x.x.x.x/25"
-    }
-```
-
-## Verification of a successful deployment for GCP VPC Network
-
-- Go to the GCP VPC Networks in the GCP Console.
-![GCP VPC Networks ](./images/vpc1.png?raw=true " GCP VPC Networks ")
-
-- Go to the GCP VPC Networks in the VPC Peering Tab in the GCP Console.
-![GCP VPC Networks ](./images/vpc2.png?raw=true " GCP VPC Networks ")
-
-
-## Cleanup
-Once the project is deployed, to ensure clean up, please apply following command.
-```bash
-terraform destory
-```
+| name | description | sensitive |
+|---|---|:---:|
+| [local_network_peering](outputs.tf#L17) | Network peering resource. |  |
+| [peer_network_peering](outputs.tf#L22) | Peer network peering resource. |  |
+| [subnet_ipv6_external_prefixes](outputs.tf#L27) | Map of subnet external IPv6 prefixes keyed by name. |  |
+| [subnet_regions](outputs.tf#L32) | Map of subnet regions keyed by name. |  |
+| [subnet_secondary_ranges](outputs.tf#L37) | Map of subnet secondary ranges keyed by name. |  |
+| [subnet_self_links](outputs.tf#L42) | Map of subnet self links keyed by name. |  |
+| [subnets](outputs.tf#L47) | Subnet resources. |  |
+| [vpc-network](outputs.tf#L52) | Network resource. |  |
+| [vpc-network-self_link](outputs.tf#L57) | Network self link. |  |
+| [vpc-network_attachment_ids](outputs.tf#L62) | IDs of network attachments. |  |
+| [vpc-subnet_ids](outputs.tf#L67) | Map of subnet IDs keyed by name. |  |
+| [vpc-subnet_ips](outputs.tf#L72) | Map of subnet address ranges keyed by name. |  |
+<!-- END TFDOC -->

@@ -13,28 +13,30 @@ Pub/Sub allows services to communicate asynchronously, and it is used for stream
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
 - An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+<!-- BEGIN TFDOC -->
+## Variables
 
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [keyring](variables.tf#L23) | Keyring attributes. | <code title="object&#40;&#123;&#10;  location &#61; string&#10;  name     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [keys](variables.tf#L31) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string&#41;&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  location                      &#61; optional&#40;string, &#34;us-east4&#34;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;HSM&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#10;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;&#10;&#10;&#10;default &#61; &#123;&#10;  &#34;default&#34; &#61; &#123;&#10;    destroy_scheduled_duration    &#61; null&#10;    rotation_period               &#61; null&#10;    labels                        &#61; null&#10;    purpose                       &#61; &#34;ENCRYPT_DECRYPT&#34;&#10;    skip_initial_version_creation &#61; false&#10;    version_template &#61; &#123;&#10;      algorithm        &#61; &#34;GOOGLE_SYMMETRIC_ENCRYPTION&#34;&#10;      protection_level &#61; &#34;HSM&#34;&#10;    &#125;&#10;&#10;&#10;    iam                   &#61; &#123;&#125;&#10;    iam_bindings          &#61; &#123;&#125;&#10;    iam_bindings_additive &#61; &#123;&#125;&#10;  &#125;&#10;&#125;&#10;&#10;&#10;nullable &#61; false">&#8230;</code> | ✓ |  |
+| [project](variables.tf#L88) | GCP Project to deploy into. | <code>string</code> | ✓ |  |
+| [project_id](variables.tf#L93) |  | <code>string</code> | ✓ |  |
+| [publisher_account_id](variables.tf#L97) |  | <code>string</code> | ✓ |  |
+| [publisher_name](variables.tf#L101) |  | <code>string</code> | ✓ |  |
+| [pubsub_topic](variables.tf#L105) |  | <code>string</code> | ✓ |  |
+| [region](variables.tf#L109) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
+| [subscriber_account_id](variables.tf#L114) |  | <code>string</code> | ✓ |  |
+| [subscriber_name](variables.tf#L118) |  | <code>string</code> | ✓ |  |
+| [allowed_persistence_regions](variables.tf#L17) | The allowed persistence regions for the Pub/Sub topic. | <code>list&#40;string&#41;</code> |  | <code>&#91;&#34;us-east4&#34;&#93;</code> |
 
-# Inputs
+## Outputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| project_id | Project ID GCP | `string` | n/a | yes |
-| email | Email of the user| `string` | n/a | yes |
-| location | Location of the project | `string` | n/a | yes |
-| pubsub_subscription_name | Name of subscription| `string` | n/a | yes |
-| pubsub_topic| Name of topic| `string` | n/a | yes |
-| publisher_name| Name of publisher| `string` | n/a | yes |
-| subscriber_name| Name of subscriber| `string` | n/a | yes |
-| publisher_account_id| Name of publisher account id| `string` | n/a | yes |
-| subscriber_account_id| Name of subscriber account id| `string` | n/a | yes |
-| subscriber_account_id| Name of subscriber account id| `string` | n/a | yes |
-| keyring | Keyring name | `string` | n/a | yes |
-| keys | Key names. | `list(string)` | `[]` | yes |
-| iam | Identity and Access Management. |`list(string)` |  `[]` | yes |
-| iam bindings| associates IAM policies with members | `list(string)`|  `[]` | yes |
-| default|contains the duration, roation, protection, algorithm of the keys  | `list(string)` | `[]` | yes |
-
+| name | description | sensitive |
+|---|---|:---:|
+| [publisher_service_account_email](outputs.tf#L17) | The email of the publisher service account. |  |
+| [subscriber_service_account_email](outputs.tf#L22) | The email of the subscriber service account. |  |
+<!-- END TFDOC -->
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
 1. Update the Variables in the variables.tf 

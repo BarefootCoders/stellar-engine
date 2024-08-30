@@ -19,23 +19,30 @@ Google Cloud Key Management Service (Cloud KMS) lets you create and manage encry
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
 - An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+<!-- BEGIN TFDOC -->
+## Variables
 
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [email](variables.tf#L17) | Email address of the user. | <code>string</code> | ✓ |  |
+| [group_email](variables.tf#L23) | An email address that represents a Google group. For example, admins@example.com. | <code>string</code> | ✓ |  |
+| [keyring](variables.tf#L29) | Keyring attributes. | <code title="object&#40;&#123;&#10;  location &#61; string&#10;  name     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [project](variables.tf#L100) | GCP Project to deploy into. | <code>string</code> | ✓ |  |
+| [project_id](variables.tf#L105) | Project ID. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L111) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
+| [keys](variables.tf#L44) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string&#41;&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;HSM&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code title="&#123;&#10;  &#34;uupdate-the-keys-name&#34; &#61; &#123;&#10;    rotation_period            &#61; &#34;7776000s&#34;&#10;    destroy_scheduled_duration &#61; &#34;2592000s&#34;&#10;    labels &#61; &#123;&#10;      &#34;team&#34; &#61; &#34;update-the-team-label-here&#34;&#10;    &#125;&#10;    version_template &#61; &#123;&#10;      algorithm        &#61; &#34;GOOGLE_SYMMETRIC_ENCRYPTION&#34;&#10;      protection_level &#61; &#34;HSM&#34;&#10;    &#125;&#10;    iam &#61; &#123;&#10;      &#34;roles&#47;cloudkms.cryptoKeyEncrypterDecrypter&#34; &#61; &#91;&#34;user:update-the-email-address-here&#34;, &#34;group:update-group-email-address-here&#34;&#93;&#10;    &#125;&#10;    lifecycle &#61; &#123;&#10;      prevent_destroy &#61; true&#10;    &#125;&#10;  &#125;&#10;&#10;&#10;&#125;">&#123;&#8230;&#125;</code> |
 
-## Inputs
+## Outputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| project_id | Project ID GCP | `string` | n/a | yes |
-| email | Email address of the user. | `string` | n/a | yes |
-| location | Location for the keyring. | `string` | n/a | yes |
-| keyring | Keyring name. | `string` | n/a | yes |
-| project_id | Project ID GCP | `string` | n/a | yes |
-| keys | Key names. | `list(string)` | `[]` | yes |
-| keys.updated-the-runner-key-name | The name to be given to runner | `string` |  n/a | yes |
-| keys.labels.teams | The Label to be given to the keys | `string` |  n/a | yes |
-| keys.iam | Email address of the user in user:update-the-email-address-here"  | `string` |  n/a | yes |
-
-
+| name | description | sensitive |
+|---|---|:---:|
+| [keyring-id](outputs.tf#L17) | Fully qualified keyring id. |  |
+| [keyring-location](outputs.tf#L22) | Keyring location. |  |
+| [keyring-name](outputs.tf#L27) | Keyring name. |  |
+| [keyring-resource](outputs.tf#L32) | Keyring resource. |  |
+| [keyrings-keys](outputs.tf#L37) | Key resources. |  |
+| [qualified_key_ids](outputs.tf#L42) | Fully qualified key ids. |  |
+<!-- END TFDOC -->
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
 1. Update the Variables in the variables.tf and also the properties within the keys variables. For reference update the following variables and associated properties

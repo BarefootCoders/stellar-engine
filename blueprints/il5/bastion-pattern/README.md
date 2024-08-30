@@ -50,32 +50,35 @@ Once the SSH tunnel is established, you can access the web services by navigatin
 - https://localhost:8443 for the service on remote port 443.
 - https://localhost:8444 for the service on remote port 8443.
 - https://localhost:8445 for the service on remote port 8444.
+<!-- BEGIN TFDOC -->
+## Variables
 
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [allowed_firewall_ports](variables.tf#L17) | The allowed ports for the firewall. | <code>list&#40;string&#41;</code> | ✓ |  |
+| [allowed_source_ranges](variables.tf#L22) | These are the allowed source ranges. | <code>list&#40;string&#41;</code> | ✓ |  |
+| [compute_service_account_id](variables.tf#L27) |  | <code>string</code> | ✓ |  |
+| [disk_name](variables.tf#L31) | This is the disk name. | <code>string</code> | ✓ |  |
+| [image](variables.tf#L36) |  | <code>string</code> | ✓ |  |
+| [instance_name](variables.tf#L40) | This is the instance name. | <code>string</code> | ✓ |  |
+| [keyring](variables.tf#L50) | Keyring attributes. | <code title="object&#40;&#123;&#10;  location &#61; string&#10;  name     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [keys](variables.tf#L58) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string&#41;&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;hsm&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#10;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;&#10;&#10;&#10;default &#61; &#123;&#10;  &#34;bastion&#34; &#61; &#123;&#10;    destroy_scheduled_duration    &#61; null&#10;    rotation_period               &#61; null&#10;    labels                        &#61; null&#10;    purpose                       &#61; &#34;ENCRYPT_DECRYPT&#34;&#10;    skip_initial_version_creation &#61; false&#10;    version_template &#61; &#123;&#10;      algorithm        &#61; &#34;GOOGLE_SYMMETRIC_ENCRYPTION&#34;&#10;      protection_level &#61; &#34;HSM&#34;&#10;    &#125;&#10;&#10;&#10;    iam                   &#61; &#123;&#125;&#10;    iam_bindings          &#61; &#123;&#125;&#10;    iam_bindings_additive &#61; &#123;&#125;&#10;  &#125;&#10;&#125;&#10;&#10;&#10;nullable &#61; false">&#8230;</code> | ✓ |  |
+| [my_subnet](variables.tf#L114) |  | <code>string</code> | ✓ |  |
+| [my_vpc](variables.tf#L118) |  | <code>string</code> | ✓ |  |
+| [project](variables.tf#L122) | GCP Project to deploy into. | <code>string</code> | ✓ |  |
+| [project_id](variables.tf#L128) | This is the ID of project. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L133) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
+| [zone](variables.tf#L138) | This is the zone of the instance. | <code>string</code> | ✓ |  |
+| [instance_type](variables.tf#L45) |  | <code>string</code> |  | <code>&#34;e2-small&#34;</code> |
 
-## Inputs
+## Outputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| project_id | Project ID GCP | `string` | n/a | yes |
-| location |Location of project | `string` | n/a | yes |
-| allowed_source_ranges |Allowed source ranges| `string` | n/a | yes |
-| my_vpc |vpc name of project | `string` | n/a | yes |
-| image|Image of the bastion vm | `string` | n/a | yes |
-| zone |zone of the bastion instance | `string` | n/a | yes |
-| my_subnet |Name of subnet | `string` | n/a | yes |
-| instance_type |Type of instance | `string` | n/a | yes |
-| ip_cidr_range |This is the ip cidr range | `string` | n/a | yes |
-| disk_name|Name of disk| `string` | n/a | yes |
-| instance_name |Name of instance| `string` | n/a | yes |
-| kms_key_self_link |Self-link of kms key| `string` | n/a | yes |
-| compute_service_account_id |id of Compute Service account| `string` | n/a | yes | 
-| email | Email of user | `string` | n/a | yes |
-| keyring | KMS keyring to use for encryption. Use terraform import 'module.kms.google_kms_key_ring.default[0]' projects/\<your-project\>/locations/\<your location\>/keyRings/\<your-keyring\> if you want to use an existing keyring| `string` | n/a | yes |
-| keys | Key to use for encryption - defaults to the name "bastion". Use terraform import 'module.kms.google_kms_crypto_key.default["bastion"]' projects/\<your-project\>/locations/\<your-location\>/keyRings/\<your-keyring\>/cryptoKeys/bastion if you want to use an existing key | `list(string)` | `[]` | yes |
-| iam | Identity and Access Management. |`list(string)` |  `[]` | yes |
-| iam bindings| associates IAM policies with members | `list(string)`|  `[]` | yes |
-| default|contains the duration, roation, protection, algorithm of the keys  | `list(string)` | `[]` | yes |
-
+| name | description | sensitive |
+|---|---|:---:|
+| [compute_service_account_email](outputs.tf#L17) | The email of the compute service account. |  |
+| [subnet_self_link](outputs.tf#L22) | The self link of the subnet. |  |
+| [vpc_self_link](outputs.tf#L27) | The self link of the VPC. |  |
+<!-- END TFDOC -->
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
 1. Update the Variables in the variables.tf and also the properties within the keys variables. For reference update the following variables and associated properties

@@ -36,8 +36,8 @@ The blueprint also creates a CentOS-9-Stream instance with a startup-script that
 
 | name | description | sensitive |
 |---|---|:---:|
-| [docker_registries](outputs.tf#L1) | Docker registries created from teh docker-registries.yaml file, with Docker Hub appended |  |
-| [yum_repositories](outputs.tf#L6) | Yum repositories created from the yum-repos.yaml file |  |
+| [docker_registries](outputs.tf#L1) | Docker registries created from teh docker-registries.yaml file, with Docker Hub appended. |  |
+| [yum_repositories](outputs.tf#L6) | Yum repositories created from the yum-repos.yaml file. |  |
 <!-- END TFDOC -->
 ### Yum Reposistories
 This blueprint deploys 2 Yum registries for pull-through proxying

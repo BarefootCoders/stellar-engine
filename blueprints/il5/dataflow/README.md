@@ -28,56 +28,34 @@ terraform apply
 ```
 
 Note: If you are using a KMS keyring that already exists, you must import it as documented [here](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/kms_key_ring)
+<!-- BEGIN TFDOC -->
+## Variables
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_google"></a> [google](#provider\_google) | 5.38.0 |
-
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_gcs"></a> [gcs](#module\_gcs) | ../../../modules/gcs | n/a |
-| <a name="module_kms"></a> [kms](#module\_kms) | ../../../modules/kms | n/a |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | ../../../modules/net-vpc | n/a |
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [google_compute_firewall.dataflow](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_firewall) | resource |
-| [google_dataflow_job.job](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dataflow_job) | resource |
-| [google_project_iam_member.dataflow_worker](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/project_iam_member) | resource |
-| [google_service_account.dataflow_worker](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/service_account) | resource |
-| [google_project.current](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/project) | data source |
-
-## Inputs
-
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_allowed_firewall_ports"></a> [allowed\_firewall\_ports](#input\_allowed\_firewall\_ports) | The allowed ports for the firewall. Dataflow requires 12345 and 12346. | `list(string)` | <pre>[<br>  12345,<br>  12346<br>]</pre> | no |
-| <a name="input_allowed_source_ranges"></a> [allowed\_source\_ranges](#input\_allowed\_source\_ranges) | These are the allowed source ranges. | `list(string)` | n/a | yes |
-| <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | This is the name of the bucket. | `string` | n/a | yes |
-| <a name="input_dataflow_name"></a> [dataflow\_name](#input\_dataflow\_name) | This is the name of the dataflow job. | `string` | n/a | yes |
-| <a name="input_firewall_name"></a> [firewall\_name](#input\_firewall\_name) | The firewall name. | `string` | n/a | yes |
-| <a name="input_ip_cidr_range"></a> [ip\_cidr\_range](#input\_ip\_cidr\_range) | IP CIDR Range for DataFlow subnet. | `string` | n/a | yes |
-| <a name="input_keyring"></a> [keyring](#input\_keyring) | Keyring attributes. | <pre>object({<br>    location = string<br>    name     = string<br>  })</pre> | n/a | yes |
-| <a name="input_keys"></a> [keys](#input\_keys) | Key names and base attributes. Set attributes to null if not needed. | <pre>map(object({<br>    destroy_scheduled_duration    = optional(string)<br>    rotation_period               = optional(string)<br>    labels                        = optional(map(string))<br>    purpose                       = optional(string, "ENCRYPT_DECRYPT")<br>    skip_initial_version_creation = optional(bool, false)<br>    version_template = optional(object({<br>      algorithm        = string<br>      protection_level = optional(string, "HSM")<br>    }))<br><br>    iam = optional(map(list(string)), {})<br>    iam_bindings = optional(map(object({<br>      members = list(string)<br>      role    = string<br>      condition = optional(object({<br>        expression  = string<br>        title       = string<br>        description = optional(string)<br>      }))<br>    })), {})<br>    iam_bindings_additive = optional(map(object({<br>      member = string<br>      role   = string<br>      condition = optional(object({<br>        expression  = string<br>        title       = string<br>        description = optional(string)<br>      }))<br>    })), {})<br>  }))</pre> | n/a | yes |
-| <a name="input_network_name"></a> [network\_name](#input\_network\_name) | The network name. | `string` | n/a | yes |
-| <a name="input_parameters"></a> [parameters](#input\_parameters) | Daraflow Paramaters | `map(string)` | n/a | yes |
-| <a name="input_prefix"></a> [prefix](#input\_prefix) | This is the prefix for all resources. | `string` | n/a | yes |
-| <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The ID of the project in which to provision resources. | `string` | n/a | yes |
-| <a name="input_region"></a> [region](#input\_region) | The region in which to provision resources. | `string` | `"us-east4"` | no |
-| <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | This is the storage class of the storage bucket. | `string` | n/a | yes |
-| <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | The subnet name. | `string` | n/a | yes |
-| <a name="input_template_gcs_path"></a> [template\_gcs\_path](#input\_template\_gcs\_path) | This is the template path of the dataflow job. | `string` | n/a | yes |
-| <a name="input_zone"></a> [zone](#input\_zone) | This is the name of the zone. | `string` | `"us-east4"` | no |
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [allowed_source_ranges](variables.tf#L23) | These are the allowed source ranges. | <code>list&#40;string&#41;</code> | ✓ |  |
+| [bucket_name](variables.tf#L28) | This is the name of the bucket. | <code>string</code> | ✓ |  |
+| [dataflow_name](variables.tf#L33) | Name of the Dataflow project. | <code>string</code> | ✓ |  |
+| [firewall_name](variables.tf#L38) | The firewall name. | <code>string</code> | ✓ |  |
+| [ip_cidr_range](variables.tf#L43) | IP CIDR Range for DataFlow subnet. | <code>string</code> | ✓ |  |
+| [keyring](variables.tf#L48) | Keyring attributes. | <code title="object&#40;&#123;&#10;  location &#61; string&#10;  name     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [keys](variables.tf#L56) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string&#41;&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;HSM&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> | ✓ |  |
+| [network_name](variables.tf#L91) | The network name. | <code>string</code> | ✓ |  |
+| [parameters](variables.tf#L96) | Daraflow Paramaters. | <code>map&#40;string&#41;</code> | ✓ |  |
+| [prefix](variables.tf#L101) | This is the prefix for all resources. | <code>string</code> | ✓ |  |
+| [project](variables.tf#L106) | GCP Project to deploy Google into. | <code>string</code> | ✓ |  |
+| [project_id](variables.tf#L111) | The ID of the project in which to provision resources. | <code>string</code> | ✓ |  |
+| [storage_class](variables.tf#L122) | This is the storage class of the storage bucket. | <code>string</code> | ✓ |  |
+| [subnet_name](variables.tf#L127) | The subnet name. | <code>string</code> | ✓ |  |
+| [template_gcs_path](variables.tf#L132) | This is the template path of the dataflow job. | <code>string</code> | ✓ |  |
+| [allowed_firewall_ports](variables.tf#L17) | The allowed ports for the firewall. Dataflow requires 12345 and 12346. | <code>list&#40;string&#41;</code> |  | <code>&#91;12345, 12346&#93;</code> |
+| [region](variables.tf#L116) | The region in which to provision resources. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [zone](variables.tf#L137) | This is the name of the zone. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| <a name="output_dataflow-job"></a> [dataflow-job](#output\_dataflow-job) | Dataflow job. |
-| <a name="output_gcs-bucket"></a> [gcs-bucket](#output\_gcs-bucket) | GCS Bucket. |
+| name | description | sensitive |
+|---|---|:---:|
+| [dataflow-job](outputs.tf#L1) | Dataflow job. |  |
+| [gcs-bucket](outputs.tf#L6) | GCS Bucket. |  |
+<!-- END TFDOC -->
