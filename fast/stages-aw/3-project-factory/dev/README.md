@@ -124,11 +124,11 @@ terraform apply
 | name | description | type | required | default | producer |
 |---|---|:---:|:---:|:---:|:---:|
 | [billing_account](variables.tf#L18) | Billing account id. If billing account is not part of the same org set `is_org_level` to false. | <code title="object&#40;&#123;&#10;  id           &#61; string&#10;  is_org_level &#61; optional&#40;bool, true&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  | <code>0-bootstrap</code> |
-| [prefix](variables.tf#L64) | Prefix used for resources that need unique names. Use 9 characters or less. | <code>string</code> | ✓ |  | <code>0-bootstrap</code> |
-| [factories_config](variables.tf#L33) | Path to folder with YAML resource description data files. | <code title="object&#40;&#123;&#10;  projects_data_path &#61; string&#10;  budgets &#61; optional&#40;object&#40;&#123;&#10;    billing_account       &#61; string&#10;    budgets_data_path     &#61; string&#10;    notification_channels &#61; optional&#40;map&#40;any&#41;, &#123;&#125;&#41;&#10;  &#125;&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  projects_data_path &#61; &#34;data&#47;projects&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |  |
-| [host_project_ids](variables.tf#L49) | Map of host projects from the networks stages. | <code>map&#40;string&#41;</code> |  | <code>&#123;&#125;</code> | <code>3-network</code> |
-| [location](variables.tf#L57) | Location of the Compute Engine VM. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |  |
-| [vpc_self_links](variables.tf#L74) | Map of projects and VPC from the networks stages. | <code>map&#40;string&#41;</code> |  | <code>&#123;&#125;</code> | <code>3-network</code> |
+| [prefix](variables.tf#L63) | Prefix used for resources that need unique names. Use 9 characters or less. | <code>string</code> | ✓ |  | <code>0-bootstrap</code> |
+| [factories_config](variables.tf#L31) | Path to folder with YAML resource description data files. | <code title="object&#40;&#123;&#10;  projects_data_path &#61; string&#10;  budgets &#61; optional&#40;object&#40;&#123;&#10;    billing_account       &#61; string&#10;    budgets_data_path     &#61; string&#10;    notification_channels &#61; optional&#40;map&#40;any&#41;, &#123;&#125;&#41;&#10;  &#125;&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  projects_data_path &#61; &#34;data&#47;projects&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |  |
+| [host_project_ids](variables.tf#L47) | Map of host projects from the networks stages. | <code>map&#40;string&#41;</code> |  | <code>&#123;&#125;</code> | <code>3-network</code> |
+| [location](variables.tf#L56) | Location of the Compute Engine VM. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |  |
+| [vpc_self_links](variables.tf#L73) | Map of projects and VPC from the networks stages. | <code>map&#40;string&#41;</code> |  | <code>&#123;&#125;</code> | <code>3-network</code> |
 
 ## Outputs
 
