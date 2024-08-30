@@ -48,7 +48,7 @@ variable "enable_pgaudit" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default     = "On" 
+  default = "On"
 
   validation {
     condition     = contains(["on", "off"], var.enable_pgaudit)
@@ -120,7 +120,7 @@ variable "log_connections" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default     = "on" 
+  default = "on"
 
   validation {
     condition     = contains(["on", "off"], var.log_connections)
@@ -133,7 +133,7 @@ variable "log_disconnections" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default     = "on"
+  default = "on"
 
   validation {
     condition     = contains(["on", "off"], var.log_disconnections)
@@ -146,7 +146,7 @@ variable "log_error_verbosity" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default     = "DEFAULT" 
+  default = "DEFAULT"
 
   validation {
     condition     = contains(["TERSE", "DEFAULT", "VERBOSE"], var.log_error_verbosity)
@@ -159,7 +159,7 @@ variable "log_min_duration_statement" {
   type        = number
 
   # Required for CIS Compliance Benchmark 6.2
-  default     = "-1" 
+  default = "-1"
   validation {
     condition     = var.log_min_duration_statement >= "-1" && floor(var.log_min_duration_statement) == var.log_min_duration_statement
     error_message = "Only values \"-1\" or a valid whole number are allowed."
@@ -182,7 +182,7 @@ variable "log_min_messages" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default     = "WARNING"
+  default = "WARNING"
 
   validation {
     condition     = contains(["DEBUG5", "DEBUG4", "DEBUG3", "DEBUG2", "DEBUG1", "INFO", "NOTICE", "WARNING", "ERROR", "LOG", "FATAL", "PANIC"], var.log_min_messages)
@@ -195,7 +195,7 @@ variable "log_statement" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default     = "ddl" 
+  default = "ddl"
 
   validation {
     condition     = contains(["none", "ddl", "mod", "all"], var.log_statement)
