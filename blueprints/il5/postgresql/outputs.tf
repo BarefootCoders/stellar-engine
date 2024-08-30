@@ -16,4 +16,5 @@
 
 output "connection_internal_ip" {
   value = module.postgres.ip
+  description = "Conntection internal IP address."
 }

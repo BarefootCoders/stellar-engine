@@ -16,36 +16,40 @@
 
 output "dataset_name" {
   value = module.bigquery-dataset.id
+  description = "Dataset name."
 }
 
 output "keyring" {
   value = module.kms.keyring
+  description = "Keyring name."
 }
 
 output "materialized_view_ids" {
   value = module.bigquery-dataset.materialized_view_ids
+  description = "Materialized view IDs."
 }
 
 output "materialized_views" {
   value = module.bigquery-dataset.materialized_views
-}
-
-output "self_link" {
-  value = module.bigquery-dataset.self_link
+  description = "Materialized views."
 }
 
 output "table_ids" {
   value = module.bigquery-dataset.table_ids
+  description = "Table IDs."
 }
 
 output "tables" {
   value = module.bigquery-dataset.tables
+  description = "Tables."
 }
 
 output "view_ids" {
   value = module.bigquery-dataset.view_ids
+  description = "View IDs."
 }
 
 output "views" {
   value = module.bigquery-dataset.views
+  description = "Views."
 }

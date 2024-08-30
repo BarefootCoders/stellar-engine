@@ -91,18 +91,22 @@ variable "project" {
 }
 
 variable "project_id" {
+  description = "Project ID."
   type = string
 }
 
 variable "publisher_account_id" {
+  description = "Publisher account ID."
   type = string
 }
 
 variable "publisher_name" {
+  description = "Publisher name."
   type = string
 }
 
 variable "pubsub_topic" {
+  description = "PubSub topic."
   type = string
 }
 
@@ -112,9 +116,11 @@ variable "region" {
 }
 
 variable "subscriber_account_id" {
+  description = "Subscriber account ID."
   type = string
 }
 
 variable "subscriber_name" {
+  description = "Subscriber name."
   type = string
 }

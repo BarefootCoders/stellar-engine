@@ -35,15 +35,14 @@ Google BigQuery is a fully-managed, serverless data system in which querying dat
 
 | name | description | sensitive |
 |---|---|:---:|
-| [dataset_name](outputs.tf#L17) |  |  |
-| [keyring](outputs.tf#L21) |  |  |
-| [materialized_view_ids](outputs.tf#L25) |  |  |
-| [materialized_views](outputs.tf#L29) |  |  |
-| [self_link](outputs.tf#L33) |  |  |
-| [table_ids](outputs.tf#L37) |  |  |
-| [tables](outputs.tf#L41) |  |  |
-| [view_ids](outputs.tf#L45) |  |  |
-| [views](outputs.tf#L49) |  |  |
+| [dataset_name](outputs.tf#L17) | Dataset name. |  |
+| [keyring](outputs.tf#L22) | Keyring name. |  |
+| [materialized_view_ids](outputs.tf#L27) | Materialized view IDs. |  |
+| [materialized_views](outputs.tf#L32) | Materialized views. |  |
+| [table_ids](outputs.tf#L37) | Table IDs. |  |
+| [tables](outputs.tf#L42) | Tables. |  |
+| [view_ids](outputs.tf#L47) | View IDs. |  |
+| [views](outputs.tf#L52) | Views. |  |
 <!-- END TFDOC -->
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.

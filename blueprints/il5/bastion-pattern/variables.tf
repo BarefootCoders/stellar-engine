@@ -25,6 +25,7 @@ variable "allowed_source_ranges" {
 }
 
 variable "compute_service_account_id" {
+  description = "This is the compute service account id."
   type = string
 }
 
@@ -34,6 +35,7 @@ variable "disk_name" {
 }
 
 variable "image" {
+  description = "Disk image."
   type = string
 }
 
@@ -43,6 +45,7 @@ variable "instance_name" {
 }
 
 variable "instance_type" {
+  description = "Instance type."
   type    = string
   default = "e2-small"
 }
@@ -112,10 +115,12 @@ variable "keys" {
 }
 
 variable "my_subnet" {
+  description = "Subnet to use."
   type = string
 }
 
 variable "my_vpc" {
+  description = "VPC to use."
   type = string
 }
 
