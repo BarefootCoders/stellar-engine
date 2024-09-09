@@ -343,3 +343,9 @@ variable "tenants_config" {
   nullable = false
   default  = {}
 }
+
+variable "top_level_folder" {
+description = "Optional folder to nest all of the Stellar Engine folder beneath"
+type = string
+default = ""
+}

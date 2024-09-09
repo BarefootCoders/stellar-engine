@@ -179,6 +179,24 @@ module "organization-logging" {
   }
 }
 
+resource "google_assured_workloads_workload" "primary" {
+  compliance_regime            = var.assured_workloads.compliance.regime
+  display_name                 = "StellarEngine-${var.prefix}"
+  location                     = var.assured_workloads.compliance.location
+  organization                 = var.organization.id
+  billing_account              = "billingAccounts/${var.billing_account.id}"
+  provisioned_resources_parent = ""
+  resource_settings {
+    display_name  = "StellarEngine-${var.prefix}"
+    resource_type = "CONSUMER_FOLDER"
+  }
+
+  violation_notifications_enabled = true
+  lifecycle {
+    create_before_destroy = true
+  }
+  depends_on = [module.organization.google_organization_iam_binding]
+}
 module "organization" {
   source          = "../../../modules/organization"
   organization_id = module.organization-logging.id

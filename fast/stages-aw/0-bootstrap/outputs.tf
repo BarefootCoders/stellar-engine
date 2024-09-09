@@ -110,7 +110,9 @@ locals {
         split("/", k)[1] => v.id
       }
     }
+    assured_workloads = merge(var.assured_workloads, {"folder": "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}" })
   }
+
   tfvars_globals = {
     billing_account = var.billing_account
     fast_features   = var.fast_features
@@ -211,4 +213,9 @@ output "workload_identity_pool" {
     )
     providers = local.cicd_providers
   }
+}
+
+output "assured_workload" {
+  description = "Assured Workload folder for the deployment"
+  value = "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}"
 }

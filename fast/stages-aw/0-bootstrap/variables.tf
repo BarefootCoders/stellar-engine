@@ -298,3 +298,20 @@ variable "workload_identity_providers" {
   #   error_message = "Custom settings cannot be null."
   # }
 }
+
+variable "assured_workloads" {
+  description = "Configuration for Assured Workloads"
+  type = object({
+    compliance = object({
+      regime   = string
+      location = string
+    })
+  })
+  nullable = false
+  default = {
+    compliance = {
+      regime   = "IL5"
+      location = "US"
+    }
+  }
+}
