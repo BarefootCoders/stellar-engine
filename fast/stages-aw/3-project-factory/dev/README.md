@@ -114,6 +114,7 @@ terraform apply
 
 | name | description | modules |
 |---|---|---|
+| [frht-providers.tf](./frht-providers.tf) | None |  |
 | [main.tf](./main.tf) | Project factory. | <code>net-vpc</code> · <code>net-vpc-peering</code> · <code>project-factory</code> |
 | [outputs.tf](./outputs.tf) | Module outputs. |  |
 | [variables.tf](./variables.tf) | Module variables. |  |

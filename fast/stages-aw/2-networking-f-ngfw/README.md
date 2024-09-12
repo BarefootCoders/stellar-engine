@@ -463,6 +463,7 @@ There is currently no way to automate this process, but take the version of the 
 
 | name | description | modules | resources |
 |---|---|---|---|
+| [2-networking-providers.tf](./2-networking-providers.tf) | None |  |  |
 | [bastion.tf](./bastion.tf) | None | <code>compute-vm</code> |  |
 | [main.tf](./main.tf) | Networking folder and hierarchical policy. | <code>folder</code> · <code>net-firewall-policy</code> |  |
 | [monitoring-vpn-onprem.tf](./monitoring-vpn-onprem.tf) | VPN monitoring alerts. |  | <code>google_monitoring_alert_policy</code> |

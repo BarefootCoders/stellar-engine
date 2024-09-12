@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2022 Google LLC
  *
@@ -16,6 +17,6 @@
 
 resource "google_tags_tag_binding" "binding" {
   for_each  = coalesce(var.tag_bindings, {})
-  parent    = "//cloudresourcemanager.googleapis.com/${local.folder.id}"
+  parent    = "//cloudresourcemanager.googleapis.com/${local.folder_id}"
   tag_value = each.value
 }

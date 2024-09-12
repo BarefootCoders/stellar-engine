@@ -105,7 +105,8 @@ locals {
         "roles/resourcemanager.organizationAdmin",
         "roles/resourcemanager.projectCreator",
         "roles/resourcemanager.projectMover",
-        "roles/resourcemanager.tagAdmin"
+        "roles/resourcemanager.tagAdmin",
+        "roles/assuredworkloads.admin"
       ]
       additive = concat(
         [
@@ -122,7 +123,8 @@ locals {
         "roles/essentialcontacts.viewer",
         "roles/logging.viewer",
         "roles/resourcemanager.folderViewer",
-        "roles/resourcemanager.tagViewer"
+        "roles/resourcemanager.tagViewer",
+        "roles/assuredworkloads.reader"
       ]
       additive = concat(
         [
@@ -143,7 +145,6 @@ locals {
         "roles/resourcemanager.projectCreator",
         "roles/resourcemanager.tagAdmin",
         "roles/resourcemanager.tagUser",
-        "roles/assuredworkloads.admin"
       ]
       additive = concat(
         [

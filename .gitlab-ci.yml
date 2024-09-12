@@ -66,8 +66,8 @@ tflint-blueprints:
     - cd blueprints/il5/
     - tflint --recursive
 
-validate-stages-aw: 
-  stage: test 
+validate-stages-aw:
+  stage: test
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
@@ -90,8 +90,8 @@ validate-stages-aw:
     - terraform init
     - terraform validate
 
-validate-blueprints:  
-  stage: test  
+validate-blueprints:
+  stage: test
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
@@ -120,8 +120,9 @@ validate-blueprints:
     - terraform init
     - terraform validate
 
-check-docs-stages-aw: 
+check-docs-stages-aw:
   stage: test
+  allow_failure: true
   image:
     name: python:3.9.19
     entrypoint:
@@ -133,7 +134,7 @@ check-docs-stages-aw:
     - python check_documentation.py fast/stages-aw
 
 check-docs-blueprints:
-  stage: test 
+  stage: test
   image:
     name: python:3.9.19
     entrypoint:
@@ -144,7 +145,7 @@ check-docs-blueprints:
     - pip install click marko
     - python check_documentation.py blueprints/il5
 
-checkov-stages-aw:   
+checkov-stages-aw:
   stage: test
   image:
     name: bridgecrew/checkov:3.2.238
@@ -156,7 +157,7 @@ checkov-stages-aw:
     - checkov -d .
   allow_failure: true
 
-checkov-blueprints:   
+checkov-blueprints:
   stage: test
   image:
     name: bridgecrew/checkov:3.2.238

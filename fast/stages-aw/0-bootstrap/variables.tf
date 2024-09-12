@@ -14,6 +14,19 @@
  * limitations under the License.
  */
 
+variable "assured_workloads" {
+  description = "Configuration for Assured Workloads"
+  type = object({
+    regime   = string
+    location = string
+  })
+  nullable = false
+  default = {
+    regime   = "IL5"
+    location = "US"
+  }
+}
+
 variable "billing_account" {
   description = "Billing account id. If billing account is not part of the same org set `is_org_level` to `false`. To disable handling of billing IAM roles set `no_iam` to `true`."
   type = object({

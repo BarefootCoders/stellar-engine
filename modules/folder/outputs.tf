@@ -16,12 +16,12 @@
 
 output "folder" {
   description = "Folder resource."
-  value       = local.folder
+  value       = try(google_folder.folder[0], null)
 }
 
 output "id" {
   description = "Fully qualified folder id."
-  value       = local.folder.name
+  value       = local.folder_id
   depends_on = [
     google_folder_iam_binding.authoritative,
     google_folder_iam_binding.bindings,
@@ -32,7 +32,7 @@ output "id" {
 
 output "name" {
   description = "Folder name."
-  value       = local.folder.display_name
+  value       = try(google_folder.folder[0].display_name, null)
 }
 
 output "sink_writer_identities" {
@@ -41,9 +41,4 @@ output "sink_writer_identities" {
     for name, sink in google_logging_folder_sink.sink :
     name => sink.writer_identity
   }
-}
-
-output "assured_workload" {
-  description = "(optional) Assured Workload ID if enabled."
-  value       = try(google_assured_workloads_workload.assured_workload_folder[0].id, null)
 }

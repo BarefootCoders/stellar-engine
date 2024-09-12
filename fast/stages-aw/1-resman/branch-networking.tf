@@ -41,7 +41,7 @@ locals {
 
 module "branch-network-folder" {
   source = "../../../modules/folder"
-  parent = "organizations/${var.organization.id}"
+  parent = var.assured_workloads.folder
   name   = "Networking"
   iam_by_principals = {
     (local.principals.gcp-vpc-network-admins) = [
@@ -55,12 +55,6 @@ module "branch-network-folder" {
     context = try(
       module.organization.tag_values["${var.tag_names.context}/networking"].id, null
     )
-  }
-  compliance = {
-    organization = var.organization.id
-
-    regime   = "IL5"
-    location = "us"
   }
 }
 

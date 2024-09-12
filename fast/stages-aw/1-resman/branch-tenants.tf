@@ -32,7 +32,7 @@ locals {
 
 module "tenant-tenants-folder" {
   source = "../../../modules/folder"
-  parent = "organizations/${var.organization.id}"
+  parent = var.assured_workloads.folder
   name   = "Tenants"
   iam    = var.folder_iam.tenants
   tag_bindings = {
@@ -48,11 +48,6 @@ module "tenant-top-folder" {
   name     = try(each.value.compliance.regime != "", false) ? lower(replace("${each.value.descriptive_name}-${each.value.compliance.regime}", "_", "-")) : lower(each.value.descriptive_name)
   iam_by_principals = {
     (each.value.admin_principal) = ["roles/browser"]
-  }
-  compliance = {
-    regime       = try(each.value.compliance.regime, "")
-    location     = try(each.value.compliance.location, "")
-    organization = var.organization.id
   }
 }
 

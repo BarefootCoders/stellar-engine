@@ -26,7 +26,7 @@ module "automation-project" {
   billing_account = var.billing_account.id
   name            = "iac-core-0"
   parent = coalesce(
-    var.project_parent_ids.automation, "organizations/${var.organization.id}"
+    var.project_parent_ids.automation, "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}"
   )
   prefix = local.prefix
   contacts = (

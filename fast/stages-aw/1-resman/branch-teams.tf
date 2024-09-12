@@ -39,7 +39,7 @@ locals {
 module "branch-teams-folder" {
   source = "../../../modules/folder"
   count  = var.fast_features.teams ? 1 : 0
-  parent = "organizations/${var.organization.id}"
+  parent = var.assured_workloads.folder
   name   = "Teams"
   iam    = local._teams_folder_iam
   tag_bindings = {

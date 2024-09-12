@@ -19,7 +19,7 @@
 module "branch-gcve-folder" {
   source = "../../../modules/folder"
   count  = var.fast_features.gcve ? 1 : 0
-  parent = "organizations/${var.organization.id}"
+  parent = var.assured_workloads.folder
   name   = "GCVE"
   iam    = var.folder_iam.gcve
   tag_bindings = {
