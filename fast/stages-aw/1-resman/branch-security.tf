@@ -40,7 +40,7 @@ locals {
 
 module "branch-security-folder" {
   source = "../../../modules/folder"
-  parent = var.assured_workloads.folder
+  parent = var.common_services_folder
   name   = "Security"
   iam_by_principals = {
     (local.principals.gcp-security-admins) = [

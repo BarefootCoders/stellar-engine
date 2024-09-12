@@ -43,3 +43,6 @@ org_policies_config = {
   import_defaults = true
 }
 
+fast_features = {
+  envs = true
+}

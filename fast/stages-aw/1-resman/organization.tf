@@ -56,6 +56,7 @@ module "organization" {
         security   = {}
         teams      = {}
         tenant     = {}
+        envs       = {}
       }
     }
     (var.tag_names.environment) = {

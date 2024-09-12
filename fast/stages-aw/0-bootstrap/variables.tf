@@ -123,6 +123,7 @@ variable "fast_features" {
     project_factory = optional(bool, false)
     sandbox         = optional(bool, false)
     teams           = optional(bool, false)
+    envs            = optional(bool, false)
   })
   default  = {}
   nullable = false

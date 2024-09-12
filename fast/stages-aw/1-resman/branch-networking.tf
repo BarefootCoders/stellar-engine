@@ -41,7 +41,7 @@ locals {
 
 module "branch-network-folder" {
   source = "../../../modules/folder"
-  parent = var.assured_workloads.folder
+  parent = var.common_services_folder
   name   = "Networking"
   iam_by_principals = {
     (local.principals.gcp-vpc-network-admins) = [

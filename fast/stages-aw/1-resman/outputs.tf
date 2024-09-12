@@ -157,6 +157,7 @@ locals {
       sandbox            = try(module.branch-sandbox-folder[0].id, null)
       security           = try(module.branch-security-folder.id, null)
       teams              = try(module.branch-teams-folder[0].id, null)
+      envs               = try(module.branch-envs-folders, null)
     },
     {
       for k, v in module.branch-teams-team-folder :
@@ -545,4 +546,9 @@ output "tfvars" {
   description = "Terraform variable files for the following stages."
   sensitive   = true
   value       = local.tfvars
+}
+
+output "envs" {
+  description = "Environments folders created for the tenants"
+  value       = module.branch-envs-folders
 }

@@ -27,6 +27,11 @@ variable "assured_workloads" {
   default  = {}
 }
 
+variable "common_services_folder" {
+  description = "Common services folder where non-tenant related resources should be kept"
+  type        = string
+}
+
 variable "automation" {
   # tfdoc:variable:source 0-bootstrap
   description = "Automation resources created by the bootstrap stage."
@@ -185,6 +190,7 @@ variable "fast_features" {
     project_factory = optional(bool, false)
     sandbox         = optional(bool, false)
     teams           = optional(bool, false)
+    envs            = optional(bool, false)
   })
   default  = {}
   nullable = false
@@ -194,6 +200,7 @@ variable "folder_iam" {
   description = "Authoritative IAM for top-level folders."
   type = object({
     data_platform = optional(map(list(string)), {})
+    envs          = optional(map(list(string)), {})
     gcve          = optional(map(list(string)), {})
     gke           = optional(map(list(string)), {})
     sandbox       = optional(map(list(string)), {})
@@ -320,6 +327,24 @@ variable "team_folders" {
   default = null
 }
 
+variable "envs_folders" {
+  description = "List of environments to be created for projects to go into"
+  type = map(object({
+    tag  = optional(string)
+    name = string
+  }))
+  default = {
+    prod = {
+      name = "Prod"
+    }
+    int = {
+      name = "Int"
+    }
+    test = {
+      name = "Test"
+    }
+  }
+}
 variable "tenants" {
   description = "Lightweight tenant definitions."
   type = map(object({
