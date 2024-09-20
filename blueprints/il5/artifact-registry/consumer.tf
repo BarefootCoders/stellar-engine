@@ -24,11 +24,14 @@ data "google_compute_image" "centos" {
 
 # Google Compute Engine VM Module
 module "compute-engine-vm" {
-  source        = "../../../modules/compute-vm"
-  project_id    = var.project
-  zone          = "${var.region}-b"
-  name          = "rpm-consumer"
-  instance_type = "e2-medium"
+  source     = "../../../modules/compute-vm"
+  project_id = var.project
+  zone       = "${var.region}-b"
+  name       = "rpm-consumer"
+
+  instance_type        = "n2d-standard-2"
+  confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance type
+
   network_interfaces = [{
     network    = data.google_compute_network.my-network.id
     subnetwork = data.google_compute_network.my-network.subnetworks_self_links[0]
@@ -42,13 +45,18 @@ module "compute-engine-vm" {
         project          = var.project
         region           = var.region
         yum_repositories = google_artifact_registry_repository.yum-repos
-      }
+      },
     )
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
+    # enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4 - only uncomment out if no org policy
+    # enable-osconfig        = "TRUE" # CIS Compliance Benchmark 4.12 - only unccoment out if no org policy
   }
 
+  # CIS Compliance Benchmark 4.1/4.2
   service_account = {
     email = google_service_account.consumer.email
   }
+
   # Persistent Disk Attached to the Compute Engine with KMS
   boot_disk = {
     initialize_params = {

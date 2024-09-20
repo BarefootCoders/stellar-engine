@@ -105,6 +105,7 @@ resource "google_dataflow_job" "job" {
   template_gcs_path = var.template_gcs_path
   temp_gcs_location = "gs://${module.gcs.bucket.name}/temp"
 
+  # CIS Compliance Benchmark 4.1/4.2
   service_account_email = google_service_account.dataflow_worker.email
 
   parameters = var.parameters

@@ -1,8 +1,5 @@
 project_id  = "update-your-project_id"
-email       = "update-your-email-address-here"
-group_email = "update-group-email-address-here"
 region      = "us-east4"
-# Provide the name to be given to the GKE Service Account.
 gke_service_account_id               = "gke-service-account"
 vpc_name                             = "name-of-the-gke-vpc"
 subnet_name                          = "name-of-the-subnet"
@@ -18,7 +15,6 @@ node_config_tags                     = ["node-config-gke", "intial-nodeconfig-gk
 gke_cluster_enable_private_endpoint  = true
 gke_cluster_master_global_access     = true
 gke_nodepool_name                    = "gke-nodepool-name"
-node_machine_type                    = "e2-medium"
 node_disk_size_gb                    = 20
 nodepool_node_count = {
   initial = 1

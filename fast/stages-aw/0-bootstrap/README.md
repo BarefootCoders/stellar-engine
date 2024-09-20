@@ -646,7 +646,6 @@ The `fast_features` variable consists of 4 toggles:
 
 | name | description | modules | resources |
 |---|---|---|---|
-| [0-bootstrap-providers.tf](./0-bootstrap-providers.tf) | None |  |  |
 | [automation.tf](./automation.tf) | Automation project and resources. | <code>gcs</code> · <code>iam-service-account</code> · <code>project</code> |  |
 | [billing.tf](./billing.tf) | Billing export project and dataset. | <code>bigquery-dataset</code> · <code>project</code> | <code>google_billing_account_iam_member</code> |
 | [checklist.tf](./checklist.tf) | None | <code>gcs</code> | <code>google_storage_bucket_object</code> |
@@ -693,16 +692,16 @@ The `fast_features` variable consists of 4 toggles:
 
 | name | description | sensitive | consumers |
 |---|---|:---:|---|
-| [assured_workload](outputs.tf#L218) | Assured Workload folder for the deployment |  |  |
-| [automation](outputs.tf#L126) | Automation resources. |  |  |
-| [billing_dataset](outputs.tf#L131) | BigQuery dataset prepared for billing export. |  |  |
-| [cicd_repositories](outputs.tf#L136) | CI/CD repository configurations. |  |  |
-| [custom_roles](outputs.tf#L148) | Organization-level custom roles. |  |  |
-| [outputs_bucket](outputs.tf#L153) | GCS bucket where generated output files are stored. |  |  |
-| [project_ids](outputs.tf#L158) | Projects created by this stage. |  |  |
-| [providers](outputs.tf#L168) | Terraform provider files for this stage and dependent stages. | ✓ | <code>stage-01</code> |
-| [service_accounts](outputs.tf#L175) | Automation service accounts created by this stage. |  |  |
-| [tfvars](outputs.tf#L193) | Terraform variable files for the following stages. | ✓ |  |
-| [workforce_identity_pool](outputs.tf#L199) | Workforce Identity Federation pool. |  |  |
-| [workload_identity_pool](outputs.tf#L208) | Workload Identity Federation pool and providers. |  |  |
+| [assured_workload](outputs.tf#L126) | Assured Workload folder for the deployment |  |  |
+| [automation](outputs.tf#L131) | Automation resources. |  |  |
+| [billing_dataset](outputs.tf#L136) | BigQuery dataset prepared for billing export. |  |  |
+| [cicd_repositories](outputs.tf#L141) | CI/CD repository configurations. |  |  |
+| [custom_roles](outputs.tf#L153) | Organization-level custom roles. |  |  |
+| [outputs_bucket](outputs.tf#L158) | GCS bucket where generated output files are stored. |  |  |
+| [project_ids](outputs.tf#L163) | Projects created by this stage. |  |  |
+| [providers](outputs.tf#L173) | Terraform provider files for this stage and dependent stages. | ✓ | <code>stage-01</code> |
+| [service_accounts](outputs.tf#L180) | Automation service accounts created by this stage. |  |  |
+| [tfvars](outputs.tf#L198) | Terraform variable files for the following stages. | ✓ |  |
+| [workforce_identity_pool](outputs.tf#L204) | Workforce Identity Federation pool. |  |  |
+| [workload_identity_pool](outputs.tf#L213) | Workload Identity Federation pool and providers. |  |  |
 <!-- END TFDOC -->

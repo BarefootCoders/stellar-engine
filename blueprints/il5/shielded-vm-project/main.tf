@@ -35,7 +35,16 @@ module "shielded-vm" {
     enable_vtpm                 = true
     enable_integrity_monitoring = true
   }
-  instance_type = var.instance_type
+
+  metadata = {
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
+    # enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4 - Uncomment if no org policy
+    # enable-osconfig = "TRUE" # CIS Compliance Benchmark 4.12 - Uncomment if no org policy
+  }
+
+  instance_type        = var.instance_type
+  confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance type
+
   network_interfaces = [{
     network    = module.vpc.network.self_link
     subnetwork = module.vpc.subnet_self_links["${var.location}/${var.subnet_name}"]
@@ -43,20 +52,26 @@ module "shielded-vm" {
   encryption = {
     kms_key_self_link = module.kms.keys.default.id
   }
+
+  # CIS Compliance Benchmark 4.1/4.2
   service_account = {
     email = google_service_account.compute.email
   }
   attached_disks = [
     {
-      auto_delete = true
-      size        = var.disksize
-      name        = "data-disk"
-      initialize_params = {
-        image = "debian-cloud/debian-10"
-      }
+      auto_delete       = true
+      size              = var.disksize
+      name              = "data-disk"
       kms_key_self_link = module.kms.keys.default.id
     }
   ]
+
+  boot_disk = {
+    initialize_params = {
+      image = "cos-cloud/cos-stable" #Required for Confidential Compute
+    }
+  }
+
   depends_on = [module.kms, google_service_account.compute]
 }
 
@@ -68,8 +83,7 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.compute.member,
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-      "user:${var.email}"
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
     ]
   }
   keyring = var.keyring

@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-variable "allowed_firewall_ports" {
-  description = "The list of the Allowed Ports."
-  type        = list(any)
-  #Example default     = ["22", "443"]
-}
-
 variable "auto_delete" {
   description = "Persistent Disk auto delete options."
   type        = bool
@@ -32,12 +26,6 @@ variable "compute_service_account_id" {
   # Example default = "computeblue"
 }
 
-variable "email" {
-  description = "Email address of the user."
-  type        = string
-  # Example default = "admin.user-anme@example.google.com"
-}
-
 variable "instance_name" {
   description = "Provide the name of the Compute Instance."
   type        = string
@@ -47,7 +35,7 @@ variable "instance_name" {
 variable "instance_type" {
   description = "The Machine Type for the Compute Engine VM."
   type        = string
-  default     = "e2-micro"
+  default     = "n2d-standard-2"
   #Example  default     = "e2-micro"
 }
 
@@ -131,26 +119,10 @@ variable "location" {
 
 }
 
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
-}
-
 variable "project_id" {
   description = "Project ID."
   type        = string
   # Example default = "project-id-here"
-}
-
-variable "region" {
-  description = "GCP Region to deploy into."
-  type        = string
-}
-
-variable "source_ranges_allowed" {
-  description = "The List of the source IP CIDR range allowed to connect to the Compute Engine VM."
-  type        = list(any)
-  #Example default = ["10.0.1.0/24"]
 }
 
 variable "zone" {

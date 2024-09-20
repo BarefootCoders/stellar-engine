@@ -32,12 +32,6 @@ variable "disksize" {
   default     = 40
 }
 
-variable "email" {
-  description = "Email address of the user."
-  type        = string
-  # Example default = "admin.user-anme@example.google.com"
-}
-
 variable "instance_name" {
   description = "Provide the name of the Compute Instance."
   type        = string
@@ -130,18 +124,8 @@ variable "location" {
   default     = "us-east4"
 }
 
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
-}
-
 variable "project_id" {
   description = "Project ID."
-  type        = string
-}
-
-variable "region" {
-  description = "GCP Region to deploy into."
   type        = string
 }
 

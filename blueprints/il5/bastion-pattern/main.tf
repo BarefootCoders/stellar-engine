@@ -38,10 +38,10 @@ module "kms" {
   keys       = var.keys
 
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
-      [
-        "serviceAccount:${google_service_account.compute.email}",
-    ])
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      google_service_account.compute.member,
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+    ]
   }
   keyring = var.keyring
 }
@@ -64,6 +64,15 @@ module "bastion-vm" {
   project_id = var.project_id
   zone       = var.zone
   name       = var.instance_name
+
+  confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance and image types
+
+  metadata = {
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
+    # enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4 - Uncomment if no org policy
+    # enable-osconfig = "TRUE" # CIS Compliance Benchmark 4.12 - Uncomment if no org policy
+  }
+
   shielded_config = {
     enable_secure_boot          = true
     enable_vtpm                 = true
@@ -75,6 +84,7 @@ module "bastion-vm" {
     subnetwork = data.google_compute_subnetwork.my_subnet.self_link
   }]
 
+  # CIS Compliance Benchmark 4.1/4.2
   service_account = {
     email = google_service_account.compute.email
   }
@@ -95,11 +105,12 @@ module "bastion-vm" {
     }
   ]
 
+  boot_disk = {
+    initialize_params = {
+      image = var.image
+    }
+  }
+
   depends_on = [module.kms]
 }
 
-resource "google_kms_crypto_key_iam_member" "crypto_key" {
-  crypto_key_id = module.kms.keys.bastion.id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
-}

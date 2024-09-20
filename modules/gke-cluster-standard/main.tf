@@ -21,8 +21,9 @@ locals {
 }
 
 resource "google_container_cluster" "cluster" {
-  provider    = google-beta
-  project     = var.project_id
+  provider = google-beta
+  project  = var.project_id
+
   name        = var.name
   description = var.description
   location    = var.location
@@ -46,9 +47,12 @@ resource "google_container_cluster" "cluster" {
   datapath_provider = (
     var.enable_features.dataplane_v2 ? "ADVANCED_DATAPATH" : "DATAPATH_PROVIDER_UNSPECIFIED"
   )
+
   # the default node pool is deleted here, use the gke-nodepool module instead.
   # shielded nodes are controlled by the cluster-level enable_features variable
   node_config {
+    metadata          = var.node_config.metadata
+    machine_type      = var.node_config.machine_type
     boot_disk_kms_key = var.node_config.boot_disk_kms_key
     service_account   = var.node_config.service_account
     tags              = var.node_config.tags
@@ -58,6 +62,9 @@ resource "google_container_cluster" "cluster" {
         enable_secure_boot          = true
         enable_integrity_monitoring = true
       }
+    }
+    confidential_nodes {
+      enabled = var.confidential_nodes
     }
   }
   # gcfs_config deactivation need the block to be defined so it can't be dynamic

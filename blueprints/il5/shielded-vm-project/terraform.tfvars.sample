@@ -1,5 +1,4 @@
 project_id                 = "the-project-id"
-email                      = "the-email-address"
 compute_service_account_id = "compute-gsa-test"
 keyring = {
   location = "us-east4"
@@ -8,7 +7,7 @@ keyring = {
 location               = "the-gcp-location-of-compute-engine-vm"
 zone                   = "the-gcp-zone-of-the-compute-engine-vm"
 instance_name          = "the-name-of-the-instance"
-instance_type          = "e2-micro"
+instance_type          = "n2d-standard-2"
 disksize               = 40
 vpc_name               = "vpc-shieledvm"
 subnet_name            = "subnet-one"

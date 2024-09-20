@@ -8,11 +8,9 @@ keyring = {
 }
 location               = "the-gcp-location"
 zone                   = "zone-within-the-gcp-location"
-instance_name          = "Compute-Engine-Name"
-instance_type          = "e2-micro"
+instance_name          = "compute-engine-name"
+instance_type          = "n2d-standard-2"
 ip_cidr_range          = "10.0.1.0/24"
-source_ranges_allowed  = ["10.0.1.0/24"]
-allowed_firewall_ports = ["80", "22", "443"]
 keys = {
   "default" = {
     destroy_scheduled_duration    = null

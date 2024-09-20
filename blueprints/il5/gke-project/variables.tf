@@ -1,8 +1,8 @@
-variable "email" {
-  description = "Email address of the user."
-  type        = string
-  # default     = "email address @ domain . com"
-}
+# variable "email" {
+#   description = "Email address of the user."
+#   type        = string
+#   # default     = "email address @ domain . com"
+# }
 
 variable "gke_cluster_enable_private_endpoint" {
   description = "The Private Cluster configuration to enable private end point."
@@ -46,24 +46,12 @@ variable "gke_vpc_master_ipv4_cidr_block" {
   # default     = "192.168.0.0/28"
 }
 
-variable "group_email" {
-  description = "Email address of the group."
-  type        = string
-  # default     = "group email address @ domain . com"
-}
-
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
     location = string
     name     = string
   })
-  # Example
-  # default = {
-  #  location = "us-east4"
-  #  name     = "gkekeyring"
-  #}
-  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
 }
 
 variable "keys" {
@@ -120,26 +108,23 @@ variable "keys" {
 variable "master_authorized_ranges_ip_ranges" {
   description = "The CIDR Range for the GKE Nodes Pool when enabled Private End Point with master aurhotized ranges of CIDR."
   type        = string
-  # default     = "10.0.0.0/8"
 }
 
 variable "node_config_tags" {
   description = "The Tags on the Node Configuration."
   type        = list(string)
   nullable    = false
-  # default     = ["node-config-gke", "intial-nodeconfig-gke"]
 }
 
 variable "node_disk_size_gb" {
   description = "The disk size in GB to be given to each node."
   type        = number
-  # default     = 20
 }
 
 variable "node_machine_type" {
   description = "The Node Machine type to be used in the NodePool."
   type        = string
-  # default     = "e2-medium"
+  default     = "n2d-standard-2"
 }
 
 variable "nodepool_node_count" {
@@ -149,28 +134,16 @@ variable "nodepool_node_count" {
     initial = number
   })
   nullable = false
-  # Example
-  # default = {
-  #   initial = 1
-  # }
-
-}
-
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
 }
 
 variable "project_id" {
   description = "The ID of the project in which to create the GKE cluster."
   type        = string
-  # default     = "project-id"
 }
 
 variable "region" {
   description = "The GCP region to use for the resources."
   type        = string
-  # default     = "us-east4"
 }
 
 # tflint-ignore: terraform_unused_declarations

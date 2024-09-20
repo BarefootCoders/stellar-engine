@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-# Work on the Current Project
 data "google_project" "current" {}
 
+# Only uncomment if no organization policies enforce the below
+# resource "google_compute_project_metadata" "default" {
+#   metadata = {
+# enable-oslogin = "TRUE" # CIS Compliance Benchmark 4.4 - applies to all VMs in project
+# enable-osconfig = "TRUE" # CIS Compliance Benchmark 4.12 - applies to all VMs in project
+#   }
+# }
 
-# Custom service account with compute engine role  
 resource "google_service_account" "gke" {
   account_id = var.gke_service_account_id
   project    = var.project_id
 }
 
-
-# #Create KMS Key Ring and Crypto Key using the kms module
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
@@ -33,16 +36,12 @@ module "kms" {
   keyring    = var.keyring
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "user:${var.email}",
-      "group:${var.group_email}",
       google_service_account.gke.member,
       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
     ]
   }
 }
 
-
-# Google VPC Module management of VPC networks including subnetworks
 module "vpc" {
   source                  = "../../../modules/net-vpc"
   project_id              = var.project_id
@@ -62,8 +61,6 @@ module "vpc" {
   depends_on = [module.kms]
 }
 
-
-# Google GKE Kubernetes Standard Module
 module "cluster" {
   source              = "../../../modules/gke-cluster-standard"
   project_id          = var.project_id
@@ -84,16 +81,27 @@ module "cluster" {
     remove_default_node_pool = false
   }
   node_config = {
+    # CIS Compliance Benchmark 4.3
+    metadata = {
+      block-project-ssh-keys = true
+    }
     boot_disk_kms_key = module.kms.keys.default.id
-    service_account   = google_service_account.gke.email
-    tags              = var.node_config_tags
+
+    # CIS Compliance Benchmark 4.1/4.2
+    service_account = google_service_account.gke.email
+
+    tags = var.node_config_tags
+
+    machine_type = "n2d-standard-2"
+    confidential_nodes = {
+      enabled = true # CIS Compliance Benchmark 4.11 - Must also choose compatible instance type
+    }
   }
   enable_features = {
     enable_shielded_nodes = true
     dataplane_v2          = true
     binary_authorization  = true
   }
-
   private_cluster_config = {
     enable_private_endpoint = var.gke_cluster_enable_private_endpoint
     master_global_access    = var.gke_cluster_master_global_access
@@ -101,8 +109,6 @@ module "cluster" {
   depends_on = [module.vpc, module.kms]
 }
 
-
-# Google GKE Kubernetes NodePool Module
 module "cluster_nodepool" {
   source       = "../../../modules/gke-nodepool"
   project_id   = var.project_id
@@ -110,14 +116,15 @@ module "cluster_nodepool" {
   location     = var.region
   name         = var.gke_nodepool_name
   node_count   = var.nodepool_node_count
+
+  # CIS Compliance Benchmark 4.1/4.2
   service_account = {
-    create = false
+    email = google_service_account.gke.email
   }
   node_config = {
     boot_disk_kms_key = module.kms.keys.default.id
     disk_size_gb      = var.node_disk_size_gb
     machine_type      = var.node_machine_type
-    service_account   = "serviceAccount:${google_service_account.gke.email}"
     shielded_instance_config = {
       enable_secure_boot          = true
       enable_integrity_monitoring = true

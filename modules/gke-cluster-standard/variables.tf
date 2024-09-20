@@ -113,6 +113,13 @@ variable "cluster_autoscaling" {
   }
 }
 
+# CIS Compliance Benchmark 4.11
+variable "confidential_nodes" {
+  description = "Confidential Compute."
+  type        = bool
+  default     = false
+}
+
 variable "default_nodepool" {
   description = "Enable default nodepool."
   type = object({
@@ -376,6 +383,8 @@ variable "node_config" {
     boot_disk_kms_key = optional(string)
     service_account   = optional(string)
     tags              = optional(list(string))
+    machine_type      = optional(string)
+    metadata          = optional(map(string))
   })
   default = {}
 }

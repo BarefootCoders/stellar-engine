@@ -32,28 +32,45 @@ module "compute-engine-vm" {
   zone          = var.zone
   name          = var.instance_name
   instance_type = var.instance_type
+
+  confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance type
+
   network_interfaces = [{
     network    = module.vpc.network.self_link
     subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-${data.google_project.current.number}"
   }]
+
+  metadata = {
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
+    # enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4 - Uncomment if no org policy
+    # enable-osconfig = "TRUE" # CIS Compliance Benchmark 4.12 - Uncomment if no org policy
+  }
+
   encryption = {
     kms_key_self_link = module.kms.keys.default.id
   }
+
+  # CIS Compliance Benchmark 4.1/4.2
   service_account = {
     email = google_service_account.compute.email
   }
+
   # Persistent Disk Attached to the Compute Engine with KMS
   attached_disks = [
     {
-      auto_delete = var.auto_delete
-      size        = 20
-      name        = "data-disk"
-      initialize_params = {
-        image = "debian-cloud/debian-10"
-      }
+      auto_delete       = var.auto_delete
+      size              = 20
+      name              = "data-disk"
       kms_key_self_link = module.kms.keys.default.id
     }
   ]
+
+  boot_disk = {
+    initialize_params = {
+      image = "cos-cloud/cos-stable"
+    }
+  }
+
   depends_on = [module.kms, google_service_account.compute]
 }
 
@@ -65,8 +82,7 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.compute.member,
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-      "user:${var.email}"
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
     ]
   }
   keyring = var.keyring
@@ -87,15 +103,4 @@ module "vpc" {
       ip_cidr_range = var.ip_cidr_range
     }
   ]
-}
-# Google Computer Firewall
-resource "google_compute_firewall" "default" {
-  name    = "allow-web"
-  network = module.vpc.network.self_link
-  allow {
-    protocol = "tcp"
-    ports    = var.allowed_firewall_ports
-  }
-  # Allowing to connect only within the VPC CIDR Range
-  source_ranges = var.source_ranges_allowed
 }

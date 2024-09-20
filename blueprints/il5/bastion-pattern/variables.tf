@@ -37,6 +37,7 @@ variable "disk_name" {
 variable "image" {
   description = "Disk image."
   type        = string
+  default     = "cos-cloud/cos-stable"
 }
 
 variable "instance_name" {
@@ -47,7 +48,7 @@ variable "instance_name" {
 variable "instance_type" {
   description = "Instance type."
   type        = string
-  default     = "e2-small"
+  default     = "n2d-standard-2"
 }
 
 variable "keyring" {
@@ -122,12 +123,6 @@ variable "my_subnet" {
 variable "my_vpc" {
   description = "VPC to use."
   type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
-
 }
 
 variable "project_id" {

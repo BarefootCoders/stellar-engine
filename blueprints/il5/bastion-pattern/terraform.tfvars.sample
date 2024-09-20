@@ -1,17 +1,15 @@
 project_id             = "my-project"
-image                  = "projects/cos-cloud/global/images/family/cos-stable"
 allowed_firewall_ports = ["80", "22", "443"]
 instance_name          = "sample-bastion"
 disk_name              = "data-disk"
 zone                   = "us-east4-a"
+region      = "us-east4"
 my_vpc                 = "my-vpc"
-kms_key_self_link      = "projects/my-project/locations/my-location/keyRings/my-keyring/cryptoKeys/my-key"
 keyring = {
   location = "us-east4"
   name     = "my-keyring"
 }
 my_subnet                  = "my-subnet"
-ip_cidr_range              = "10.0.0.0/24"
 compute_service_account_id = "compute-one"
 allowed_source_ranges = [
   "0.0.0.0/0",

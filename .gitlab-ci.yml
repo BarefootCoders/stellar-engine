@@ -75,20 +75,9 @@ validate-stages-aw:
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   dependencies:
     - tflint-stages-aw
-  parallel:
-    matrix:
-      - STAGES: stages-aw
-        STAGE:
-         - 0-bootstrap
-         - 1-resman
-         - 2-networking-c-nva
-         - 2-networking-f-ngfw
-         - 2-security
-         - 3-project-factory
   script:
-    - cd "fast/${STAGES}/${STAGE}/"
-    - terraform init
-    - terraform validate
+    - cd fast/stages-aw
+    - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
 
 validate-blueprints:
   stage: test
@@ -99,26 +88,9 @@ validate-blueprints:
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   dependencies:
     - tflint-blueprints
-  parallel:
-    matrix:
-      - BLUEPRINT:
-        - bq-project
-        - compute-persistent-disk
-        - gke-project
-        - shielded-vm-project
-        - artifact-registry
-        - postgresql
-        - gcp-ce-security-onion
-        - kms-project
-        - vpc-peering-project
-        - bastion-pattern
-        - gcs-project
-        - pub-sub-project
-        - dataflow
   script:
-    - cd "blueprints/il5/${BLUEPRINT}/"
-    - terraform init
-    - terraform validate
+    - cd blueprints/il5
+    - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
 
 check-docs-stages-aw:
   stage: test
