@@ -25,7 +25,7 @@ locals {
     })
   }
   tenant_self_providers = {
-    for k, v in local.tenant_envs:
+    for k, v in local.tenant_envs :
     k => templatefile("${path.module}/templates/providers.tf.tpl", {
       bucket        = module.tenant-self-iac-gcs-states[k].name
       name          = k

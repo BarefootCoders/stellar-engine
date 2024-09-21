@@ -143,7 +143,8 @@ locals {
       })
     )
   }
-  env_folder_ids = { for k, v in module.branch-envs-folders: k => try(v.folder.id, null)}
+  envs_folders   = var.envs_folders
+  env_folder_ids = { for k, v in module.branch-envs-folders : k => try(v.folder.id, null) }
   folder_ids = merge(
     {
       data-platform-dev  = try(module.branch-dp-dev-folder[0].id, null)
@@ -381,6 +382,7 @@ locals {
   tfvars = {
     checklist_hierarchy = local.checklist.hierarchy
     folder_ids          = local.folder_ids
+    envs_folders        = var.envs_folders
     service_accounts    = local.service_accounts
     tag_keys            = { for k, v in try(module.organization.tag_keys, {}) : k => v.id }
     tag_names           = var.tag_names
