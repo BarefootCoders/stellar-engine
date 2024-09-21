@@ -58,64 +58,6 @@ module "branch-network-folder" {
   }
 }
 
-module "branch-network-prod-folder" {
-  source = "../../../modules/folder"
-  parent = module.branch-network-folder.id
-  name   = "Production"
-  iam = {
-    # read-write (apply) automation service accounts
-    (local.custom_roles.service_project_network_admin) = concat(
-      local.branch_optional_sa_lists.dp-prod,
-      local.branch_optional_sa_lists.gke-prod,
-      local.branch_optional_sa_lists.gcve-prod,
-      local.branch_optional_sa_lists.pf-prod,
-    )
-    # read-only (plan) automation service accounts
-    "roles/compute.networkViewer" = concat(
-      local.branch_optional_r_sa_lists.dp-prod,
-      local.branch_optional_r_sa_lists.gke-prod,
-      local.branch_optional_r_sa_lists.gcve-prod,
-      local.branch_optional_r_sa_lists.pf-prod,
-    )
-    (local.custom_roles.gcve_network_admin) = local.branch_optional_sa_lists.gcve-prod
-  }
-  tag_bindings = {
-    environment = try(
-      module.organization.tag_values["${var.tag_names.environment}/production"].id,
-      null
-    )
-  }
-}
-
-module "branch-network-dev-folder" {
-  source = "../../../modules/folder"
-  parent = module.branch-network-folder.id
-  name   = "Development"
-  iam = {
-    # read-write (apply) automation service accounts
-    (local.custom_roles.service_project_network_admin) = concat(
-      local.branch_optional_sa_lists.dp-dev,
-      local.branch_optional_sa_lists.gke-dev,
-      local.branch_optional_sa_lists.gcve-dev,
-      local.branch_optional_sa_lists.pf-dev,
-    )
-    # read-only (plan) automation service accounts
-    "roles/compute.networkViewer" = concat(
-      local.branch_optional_r_sa_lists.dp-prod,
-      local.branch_optional_r_sa_lists.gke-prod,
-      local.branch_optional_r_sa_lists.gcve-dev,
-      local.branch_optional_r_sa_lists.pf-prod,
-    )
-    (local.custom_roles.gcve_network_admin) = local.branch_optional_sa_lists.gcve-dev
-  }
-  tag_bindings = {
-    environment = try(
-      module.organization.tag_values["${var.tag_names.environment}/development"].id,
-      null
-    )
-  }
-}
-
 # automation service account
 
 module "branch-network-sa" {
