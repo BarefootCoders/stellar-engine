@@ -81,7 +81,7 @@ variable "dns" {
 variable "enable_cloud_nat" {
   description = "Deploy Cloud NAT."
   type        = bool
-  default     = true
+  default     = false
   nullable    = false
 }
 
@@ -117,6 +117,7 @@ variable "fast_features" {
   description = "Selective control for top-level FAST features."
   type = object({
     gcve = optional(bool, false)
+    envs = optional(bool, false)
   })
   default  = {}
   nullable = false
@@ -126,9 +127,8 @@ variable "folder_ids" {
   # tfdoc:variable:source 1-resman
   description = "Folders to be used for the networking resources in folders/nnnnnnnnnnn format. If null, folder will be created."
   type = object({
-    networking      = string
-    networking-dev  = string
-    networking-prod = string
+    networking = string
+    envs = optional(map(string))
   })
 }
 
@@ -198,11 +198,10 @@ variable "regions" {
   description = "Region definitions."
   type = object({
     primary   = string
-    secondary = string
+    secondary = optional(string)
   })
   default = {
-    primary   = "us-east4"
-    secondary = "us-central1"
+    primary = "us-east4"
   }
 }
 
@@ -304,4 +303,11 @@ variable "vpn_onprem_secondary_config" {
     }))
   })
   default = null
+}
+
+variable "envs_folders" {
+  description = "List of environments to be created for projects to go into"
+  type = map(object({
+    admin = string
+  }))
 }
