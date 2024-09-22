@@ -96,14 +96,6 @@ module "vdss-vpc" {
     private    = true
     restricted = true
   }
-  # routes = {
-  #   default = {
-  #     dest_range    = "0.0.0.0/0"
-  #     next_hop      = "default-internet-gateway"
-  #     next_hop_type = "gateway"
-  #     priority      = 1000
-  #   }
-  # }
 }
 
 module "vdss-firewall" {
@@ -117,6 +109,7 @@ module "vdss-firewall" {
     cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
     rules_folder  = "${var.factories_config.data_dir}/firewall-rules/vdss"
   }
+
 }
 
 # NAT

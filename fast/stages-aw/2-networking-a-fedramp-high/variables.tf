@@ -136,10 +136,10 @@ variable "gcp_ranges" {
   description = "GCP address ranges in name => range format."
   type        = map(string)
   default = {
-    gcp_dev_primary               = "10.68.0.0/16"
-    gcp_landing_landing_primary   = "10.200.0.0/16"
-    gcp_dmz_primary               = "10.64.128.0/24"
-    gcp_prod_primary              = "10.72.0.0/16"
+    gcp_dev_primary             = "10.68.0.0/16"
+    gcp_landing_landing_primary = "10.200.0.0/16"
+    gcp_dmz_primary             = "10.64.128.0/24"
+    gcp_prod_primary            = "10.72.0.0/16"
   }
 }
 

@@ -16,6 +16,9 @@
 
 # tfdoc:file:description Dev spoke VPC and related resources.
 
+locals {
+  proxy_subnets = yamldecode(file("./data/subnets/proxy-subnets.yaml")).proxy-subnets
+}
 module "env-spoke-projects" {
   source          = "../../../modules/project"
   for_each        = var.envs_folders
@@ -89,6 +92,12 @@ module "env-spoke-vpc" {
   factories_config = {
     subnets_folder = lower("${var.factories_config.data_dir}/subnets/${each.key}")
   }
+  subnets_proxy_only = [{
+    region        = var.regions.primary
+    active        = true
+    name          = lower("${each.key}-proxy")
+    ip_cidr_range = local.proxy_subnets[each.key]
+  }]
 
 }
 

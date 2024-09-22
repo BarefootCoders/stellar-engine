@@ -1,3 +1,6 @@
+locals {
+  pairs = setproduct(keys(var.envs_folders), keys(var.envs_folders))
+}
 resource "google_network_management_connectivity_test" "landing-test" {
   for_each = var.regions
 
@@ -51,7 +54,7 @@ resource "google_network_management_connectivity_test" "env-tests" {
 
   protocol = "TCP"
   labels = {
-    env = "vdss"
+    env = lower(each.key)
   }
 }
 resource "google_compute_address" "env-source-addrs" {
@@ -63,5 +66,32 @@ resource "google_compute_address" "env-source-addrs" {
   subnetwork   = module.env-spoke-vpc[each.key].subnets[lower("${var.regions.primary}/${each.key}-default")].self_link
   address_type = "INTERNAL"
   region       = var.regions.primary
-  depends_on = [ module.env-spoke-vpc ]
+  depends_on   = [module.env-spoke-vpc]
 }
+
+
+# # These tests should fail
+## This isn't doing what I want it to, but I really like the idea of having something like this to test for route leaking between the envs
+
+# resource "google_network_management_connectivity_test" "fail-env-tests" {
+#   for_each = var.envs_folders
+
+#   name    = lower("must-fail-${each.key}-prod")
+#   project = module.env-spoke-projects[each.key].project_id
+
+#   source {
+#     ip_address   = google_compute_address.env-source-addrs[each.key].address
+#     project_id   = module.env-spoke-projects[each.key].project_id
+#     network      = module.env-spoke-vpc[each.key].id
+#     network_type = "GCP_NETWORK"
+#   }
+#   destination {
+#     ip_address = google_compute_address.env-source-addrs["Prod"].address
+#     project_id = module.env-spoke-projects["Prod"].project_id
+#     network    = module.env-spoke-vpc["Prod"].id
+#     port       = 443
+#   }
+
+#   protocol = "TCP"
+
+# }
