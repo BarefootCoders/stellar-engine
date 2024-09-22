@@ -27,11 +27,7 @@ locals {
     },
     {
       name = "landing"
-      routes = [
-        var.gcp_ranges.gcp_dev_primary,
-        var.gcp_ranges.gcp_landing_landing_primary,
-        var.gcp_ranges.gcp_prod_primary,
-      ]
+      routes = [for k,v in var.envs_folders: module.env-spoke-vpc[k].subnets[lower("${var.regions.primary}/${k}-default")].ip_cidr_range]
     },
   ]
   nva_locality = {

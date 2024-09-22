@@ -2,5 +2,5 @@
 ---
 name: prod-default
 region: us-east4
-ip_cidr_range: 10.65.0.0/16
+ip_cidr_range: 10.202.0.0/16
 description: Default us-east4 subnet for prod environment

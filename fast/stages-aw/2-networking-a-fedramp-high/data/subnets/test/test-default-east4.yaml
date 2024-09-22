@@ -2,5 +2,5 @@
 ---
 name: test-default
 region: us-east4
-ip_cidr_range: 10.67.0.0/16
+ip_cidr_range: 10.203.0.0/16
 description: Default us-east4 subnet for test environment

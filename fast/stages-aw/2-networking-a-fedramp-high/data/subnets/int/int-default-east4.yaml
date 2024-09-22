@@ -2,5 +2,5 @@
 ---
 name: int-default
 region: us-east4
-ip_cidr_range: 10.66.0.0/16
+ip_cidr_range: 10.201.0.0/16
 description: Default us-east4 subnet for int environment

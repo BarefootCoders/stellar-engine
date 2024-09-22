@@ -101,7 +101,7 @@ module "env-spoke-vpc" {
 #   usage             = "FOR_VPC"
 #   peering           = "FOR_SELF"
 #   prefix_length     = 22
-#   target_cidr_range = ["10.64.0.0/16", ]
+#   target_cidr_range = ["10.200.0.0/16", ]
 # }
 
 # resource "google_compute_subnetwork" "defaults" {
