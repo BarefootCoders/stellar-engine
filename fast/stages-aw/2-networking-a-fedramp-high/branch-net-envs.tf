@@ -67,6 +67,7 @@ module "env-spoke-projects" {
   #   }
 }
 
+
 module "env-spoke-vpc" {
   source   = "../../../modules/net-vpc"
   for_each = var.envs_folders
@@ -78,9 +79,6 @@ module "env-spoke-vpc" {
   dns_policy = {
     logging = var.dns.enable_logging
   }
-  factories_config = {
-    subnets_folder = lower("${var.factories_config.data_dir}/subnets/${each.key}")
-  }
   delete_default_routes_on_create = true
   psa_configs                     = var.psa_ranges.dev
   # Set explicit routes for googleapis; send everything else to NVAs
@@ -88,14 +86,28 @@ module "env-spoke-vpc" {
     private    = true
     restricted = true
   }
-  routes = {
-    default = {
-      dest_range    = "0.0.0.0/0"
-      next_hop      = "default-internet-gateway"
-      next_hop_type = "gateway"
-      priority      = 1000
-    }
-  }
+}
+
+resource "google_network_connectivity_internal_range" "reserved_ranges" {
+  for_each          = var.envs_folders
+  name              = lower("${each.key}-range")
+  project           = module.env-spoke-projects[each.key].project_id
+  description       = "Automatically reserved range for ${each.key}"
+  network           = module.env-spoke-vpc[each.key].id
+  usage             = "FOR_VPC"
+  peering           = "FOR_SELF"
+  prefix_length     = 22
+  target_cidr_range = ["10.64.0.0/16", ]
+}
+
+resource "google_compute_subnetwork" "defaults" {
+  provider                = google-beta
+  for_each                = var.envs_folders
+  name                    = lower("${each.key}-default-0")
+  project                 = module.env-spoke-projects[each.key].project_id
+  reserved_internal_range = google_network_connectivity_internal_range.reserved_ranges[each.key].ip_cidr_range
+  region                  = var.regions.primary
+  network                 = module.env-spoke-vpc[each.key].id
 }
 
 module "env-spoke-firewall" {

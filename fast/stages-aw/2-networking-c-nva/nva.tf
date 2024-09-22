@@ -77,9 +77,7 @@ module "nva-template" {
     },
     {
       network = module.landing-vpc.self_link
-      subnetwork = try(
-        module.landing-vpc.subnet_self_links["${each.value.region}/landing-default"], null
-      )
+      subnetwork = null
       nat       = false
       addresses = null
     }
@@ -105,7 +103,7 @@ module "nva-mig" {
   source            = "../../../modules/compute-mig"
   project_id        = module.landing-project.project_id
   location          = each.value.region
-  name              = "nva-cos-${each.key}"
+  name              = "nva-${each.key}"
   instance_template = module.nva-template[each.key].template.self_link
   target_size       = 1
   auto_healing_policies = {
