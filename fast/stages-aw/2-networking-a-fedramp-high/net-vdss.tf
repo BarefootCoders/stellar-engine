@@ -42,48 +42,36 @@ module "vdss-host-project" {
   }
 }
 
-# DMZ (untrusted) VPC
+# # DMZ (untrusted) VPC
 
-module "dmz-vpc" {
-  source     = "../../../modules/net-vpc"
-  project_id = module.vdss-host-project.project_id
-  name       = "vdss-dmz-0"
-  mtu        = 1500
-  dns_policy = {
-    inbound = true
-    logging = var.dns.enable_logging
-  }
-  create_googleapis_routes = null
-  factories_config = {
-    subnets_folder = "${var.factories_config.data_dir}/subnets/dmz"
-  }
-}
+# module "dmz-vpc" {
+#   source     = "../../../modules/net-vpc"
+#   project_id = module.vdss-host-project.project_id
+#   name       = "vdss-dmz-0"
+#   mtu        = 1500
+#   dns_policy = {
+#     inbound = true
+#     logging = var.dns.enable_logging
+#   }
+#   create_googleapis_routes = null
+#   factories_config = {
+#     subnets_folder = "${var.factories_config.data_dir}/subnets/dmz"
+#   }
+# }
 
-module "dmz-firewall" {
-  source     = "../../../modules/net-vpc-firewall"
-  project_id = module.vdss-host-project.project_id
-  network    = module.dmz-vpc.name
-  default_rules_config = {
-    disabled = true
-  }
-  factories_config = {
-    cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
-    rules_folder  = "${var.factories_config.data_dir}/firewall-rules/dmz"
-  }
-}
+# module "dmz-firewall" {
+#   source     = "../../../modules/net-vpc-firewall"
+#   project_id = module.vdss-host-project.project_id
+#   network    = module.dmz-vpc.name
+#   default_rules_config = {
+#     disabled = true
+#   }
+#   factories_config = {
+#     cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
+#     rules_folder  = "${var.factories_config.data_dir}/firewall-rules/dmz"
+#   }
+# }
 
-# NAT
-
-module "dmz-nat-primary" {
-  source         = "../../../modules/net-cloudnat"
-  count          = var.enable_cloud_nat ? 1 : 0
-  project_id     = module.vdss-host-project.project_id
-  region         = var.regions.primary
-  name           = var.regions.primary
-  router_create  = true
-  router_name    = "prod-nat-${var.regions.primary}"
-  router_network = module.dmz-vpc.name
-}
 
 # Landing (trusted) VPC
 module "vdss-shared-vpc" {
@@ -103,9 +91,17 @@ module "vdss-shared-vpc" {
     private    = true
     restricted = true
   }
+  routes = {
+    default = {
+      dest_range    = "0.0.0.0/0"
+      next_hop      = "default-internet-gateway"
+      next_hop_type = "gateway"
+      priority      = 1000
+    }
+  }
 }
 
-module "landing-firewall" {
+module "vdss-firewall" {
   source     = "../../../modules/net-vpc-firewall"
   project_id = module.vdss-host-project.project_id
   network    = module.vdss-shared-vpc.name
@@ -114,6 +110,18 @@ module "landing-firewall" {
   }
   factories_config = {
     cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
-    rules_folder  = "${var.factories_config.data_dir}/firewall-rules/landing"
+    rules_folder  = "${var.factories_config.data_dir}/firewall-rules/vdss"
   }
+}
+
+# NAT
+
+module "vdss-nat-primary" {
+  source         = "../../../modules/net-cloudnat"
+  project_id     = module.vdss-host-project.project_id
+  region         = var.regions.primary
+  name           = "nat-${var.regions.primary}"
+  router_create  = true
+  router_name    = "prod-nat-${var.regions.primary}"
+  router_network = module.vdss-shared-vpc.name
 }

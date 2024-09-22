@@ -32,12 +32,7 @@ module "env-spoke-projects" {
     "servicenetworking.googleapis.com",
     "stackdriver.googleapis.com",
     "vpcaccess.googleapis.com"
-    ],
-    (
-      var.fast_features.gcve
-      ? ["vmwareengine.googleapis.com"]
-      : []
-    )
+    ]
   )
   shared_vpc_host_config = {
     enabled = true
