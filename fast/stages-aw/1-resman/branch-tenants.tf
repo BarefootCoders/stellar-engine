@@ -325,7 +325,7 @@ module "tenant-self-main-projects" {
   }
   compute_metadata = {
     google-compute-default-region = var.locations.gcs
-    google-compute-default-zone = "${var.locations.gcs}-b" # There always seems to be a -b zone
+    google-compute-default-zone   = "${var.locations.gcs}-b" # There always seems to be a -b zone
   }
   services = [
     "accesscontextmanager.googleapis.com",

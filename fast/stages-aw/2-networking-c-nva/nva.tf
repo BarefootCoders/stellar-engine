@@ -75,10 +75,10 @@ module "nva-template" {
       addresses = null
     },
     {
-      network = module.landing-vpc.self_link
+      network    = module.landing-vpc.self_link
       subnetwork = null
-      nat       = false
-      addresses = null
+      nat        = false
+      addresses  = null
     }
   ]
   boot_disk = {
