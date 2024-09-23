@@ -86,9 +86,8 @@ module "env-spoke-vpc" {
   psa_configs                     = var.psa_ranges.dev
   # Set explicit routes for googleapis; send everything else to NVAs
   create_googleapis_routes = {
-    private    = true
-    restricted = true
-  }
+    private = true
+  restricted = true }
   factories_config = {
     subnets_folder = lower("${var.factories_config.data_dir}/subnets/${each.key}")
   }
@@ -98,6 +97,9 @@ module "env-spoke-vpc" {
     name          = lower("${each.key}-proxy")
     ip_cidr_range = local.proxy_subnets[each.key]
   }]
+
+  shared_vpc_host             = true
+  shared_vpc_service_projects = [for k, v in var.tenant_accounts : v.main_project if v.env == each.key]
 
 }
 
