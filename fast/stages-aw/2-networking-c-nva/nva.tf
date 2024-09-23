@@ -23,7 +23,6 @@ locals {
       enable_masquerading = true
       routes = [
         var.gcp_ranges.gcp_dmz_primary,
-        var.gcp_ranges.gcp_dmz_secondary,
       ]
     },
     {
