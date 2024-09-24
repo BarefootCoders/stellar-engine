@@ -12,3 +12,19 @@ tenants = {
    }
  },
 }
+
+fast_features = {
+  envs = true
+}
+
+envs_folders = {
+  Prod = {
+    admin = "gcp-organization-admins@domain"
+  },
+  Int = {
+    admin = "gcp-organization-admins@domain"
+  },
+    admin = "gcp-organization-admins@domain"
+  Test = {
+  }
+}
