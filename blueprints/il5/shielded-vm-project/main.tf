@@ -102,6 +102,13 @@ module "vpc" {
       name          = var.subnet_name
       region        = var.location
       ip_cidr_range = var.ip_cidr_range
+      # Compliant with CIS 3.8
+      flow_logs_config = {
+        aggregation_interval = "INTERVAL_5_SEC"
+        flow_sampling        = 1.0
+        metadata             = "INCLUDE_ALL_METADATA"
+        filter_expression    = "false"
+      }
     }
   ]
 }

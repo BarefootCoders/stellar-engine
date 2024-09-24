@@ -4,7 +4,7 @@ network_name = "dataflow-vpc"
 subnet_name = "dataflow-subnet"
 firewall_name = "allow-dataflow"
 ip_cidr_range = "10.2.0.0/16"
-allowed_source_ranges = ["0.0.0.0/0"]
+allowed_source_ranges = ["192.168.1.0/24"]
 
 prefix        = "dev"
 storage_class = "STANDARD"

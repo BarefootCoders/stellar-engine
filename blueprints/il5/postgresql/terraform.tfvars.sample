@@ -6,7 +6,7 @@ database_name          = "postgres"
 
 network_name               = "network-name" # Must already exist
 private_service_connect_ip = "10.2.0.0"
-firewall_source_range      = ["0.0.0.0/0"]
+firewall_source_range      = ["192.168.1.0/24"]
 firewall_name              = "allow-postgres"
 
 tier = "db-g1-small"
