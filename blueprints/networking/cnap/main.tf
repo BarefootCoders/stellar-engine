@@ -1,8 +1,16 @@
 locals {
-  apps = yamldecode(templatefile("./data/cloudrun.yaml", {
+
+  cloud_runs_raw = yamldecode(templatefile("./data/cloudrun.yaml", {
     DOMAIN       = var.domain,
     ACCESSPOLICY = var.access_policy_number
   }))
+  cloud_runs = local.cloud_runs_raw != null ? local.cloud_runs_raw : {}
+  vms_raw = yamldecode(templatefile("./data/compute-engine.yaml", {
+    DOMAIN       = var.domain,
+    ACCESSPOLICY = var.access_policy_number
+  }))
+  vms  = local.vms_raw != null ? local.vms_raw : {}
+  apps = merge(local.cloud_runs, local.vms)
 }
 
 data "google_project" "project" {
@@ -10,6 +18,7 @@ data "google_project" "project" {
 }
 
 resource "google_project_service" "services" {
+  project = var.project
   for_each = toset([
     "accesscontextmanager.googleapis.com",
     "beyondcorp.googleapis.com",

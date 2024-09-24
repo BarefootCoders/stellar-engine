@@ -148,7 +148,7 @@ variable "ports" {
 }
 
 variable "project_id" {
-  description = "Project id."
+  description = "Project ID."
   type        = string
 }
 
@@ -182,7 +182,6 @@ variable "ssl_certificates" {
   default  = {}
   nullable = false
 }
-
 
 variable "vpc" {
   description = "VPC-level configuration."

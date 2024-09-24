@@ -22,3 +22,16 @@ resource "google_iap_web_region_backend_service_iam_binding" "binding" {
     expression  = lookup(each.value, "condition", { "expression" = "" }).expression
   }
 }
+
+resource "google_project_service_identity" "iap_sa" {
+  provider = google-beta
+
+  project = var.project
+  service = "iap.googleapis.com"
+}
+
+resource "google_project_iam_member" "iap_sa_cloudrun_invoker" {
+  project = var.project
+  role    = "roles/run.invoker"
+  member  = google_project_service_identity.iap_sa.member
+}

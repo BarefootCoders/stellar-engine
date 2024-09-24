@@ -12,9 +12,15 @@ terraform {
 }
 
 provider "google" {
-  project               = var.project
+  project               = var.landing_project_id
   region                = var.region
   billing_project       = var.project
   user_project_override = true
 }
 
+provider "google-beta" {
+  project               = var.landing_project_id
+  region                = var.region
+  billing_project       = var.project
+  user_project_override = true
+}
