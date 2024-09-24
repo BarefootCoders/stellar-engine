@@ -221,11 +221,6 @@ output "workload_identity_pool" {
   }
 }
 
-output "assured_workload" {
-  description = "Assured Workload folder for the deployment"
-  value       = "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}"
-}
-
 output "common_services_folder" {
   description = "Common services folder where non-tenant related resources should be kept"
   value       = module.branch-common-services-folder.folder.name
