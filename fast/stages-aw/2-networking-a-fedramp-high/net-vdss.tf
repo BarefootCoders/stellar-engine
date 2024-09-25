@@ -16,6 +16,7 @@
 
 # tfdoc:file:description Landing VPC and related resources.
 
+# tflint-ignore: terraform_unused_declarations
 module "vdss-host-project" {
   source          = "../../../modules/project"
   billing_account = var.billing_account.id
