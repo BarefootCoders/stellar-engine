@@ -186,6 +186,15 @@ module "ilb-nva-vdss" {
   }
 }
 
+resource "google_compute_route" "default" {
+  name         = "default-route-nva"
+  project      = module.vdss-host-project.project_id
+  dest_range   = "0.0.0.0/0"
+  network      = module.vdss-vpc.name
+  next_hop_ilb = module.ilb-nva-vdss["primary"].forwarding_rules[""].id
+  priority     = 100
+}
+
 # Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
