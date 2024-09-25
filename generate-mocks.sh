@@ -80,6 +80,7 @@ echo '{
         }
     }
 }' | tee ${SCRIPT_DIR}/fast/stages-aw/1-resman/mock-variables.auto.tfvars.json \
+         ${SCRIPT_DIR}/fast/stages-aw/2-networking-a-fedramp-high/dev/mock-variables.auto.tfvars.json \
          ${SCRIPT_DIR}/fast/stages-aw/2-networking-c-nva/mock-variables.auto.tfvars.json \
          ${SCRIPT_DIR}/fast/stages-aw/2-networking-f-ngfw/mock-variables.auto.tfvars.json \
          ${SCRIPT_DIR}/fast/stages-aw/2-security/mock-variables.auto.tfvars.json \
