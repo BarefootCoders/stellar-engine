@@ -1,5 +1,5 @@
 tenants = {
-  tenant_name = { # # change this
+  tenant_name = { ## change this
     admin_principal  = "group:gcp-devops@domain"
     descriptive_name = "tenant_name"
     locations = {
@@ -7,7 +7,7 @@ tenants = {
       kms = "us-east4"
     }
   },
-   tenant_name-2 = { # # change this
+   tenant_name-2 = { ## change this
     admin_principal  = "group:gcp-devops@domain"
     descriptive_name = "tenant_name-2"
     locations = {
@@ -23,12 +23,12 @@ fast_features = {
 
 envs_folders = {
   Prod = {
-    admin = "gcp-organization-admins@frh.darkwolf.rocks"
+    admin = "gcp-organization-admins@domain.com"
   },
   Int = {
-    admin = "gcp-organization-admins@frh.darkwolf.rocks"
+    admin = "gcp-organization-admins@domain.com"
   },
   Test = {
-    admin = "gcp-organization-admins@frh.darkwolf.rocks"
+    admin = "gcp-organization-admins@domain.com"
   }
 }
