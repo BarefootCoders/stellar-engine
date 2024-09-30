@@ -1,7 +1,0 @@
----
-# Audit Polocies to Satisfy CIS Compliane Benchmark 2.1
-auditConfigs: 
-- auditLogConfigs: 
-  - logType: DATA_WRITE 
-  - logType: DATA_READ 
-  service: allServices
