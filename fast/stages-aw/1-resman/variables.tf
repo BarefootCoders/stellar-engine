@@ -27,11 +27,6 @@ variable "assured_workloads" {
   default  = {}
 }
 
-variable "common_services_folder" {
-  description = "Common services folder where non-tenant related resources should be kept"
-  type        = string
-}
-
 variable "automation" {
   # tfdoc:variable:source 0-bootstrap
   description = "Automation resources created by the bootstrap stage."
@@ -159,6 +154,11 @@ variable "cicd_repositories" {
   }
 }
 
+variable "common_services_folder" {
+  description = "Common services folder where non-tenant related resources should be kept."
+  type        = string
+}
+
 variable "custom_roles" {
   # tfdoc:variable:source 0-bootstrap
   description = "Custom roles defined at the org level, in key => id format."
@@ -169,6 +169,13 @@ variable "custom_roles" {
     storage_viewer                = string
   })
   default = null
+}
+
+variable "envs_folders" {
+  description = "List of environments to be created for projects to go into."
+  type = map(object({
+    admin = string
+  }))
 }
 
 variable "factories_config" {
@@ -325,13 +332,6 @@ variable "team_folders" {
     }))
   }))
   default = null
-}
-
-variable "envs_folders" {
-  description = "List of environments to be created for projects to go into"
-  type = map(object({
-    admin = string
-  }))
 }
 
 variable "tenants" {

@@ -66,7 +66,7 @@ variable "folder_ids" {
 variable "kms_keys" {
   description = "KMS keys to create, keyed by name."
   type = map(object({
-    rotation_period = optional(string, "7776000s")
+    rotation_period = optional(string, "7776000s") # Compliant with CIS IAM 1.10
     labels          = optional(map(string))
     locations = optional(list(string), [
       "us",

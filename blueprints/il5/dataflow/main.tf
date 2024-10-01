@@ -85,9 +85,17 @@ module "gcs" {
   name           = var.bucket_name
 
   iam = {
-    "roles/storage.objectAdmin" = concat(
+
+    # CIS Compliance Benmark 1.5 - Read Access
+    "roles/storage.objectViewer" = concat( # Read Access
       [
-        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service account 
+        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service Account
+      ]
+    )
+    # CIS Compliance Benmark 1.5 - Write Access
+    "roles/storage.objectCreator" = concat(
+      [
+        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service Account
       ]
     )
   }

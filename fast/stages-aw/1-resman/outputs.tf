@@ -426,6 +426,11 @@ output "dataplatform" {
   }
 }
 
+output "envs" {
+  description = "Environments folders created for the tenants."
+  value       = try(module.branch-envs-folders, null)
+}
+
 output "gcve" {
   # tfdoc:output:consumers 03-gke-multitenant
   description = "Data for the GCVE stage."
@@ -553,9 +558,4 @@ output "tfvars" {
   description = "Terraform variable files for the following stages."
   sensitive   = true
   value       = local.tfvars
-}
-
-output "envs" {
-  description = "Environments folders created for the tenants"
-  value       = try(module.branch-envs-folders, null)
 }
