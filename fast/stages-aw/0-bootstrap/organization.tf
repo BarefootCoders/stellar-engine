@@ -159,7 +159,7 @@ import {
       "essentialcontacts.allowedContactDomains",
       "storage.uniformBucketLevelAccess",
       "compute.setNewProjectDefaultToZonalDNSOnly",
-      # "compute.restrictProtocolForwardingCreationForTypes",  # not confirmed that this is live, but listed on webpage
+      "compute.restrictProtocolForwardingCreationForTypes",  # not confirmed that this is live, but listed on webpage
     ])
   )
   id = "organizations/${var.organization.id}/policies/${each.key}"
