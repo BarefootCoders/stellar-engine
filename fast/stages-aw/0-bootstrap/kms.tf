@@ -51,8 +51,10 @@ module "gcs-kms" {
 
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       "serviceAccount:service-${module.automation-project.number}@gs-project-accounts.iam.gserviceaccount.com",
-      "serviceAccount:${var.prefix}-prod-resman-0@${var.prefix}-prod-iac-core-0.iam.gserviceaccount.com"
     ],
+    "roles/cloudkms.admin" = [
+      "serviceAccount:${var.prefix}-prod-resman-0@${var.prefix}-prod-iac-core-0.iam.gserviceaccount.com"
+    ]
     "roles/cloudkms.viewer" = [
             "serviceAccount:${var.prefix}-prod-resman-0r@${var.prefix}-prod-iac-core-0.iam.gserviceaccount.com"
     ]
