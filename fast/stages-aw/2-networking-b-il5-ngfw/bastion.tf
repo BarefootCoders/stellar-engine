@@ -1,9 +1,9 @@
 # Google Compute Shielded VM Module
 module "bastion-vm" {
-  source     = "../../../modules/compute-vm"
-  project_id = module.vdss-host-project.project_id
-  zone       = "${var.regions["primary"]}-c"
-  name       = "management-bastion"
+  source               = "../../../modules/compute-vm"
+  project_id           = module.vdss-host-project.project_id
+  zone                 = "${var.regions["primary"]}-c"
+  name                 = "management-bastion"
   confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance and image types
   shielded_config = {
     enable_secure_boot          = true
