@@ -14,31 +14,6 @@
  * limitations under the License.
  */
 
-variable "alert_config" {
-  description = "Configuration for monitoring alerts."
-  type = object({
-    vpn_tunnel_established = optional(object({
-      auto_close            = optional(string, null)
-      duration              = optional(string, "120s")
-      enabled               = optional(bool, true)
-      notification_channels = optional(list(string), [])
-      user_labels           = optional(map(string), {})
-    }))
-    vpn_tunnel_bandwidth = optional(object({
-      auto_close            = optional(string, null)
-      duration              = optional(string, "120s")
-      enabled               = optional(bool, true)
-      notification_channels = optional(list(string), [])
-      threshold_mbys        = optional(string, "187.5")
-      user_labels           = optional(map(string), {})
-    }))
-  })
-  default = {
-    vpn_tunnel_established = {}
-    vpn_tunnel_bandwidth   = {}
-  }
-}
-
 variable "automation" {
   # tfdoc:variable:source 0-bootstrap
   description = "Automation resources created by the bootstrap stage."
@@ -60,14 +35,6 @@ variable "billing_account" {
   }
 }
 
-variable "custom_roles" {
-  description = "Custom roles defined at the org level, in key => id format."
-  type = object({
-    service_project_network_admin = string
-  })
-  default = null
-}
-
 variable "dns" {
   description = "DNS configuration."
   type = object({
@@ -76,13 +43,6 @@ variable "dns" {
   })
   default  = {}
   nullable = false
-}
-
-variable "enable_cloud_nat" {
-  description = "Deploy Cloud NAT."
-  type        = bool
-  default     = false
-  nullable    = false
 }
 
 variable "envs_folders" {
@@ -119,17 +79,6 @@ variable "factories_config" {
   }
 }
 
-variable "fast_features" {
-  # tfdoc:variable:source 0-0-bootstrap
-  description = "Selective control for top-level FAST features."
-  type = object({
-    gcve = optional(bool, false)
-    envs = optional(bool, false)
-  })
-  default  = {}
-  nullable = false
-}
-
 variable "folder_ids" {
   # tfdoc:variable:source 1-resman
   description = "Folders to be used for the networking resources in folders/nnnnnnnnnnn format. If null, folder will be created."
@@ -137,17 +86,6 @@ variable "folder_ids" {
     networking = string
     envs       = optional(map(string))
   })
-}
-
-variable "gcp_ranges" {
-  description = "GCP address ranges in name => range format."
-  type        = map(string)
-  default = {
-    gcp_dev_primary             = "10.68.0.0/16"
-    gcp_landing_landing_primary = "10.200.0.0/16"
-    gcp_dmz_primary             = "10.64.128.0/24"
-    gcp_prod_primary            = "10.72.0.0/16"
-  }
 }
 
 variable "organization" {

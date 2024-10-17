@@ -17,15 +17,17 @@
 module "cloud_ids" {
   source                       = "../../../modules/intrusion-detection-system"
   project                      = var.landing_project_id
-  landing_vpc_network          = var.landing_vpc_network
+  landing_vpc_network          = var.network
   network_region               = var.region
-  network_zone                 = var.network_zone
-  landing_network              = var.landing_vpc_network
+  network_zone                 = data.google_compute_zones.available.names[0]
+  landing_network              = var.network
   subnet                       = var.subnet
   subnet_list                  = var.subnet_list
-  ids_private_ip_range_name    = "ids-private-address"
+  ids_private_ip_range_name    = "${var.prefix}-ids-private-address"
   ids_private_ip_prefix_length = var.ids_private_ip_prefix_length
-  ids_name                     = var.ids_name
+  ids_name                     = "${var.prefix}-${var.ids_name}"
   severity                     = var.severity
-  packet_mirroring_policy_name = var.packet_mirroring_policy_name
+  packet_mirroring_policy_name = "${var.prefix}-${var.packet_mirroring_policy_name}"
+
+  depends_on = [google_project_service.net-host-services]
 }

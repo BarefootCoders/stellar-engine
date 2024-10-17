@@ -56,6 +56,7 @@ resource "google_compute_region_backend_service" "default" {
   health_checks = length(each.value.health_checks) == 0 ? null : [
     for k in each.value.health_checks : lookup(local.hc_ids, k, k)
   ]
+  security_policy = try(each.value.security_policy, null)
   # external regional load balancer is always EXTERNAL_MANAGER.
   # TODO(jccb): double check if this is true
   load_balancing_scheme = "EXTERNAL_MANAGED"

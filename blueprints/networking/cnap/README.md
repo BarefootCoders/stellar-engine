@@ -25,7 +25,7 @@ Make sure your gcloud cli is authenticated and configured for the correct projec
 Before you can run `terraform apply`, you must enable some basic APIs.
 
 
-Run `for api in  "serviceusage" "compute" "accesscontextmanager" "cloudresourcemanager" "orgpolicy"; do  gcloud services enable $api.googleapis.com; done`
+Run `for api in  "serviceusage" "compute" "accesscontextmanager" "cloudresourcemanager" "orgpolicy" "iap"; do  gcloud services enable $api.googleapis.com; done`
 
 We recommend waiting about 10 minutes for this change to propogate within the system.
 
@@ -91,32 +91,20 @@ Run `terraform apply -target google_org_policy_policy.allow_external_lb` after c
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
 | [access_policy_number](variables.tf#L17) | There can only be one Access Policy per GCP Org. Use gcloud access-context-manager policies list --organization <org-number> to list it. | <code>number</code> | ✓ |  |
-| [billing_account](variables.tf#L22) | GCP Billing Account ID | <code>string</code> | ✓ |  |
-| [default_backend](variables.tf#L32) | The default backend for traffic at the load-balancer. Must match the key of one of the backends in the data/apps.yaml file | <code>string</code> | ✓ |  |
-| [domain](variables.tf#L37) | FQDN for the load-balancer hosted apps, where the subdomain will be prepended to | <code>string</code> | ✓ |  |
-| [network](variables.tf#L85) | Host network for IDS and GCE instance deployment | <code>string</code> | ✓ |  |
-| [oauth_brand_number](variables.tf#L100) | External Oauth2 consent screens can only be configured via the interactive console. After configuring it, use `gcloud alpha iap oauth-brands list` to lookup the brand id number | <code>number</code> | ✓ |  |
-| [organization](variables.tf#L105) | GCP Organization is required for Access Context Manager policies which take affect at the org level | <code>number</code> | ✓ |  |
-| [project](variables.tf#L155) |  | <code>string</code> | ✓ |  |
-| [region](variables.tf#L122) | GCP Region to deploy into | <code>string</code> | ✓ |  |
-| [check_interval_sec](variables.tf#L27) |  | <code>number</code> |  | <code>5</code> |
-| [google_compute_instance_template](variables.tf#L42) |  | <code>string</code> |  | <code>&#34;appserver-template&#34;</code> |
-| [health_check_port](variables.tf#L47) |  | <code>string</code> |  | <code>&#34;8080&#34;</code> |
-| [healthy_threshold](variables.tf#L52) |  | <code>number</code> |  | <code>2</code> |
-| [ids_name](variables.tf#L57) | Name of IDS. | <code>string</code> |  | <code>&#34;cloud-ids&#34;</code> |
-| [ids_private_ip_prefix_length](variables.tf#L150) |  | <code>number</code> |  | <code>24</code> |
-| [ids_private_ip_range_name](variables.tf#L63) |  | <code>string</code> |  | <code>&#34;ids-private-address&#34;</code> |
-| [initial_delay_sec](variables.tf#L68) |  | <code>number</code> |  | <code>300</code> |
-| [instance_list](variables.tf#L73) | Instance list to monitor with Cloud IDS | <code>list&#40;string&#41;</code> |  | <code>null</code> |
-| [machine_type](variables.tf#L90) |  | <code>string</code> |  | <code>&#34;e2-medium&#34;</code> |
-| [named_port](variables.tf#L95) |  | <code>string</code> |  | <code>&#34;8888&#34;</code> |
-| [net_project](variables.tf#L79) |  | <code>string</code> |  | <code>null</code> |
-| [packet_mirroring_policy_name](variables.tf#L110) | Name of packet mirror policy | <code>string</code> |  | <code>&#34;testpolicy&#34;</code> |
-| [prefix](variables.tf#L116) | Prefix for naming resources in this blueprint | <code>string</code> |  | <code>&#34;cnap&#34;</code> |
-| [severity](variables.tf#L127) | Display name of the service account to create. | <code>string</code> |  | <code>&#34;MEDIUM&#34;</code> |
-| [source_image](variables.tf#L133) |  | <code>string</code> |  | <code>&#34;debian-cloud&#47;debian-11&#34;</code> |
-| [subnet_list](variables.tf#L138) | Subnet list to monitor with Cloud IDS | <code>list&#40;any&#41;</code> |  | <code>null</code> |
-| [tag_list](variables.tf#L144) | Tag list to monitor with Cloud IDS | <code>list&#40;string&#41;</code> |  | <code>null</code> |
-| [timeout_sec](variables.tf#L159) |  | <code>number</code> |  | <code>5</code> |
-| [unhealthy_threshold](variables.tf#L164) |  | <code>number</code> |  | <code>10</code> |
+| [default_backend](variables.tf#L22) | The default backend for traffic at the load-balancer. Must match the key of one of the backends in the data/apps.yaml file | <code>string</code> | ✓ |  |
+| [domain](variables.tf#L27) | FQDN for the load-balancer hosted apps, where the subdomain will be prepended to | <code>string</code> | ✓ |  |
+| [landing_project_id](variables.tf#L43) |  | <code>string</code> | ✓ |  |
+| [network](variables.tf#L59) | Host network for IDS and GCE instance deployment | <code>string</code> | ✓ |  |
+| [oauth_brand_number](variables.tf#L64) | External Oauth2 consent screens can only be configured via the interactive console. After configuring it, use `gcloud alpha iap oauth-brands list` to lookup the brand id number | <code>number</code> | ✓ |  |
+| [project](variables.tf#L81) |  | <code>string</code> | ✓ |  |
+| [region](variables.tf#L85) | GCP Region to deploy into | <code>string</code> | ✓ |  |
+| [ids_name](variables.tf#L32) | Name of IDS. | <code>string</code> |  | <code>&#34;cnap-ids&#34;</code> |
+| [ids_private_ip_prefix_length](variables.tf#L38) |  | <code>number</code> |  | <code>24</code> |
+| [machine_type](variables.tf#L47) |  | <code>string</code> |  | <code>&#34;n2d-highcpu-2&#34;</code> |
+| [net_project](variables.tf#L52) | GCP Project to the VPC belongs to. (Defaults to the variable project if not defined) | <code>string</code> |  | <code>null</code> |
+| [packet_mirroring_policy_name](variables.tf#L69) | Name of packet mirror policy | <code>string</code> |  | <code>&#34;cnap-packet-mirror&#34;</code> |
+| [prefix](variables.tf#L75) | Prefix for naming resources in this blueprint | <code>string</code> |  | <code>&#34;cnap&#34;</code> |
+| [severity](variables.tf#L90) | Display name of the service account to create. | <code>string</code> |  | <code>&#34;MEDIUM&#34;</code> |
+| [subnet](variables.tf#L96) | Subnet for deploying the instances | <code>string</code> |  | <code>&#34;default-us-east4&#34;</code> |
+| [subnet_list](variables.tf#L102) | Subnet list to monitor with Cloud IDS | <code>list&#40;any&#41;</code> |  | <code>null</code> |
 <!-- END TFDOC -->

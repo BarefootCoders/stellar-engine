@@ -143,7 +143,6 @@ locals {
       })
     )
   }
-  envs_folders   = var.envs_folders
   env_folder_ids = { for k, v in module.branch-envs-folders : k => try(v.folder.id, null) }
   folder_ids = merge(
     {

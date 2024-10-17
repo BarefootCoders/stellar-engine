@@ -37,11 +37,6 @@ variable "billing_account" {
   nullable = false
 }
 
-variable "bootstrap_project" {
-  description = "Bootstrap project."
-  type        = string
-}
-
 variable "bootstrap_user" {
   description = "Email of the nominal user running this stage for the first time."
   type        = string
@@ -232,12 +227,6 @@ variable "log_sinks" {
 
 variable "logging_kms_key" {
   description = "value of the KMS key used for logging."
-  type        = string
-  default     = null
-}
-
-variable "gcs_kms_key" {
-  description = "value of the KMS key used for GCS."
   type        = string
   default     = null
 }

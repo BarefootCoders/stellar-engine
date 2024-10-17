@@ -19,7 +19,7 @@ resource "google_compute_region_security_policy_rule" "policy_rules" {
   region          = var.region
   project         = data.google_project.project.number
   preview         = false
-  action          = "deny"
+  action          = "deny(403)"
   priority        = index(keys(local.waf.basic_rules), each.key) + 1000
   description     = "Block ${each.key} attack"
   match {

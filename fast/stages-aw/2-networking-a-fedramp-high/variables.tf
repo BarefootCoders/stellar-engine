@@ -14,31 +14,6 @@
  * limitations under the License.
  */
 
-variable "alert_config" {
-  description = "Configuration for monitoring alerts."
-  type = object({
-    vpn_tunnel_established = optional(object({
-      auto_close            = optional(string, null)
-      duration              = optional(string, "120s")
-      enabled               = optional(bool, true)
-      notification_channels = optional(list(string), [])
-      user_labels           = optional(map(string), {})
-    }))
-    vpn_tunnel_bandwidth = optional(object({
-      auto_close            = optional(string, null)
-      duration              = optional(string, "120s")
-      enabled               = optional(bool, true)
-      notification_channels = optional(list(string), [])
-      threshold_mbys        = optional(string, "187.5")
-      user_labels           = optional(map(string), {})
-    }))
-  })
-  default = {
-    vpn_tunnel_established = {}
-    vpn_tunnel_bandwidth   = {}
-  }
-}
-
 variable "automation" {
   # tfdoc:variable:source 0-bootstrap
   description = "Automation resources created by the bootstrap stage."
@@ -78,13 +53,6 @@ variable "dns" {
   nullable = false
 }
 
-variable "enable_cloud_nat" {
-  description = "Deploy Cloud NAT."
-  type        = bool
-  default     = false
-  nullable    = false
-}
-
 variable "envs_folders" {
   description = "List of environments to be created for projects to go into"
   type = map(object({
@@ -117,17 +85,6 @@ variable "factories_config" {
     condition     = var.factories_config.firewall_policy_name != null
     error_message = "Firewall policy name needs to be non-null."
   }
-}
-
-variable "fast_features" {
-  # tfdoc:variable:source 0-0-bootstrap
-  description = "Selective control for top-level FAST features."
-  type = object({
-    gcve = optional(bool, false)
-    envs = optional(bool, false)
-  })
-  default  = {}
-  nullable = false
 }
 
 variable "folder_ids" {
@@ -229,88 +186,4 @@ variable "tenant_accounts" {
     env    = string
   main_project = string }))
 }
-variable "vpn_onprem_primary_config" {
-  description = "VPN gateway configuration for onprem interconnection in the primary region."
-  type = object({
-    peer_external_gateways = map(object({
-      redundancy_type = string
-      interfaces      = list(string)
-    }))
-    router_config = object({
-      create    = optional(bool, true)
-      asn       = number
-      name      = optional(string)
-      keepalive = optional(number)
-      custom_advertise = optional(object({
-        all_subnets = bool
-        ip_ranges   = map(string)
-      }))
-    })
-    tunnels = map(object({
-      bgp_peer = object({
-        address        = string
-        asn            = number
-        route_priority = optional(number, 1000)
-        custom_advertise = optional(object({
-          all_subnets          = bool
-          all_vpc_subnets      = bool
-          all_peer_vpc_subnets = bool
-          ip_ranges            = map(string)
-        }))
-      })
-      # each BGP session on the same Cloud Router must use a unique /30 CIDR
-      # from the 169.254.0.0/16 block.
-      bgp_session_range               = string
-      ike_version                     = optional(number, 2)
-      peer_external_gateway_interface = optional(number)
-      peer_gateway                    = optional(string, "default")
-      router                          = optional(string)
-      shared_secret                   = optional(string)
-      vpn_gateway_interface           = number
-    }))
-  })
-  default = null
-}
 
-variable "vpn_onprem_secondary_config" {
-  description = "VPN gateway configuration for onprem interconnection in the secondary region."
-  type = object({
-    peer_external_gateways = map(object({
-      redundancy_type = string
-      interfaces      = list(string)
-    }))
-    router_config = object({
-      create    = optional(bool, true)
-      asn       = number
-      name      = optional(string)
-      keepalive = optional(number)
-      custom_advertise = optional(object({
-        all_subnets = bool
-        ip_ranges   = map(string)
-      }))
-    })
-    tunnels = map(object({
-      bgp_peer = object({
-        address        = string
-        asn            = number
-        route_priority = optional(number, 1000)
-        custom_advertise = optional(object({
-          all_subnets          = bool
-          all_vpc_subnets      = bool
-          all_peer_vpc_subnets = bool
-          ip_ranges            = map(string)
-        }))
-      })
-      # each BGP session on the same Cloud Router must use a unique /30 CIDR
-      # from the 169.254.0.0/16 block.
-      bgp_session_range               = string
-      ike_version                     = optional(number, 2)
-      peer_external_gateway_interface = optional(number)
-      peer_gateway                    = optional(string, "default")
-      router                          = optional(string)
-      shared_secret                   = optional(string)
-      vpn_gateway_interface           = number
-    }))
-  })
-  default = null
-}

@@ -11,18 +11,27 @@ locals {
         oauth2_client_id     = google_iap_client.project_client.client_id
         oauth2_client_secret = google_iap_client.project_client.secret
       }
+      security_policy = google_compute_region_security_policy.default.self_link
     }
   }
-  vm_backends = { for key, _ in local.vms : key =>
+  vm_backends = { for key, _ in try(local.vms, {}) : key =>
     {
       backends = [{
-        backend       = module.cos-mig[key].group_manager.instance_group
-        health_checks = [module.cos-mig[key].health_check.self_link]
-        port_name     = "http"
+        backend = module.cos-mig[key].group_manager.instance_group
       }]
+      health_checks = [google_compute_region_health_check.http-region-health-check[key].self_link, ]
+      protocol      = "HTTP"
+      iap_config = {
+        oauth2_client_id     = google_iap_client.project_client.client_id
+        oauth2_client_secret = google_iap_client.project_client.secret
+      }
+      security_policy = google_compute_region_security_policy.default.self_link
     }
   }
-  backends = merge(local.cr_backends, local.vm_backends)
+
+  backends_wo_default = merge(local.cr_backends, local.vm_backends)
+  default             = { (var.default_backend) = local.backends_wo_default[var.default_backend] }
+  backends            = merge(local.backends_wo_default, local.default)
 
   host_rules = [for key, values in local.apps : {
     hosts        = ["${values.subdomain}.${var.domain}"],
@@ -30,18 +39,20 @@ locals {
   }]
   lb_name       = "${var.prefix}-cloud-native-access-point"
   service_names = { for app, _ in local.apps : app => "https://www.googleapis.com/compute/v1/projects/${var.project}/regions/${var.region}/backendServices/${local.lb_name}-${app}" }
-}
 
-data "google_compute_network" "network" {
-  name    = "prod-dmz-0"
-  project = var.landing_project_id
+  path_matchers = merge(
+    { for app, values in try(local.cloud_runs, {}) : "path-matcher-${app}" => {
+      paths           = ["/*"],
+      default_service = local.service_names[app]
+      }
+    },
+    { for mig, values in try(local.vms, {}) : "path-matcher-${mig}" => {
+      paths           = ["/*"],
+      default_service = local.service_names[mig]
+      }
+    }
+  )
 }
-data "google_compute_subnetwork" "subnet" {
-  name    = "us-east4-proxy-dmz"
-  project = var.landing_project_id
-  region  = var.region
-}
-
 resource "google_compute_shared_vpc_host_project" "host" {
   project = var.landing_project_id
 }
@@ -56,14 +67,15 @@ data "google_compute_network" "landing-vpc" {
   project = try(var.net_project, var.project)
 }
 resource "tls_self_signed_cert" "default" {
+  provider        = tls
   private_key_pem = tls_private_key.default.private_key_pem
   subject {
     common_name  = var.domain
     organization = "ACME Examples, Inc"
   }
   dns_names = concat(
-    [for app, _ in local.apps : "${app}.${var.domain}"],
-    [for vm, _ in local.vms : "${vm}.${var.domain}"]
+    [for app, values in try(local.apps, {}) : "${values.subdomain}.${var.domain}"],
+    [for mig, values in try(local.vms, {}) : " ${values.subdomain}.${var.domain}"]
   )
   validity_period_hours = 720
   allowed_uses = [
@@ -74,7 +86,9 @@ resource "tls_self_signed_cert" "default" {
 }
 
 resource "google_compute_region_ssl_certificate" "default" {
-  region      = var.region
+  region  = var.region
+  project = var.project
+
   name_prefix = "${var.prefix}-cert-"
   description = "Self-signed demo cert"
   certificate = tls_self_signed_cert.default.cert_pem
@@ -138,11 +152,7 @@ module "cnap-0" {
   urlmap_config = {
     default_service = local.service_names[var.default_backend]
     host_rules      = local.host_rules
-    path_matchers = { for app, values in local.cloud_runs : "path-matcher-${app}" => {
-      paths           = ["/*"],
-      default_service = local.service_names[app]
-      }
-    }
+    path_matchers   = local.path_matchers
 
   }
   protocol = "HTTPS"

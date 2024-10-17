@@ -30,15 +30,6 @@ locals {
       routes = [for k, v in var.envs_folders : module.env-spoke-vpc[k].subnets[lower("${var.regions.primary}/default-${var.regions.primary}")].ip_cidr_range]
     },
   ]
-  nva_locality = {
-    for v in setproduct(keys(var.regions), local.nva_zones) :
-    join("-", v) => {
-      name   = v[0]
-      region = var.regions[v[0]]
-      zone   = v[1]
-    }
-  }
-  nva_zones = ["b", "c"]
 }
 
 # Custom service account with compute engine role

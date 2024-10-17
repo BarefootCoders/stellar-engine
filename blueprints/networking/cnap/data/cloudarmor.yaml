@@ -1,6 +1,4 @@
 basic_rules: #Rules called basic_rules
-  sqli: # key value
-    expression: "sqli-v33-stable" # Preconfigured rule name
   xss:
     expression: "xss-v33-stable" # Preconfigured rule name
   lfi:

@@ -1,5 +1,4 @@
 locals {
-  pairs = setproduct(keys(var.envs_folders), keys(var.envs_folders))
 }
 resource "google_network_management_connectivity_test" "landing-test" {
   for_each = var.regions

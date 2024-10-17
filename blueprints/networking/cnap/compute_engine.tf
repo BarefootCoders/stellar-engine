@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 
-locals {
-  nva_zones = ["b", "c"]
-}
-
-# Custom service account with compute engine role
-resource "google_service_account" "compute" {
-  account_id = "cnap-compute-sa"
-  project    = data.google_project.project.project_id
-}
-
 data "google_compute_default_service_account" "default" {
   project = data.google_project.project.project_id
 }
 
+data "google_compute_zones" "available" {
+  region  = var.region
+  project = data.google_project.project.project_id
+  status  = "UP"
+}
 data "google_compute_subnetwork" "default" {
   name    = var.subnet
   project = var.net_project
+}
+
+data "google_compute_subnetwork" "proxy" {
+  name    = "proxy-${var.region}"
+  project = var.net_project
+}
+
+# Custom service account with compute engine role
+resource "google_service_account" "compute" {
+  account_id = "cnap-app-compute-sa"
+  project    = data.google_project.project.project_id
 }
 
 # Demo App config
@@ -39,50 +45,65 @@ module "cos-demo-config" {
   for_each        = local.vms
   container_image = each.value.container_image
   container_name  = "demo"
-
+  docker_args     = "--publish 8080:8080"
+  run_commands    = ["systemctl daemon-reload", "systemctl start demo", ]
 }
 
-module "cos-template" {
-  for_each        = local.vms
-  source          = "../../../modules/compute-vm"
-  project_id      = data.google_project.project.project_id
-  name            = "cos-template-${each.key}"
-  zone            = "${var.region}-b"
-  instance_type   = "n2d-standard-2"
-  tags            = ["${var.prefix}-ids"]
-  create_template = true
-  network_interfaces = [
-    {
-      network    = data.google_compute_network.landing-vpc.id
-      subnetwork = data.google_compute_subnetwork.default.self_link
-      nat        = false
-    }
-  ]
-  boot_disk = {
-    initialize_params = {
-      image = "cos-cloud/cos-stable"
+resource "google_compute_region_instance_template" "cos-template" {
+  for_each     = local.vms
+  project      = data.google_project.project.project_id
+  name_prefix  = "${var.prefix}-template-${each.key}"
+  region       = var.region
+  machine_type = var.machine_type
+
+  tags = ["${var.prefix}-ids"]
+  network_interface {
+    network    = data.google_compute_network.landing-vpc.id
+    subnetwork = data.google_compute_subnetwork.default.self_link
+  }
+  // Create a new boot disk from an image
+  disk {
+    source_image = "cos-cloud/cos-stable"
+    type         = "PERSISTENT"
+    disk_encryption_key {
+      kms_key_self_link = module.kms.keys.default.id
     }
   }
-  options = {
-    allow_stopping_for_update = true
-    deletion_protection       = false
-    spot                      = true
-    termination_action        = "STOP"
-  }
+
   metadata = {
     user-data = module.cos-demo-config[each.key].cloud_config
   }
   # CIS Compliance Benchmark 4.1/4.2
-  service_account = {
-    email = google_service_account.compute.email
+  service_account {
+    email  = google_service_account.compute.email
+    scopes = ["cloud-platform"]
   }
 
   # CIS Compliance Benchmark 4.11
-  confidential_compute = true
-  shielded_config = {
+  confidential_instance_config {
+    enable_confidential_compute = false # This is rejecting my instance type, n2d-highcpu-2 which is supported. I think it's a bug
+  }
+  shielded_instance_config {
     enable_secure_boot          = true
     enable_vtpm                 = true
     enable_integrity_monitoring = true
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "google_compute_region_health_check" "http-region-health-check" {
+  for_each = local.vms
+  project  = data.google_project.project.project_id
+
+  name = "${var.prefix}-app-healthcheck-${each.key}"
+
+  timeout_sec        = 5
+  check_interval_sec = 20
+
+  http_health_check {
+    port = "8080"
   }
 }
 
@@ -91,20 +112,27 @@ module "cos-mig" {
   source            = "../../../modules/compute-mig"
   project_id        = data.google_project.project.project_id
   location          = var.region
-  name              = "cos-${each.key}"
-  instance_template = module.cos-template[each.key].template.self_link
+  name              = "${var.prefix}-cos-${each.key}"
+  instance_template = google_compute_region_instance_template.cos-template[each.key].self_link
   target_size       = 1
   auto_healing_policies = {
-    initial_delay_sec = 30
+    health_check      = google_compute_region_health_check.http-region-health-check[each.key].self_link
+    initial_delay_sec = 60
   }
-  health_check_config = {
-    enable_logging = true
-    tcp = {
-      port = 22
-    }
-  }
+
   named_ports = {
-    http = 80
+    http = 8080
+  }
+  update_policy = {
+    minimal_action = "REPLACE"
+    type           = "PROACTIVE"
+    min_ready_sec  = 300
+    max_surge = {
+      fixed = length(data.google_compute_zones.available)
+    }
+    max_unavailable = {
+      fixed = 0
+    }
   }
 }
 
@@ -133,4 +161,26 @@ module "kms" {
     name     = "cnap-keyring"
   }
 
+}
+
+resource "google_compute_firewall" "allow-app" {
+  name    = "cnap-app-firewall"
+  network = data.google_compute_network.landing-vpc.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8080"]
+  }
+
+  target_tags = ["${var.prefix}-ids"]
+  source_ranges = [
+    # Health Check sources
+    "35.191.0.0/16",
+    "130.211.0.0/22",
+    "209.85.152.0/22",
+    "209.85.204.0/22",
+    # IAP Sources
+    "35.235.240.0/20",
+    data.google_compute_subnetwork.proxy.ip_cidr_range
+  ]
 }
