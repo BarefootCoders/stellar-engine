@@ -1,0 +1,83 @@
+# Bigtable Blueprint
+This blueprint demonstrates how to deploy a Bigtable instance on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS. It provides a secure and flexible solution for managing your Bigtable data.
+
+## Introduction Google Bigtable Instance
+Bigtable is a fully managed, scalable NoSQL wide-column database service for large analytical and operational workloads. This blueprint utilizes Terraform to automate the deployment of a Bigtable instance and configure CMEK using Cloud KMS, allowing you to control and manage your encryption keys. This enhances the security posture of your Bigtable deployment. The blueprint also includes optional table creation during instance deployment.
+CMEK allows you to encrypt your Bigtable data at rest using keys that you manage in Cloud KMS. This provides greater control over key lifecycle management, including key rotation and access control. This blueprint supports creating new KMS keys, using pre-existing keys, or not using any keys.
+
+## Disclaimer
+- The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+<!-- BEGIN TFDOC -->
+## Variables
+
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [project_id](variables.tf#L1) | GCP Project to deploy Bigtable instance to. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L6) | GCP Region to deploy Bigtable to. | <code>string</code> | ✓ | <code>"us-east4"</code> |
+| [zone](variables.tf#L12) | GCP Zone to deploy Bigtable to. | <code>string</code> | ✓ | <code>"us-east4-a"</code> |
+| [cluster_id](variables.tf#23) | The Bigtable cluster ID | <code>string</code> | ✓ | |
+| [key_name](variables.tf#45) | The entire path to the KMS key to be used for encryption | <code>string</code> | ✓ | 
+| [instance_name](variables.tf#18) | The Bigtable instance name to create | <code>string</code> | ✓ |
+| [num_nodes](variables.tf#28) | Number of nodes in the Bigtable cluster | <code>number</code> | ✓ | <code>1</code> |
+| [storage_type](variables.tf#57) | Either SSD or HDD | <code>string</code> | ✓ | <code>"SSH"</code> |
+| [table](variables.tf#69) | Table to create in the Bigtable instance. | <code title="map&#40;object&#40;&#123;&#10;  split_keys      &#61; optional&#40;list#40;string&#41;&#41;&#10;  column_families &#61; map&#40;object&#40;&#123;&#125;&#41;&#41;&#10;&#125;&#41;&#41;">map(object({ split_keys = optional(list(string)), column_families = map(object({}))}))</code> | |
+## Outputs
+
+| name | description | sensitive |
+|---|---|:---:|
+| [cluster_info](outputs.tf#L6) | Information about the created Bigtable cluster. |  |
+| [instance_name](outputs.tf#L1) | Bigtable instance name. |  |
+| [table_info](outputs.tf#L16) | Information about the tables created (if any). |  |
+<!-- END TFDOC -->
+## Deployment Steps
+
+You should see this README and some terraform files.
+1. Update the Variables in the variables.tf and also the properties within the keys variables. For reference update the following variables and associated properties
+
+- ```project_id```  with your GCP Project ID<br />
+-  ```instance_name```  with desired bigtable instance name<br />
+- ```zone```  with the GCP Location<br />
+- ```region``` with the GCP region inside of zone <br />
+- ```cluster_id``` with the desired cluster ID to be created and deployed <br />
+
+
+2. There is a sample ```terraform.tfvars.sample``` available as well.
+3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work. To provision this example, run the following from within this directory:
+
+```terraform init ```<br />
+```terraform plan``` to see the infrastructure plan<br />
+```terraform apply``` to apply the infrastructure build<br />
+```terraform destroy``` to destroy the built infrastructure<br />
+
+Verification of a successful deployment? 
+The instance in Bigtable will be available through the Bigtable console with the set Table, Cluster, and Instance name you provided.
+
+It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
+The Output will look like following
+```
+
+Outputs: 
+
+bigtable_service_identity_email = "service-{id}@gcp-sa-bigtable.iam.gserviceaccount.com"
+bigtable_service_identity_uid = "projects/project_id/services/bigtableadmin.googleapis.com"
+cluster_info = {
+  "cluster_id" = "bigtable-test-5"
+  "num_nodes" = 3
+  "storage_type" = "SSD"
+  "zone" = "us-east4-a"
+}
+instance_name = "bigtable-test-5"
+table_info = {
+  "Test" = {
+    "automated_backup_policy" = toset([])
+    "change_stream_retention" = tostring(null)
+    "column_family" = toset([])
+    "deletion_protection" = "UNPROTECTED"
+    "id" = "projects/project_id/instances/bigtable-test-5/tables/Test"
+    "instance_name" = "bigtable-test-5"
+    "name" = "Test"
+    "project" = "project_id"
+    "split_keys" = tolist([])
+    "timeouts" = null /* object */
+  }
+}
