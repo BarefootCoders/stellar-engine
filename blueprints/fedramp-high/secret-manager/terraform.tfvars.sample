@@ -1,0 +1,61 @@
+project_id    = "your-project-id"
+
+region        = "us-east4"
+
+zone          = "us-east4-a"
+
+secrets = {
+    "secret-id-one" = { # This is the secret ID 
+        locations = ["us-east1"] # List of regions where the secret is stored
+        keys = { # Each region requires a key
+            "us-east1" = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+        }
+    }
+    "secret-id-two" = { # This is the secret ID 
+        locations = ["us-east1", "us-east4"] # List of regions where the secret is stored
+        keys = { # Each region requires a key
+            "us-east1" = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+            "us-east4" = "projects/YOUR_PROJECT/locations/us-east4/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+        }
+    }
+}
+
+iam = {
+    "secret-id-one" = { # This is the secret ID 
+        "roles/secretmanager.secretAccessor" = [ # Role 1
+            "serviceAccount:sa-one@your-project.iam.gserviceaccount.com", # Member 1
+            "group:admins@your-domain.com" # Member 2
+        ],
+        "roles/viewer" = [ # Role 2
+            "user:user-one@your-domain.com" # Member
+        ]
+    },
+    "secret-id-two" = {  # This is the secret ID 
+        "roles/secretmanager.secretAccessor" = [ # Role
+            "serviceAccount:sa-two@your-project.iam.gserviceaccount.com" # Member
+        ]
+    }
+}
+
+#It is not recommended to update secret data in terraform, as the state file will store this data unencrypted
+#This variable is provided as an example of the structure that is accepted, DO NOT DO THIS IN PRODUCTION
+#For more information visit: https://developer.hashicorp.com/terraform/language/state/sensitive-data
+#Other options include: external data sources, null_resource provisioners, or external secret management
+versions = {
+    "secret-id-one" = { # This is the secret ID 
+        "latest" = { #arbitrary version name
+            enabled = true
+            data = "secret-password"    #actual secret data - DO NOT DO THIS IN PRODUCTION
+        }
+        "outdated" = { #arbitrary version name
+            enabled = false
+            data = "outdated-secret-password"    #actual secret data - DO NOT DO THIS IN PRODUCTION
+        }
+    }
+    "secret-id-two" = { # This is the secret ID 
+        "v1" = { #arbitrary version name
+            enabled = true
+            data = "secret-api-key"    #actual secret data - DO NOT DO THIS IN PRODUCTION
+        }
+    }
+}
