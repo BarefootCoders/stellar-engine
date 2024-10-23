@@ -27,12 +27,12 @@ iam = {
             "group:admins@your-domain.com" # Member 2
         ],
         "roles/viewer" = [ # Role 2
-            "user:user-one@your-domain.com" # Member
+            "user:user-one@your-domain.com" # Member 1
         ]
     },
     "secret-id-two" = {  # This is the secret ID 
-        "roles/secretmanager.secretAccessor" = [ # Role
-            "serviceAccount:sa-two@your-project.iam.gserviceaccount.com" # Member
+        "roles/secretmanager.secretAccessor" = [ # Role 1
+            "serviceAccount:sa-two@your-project.iam.gserviceaccount.com" # Member 1
         ]
     }
 }
@@ -40,7 +40,6 @@ iam = {
 #It is not recommended to update secret data in terraform, as the state file will store this data unencrypted
 #This variable is provided as an example of the structure that is accepted, DO NOT DO THIS IN PRODUCTION
 #For more information visit: https://developer.hashicorp.com/terraform/language/state/sensitive-data
-#Other options include: external data sources, null_resource provisioners, or external secret management
 versions = {
     "secret-id-one" = { # This is the secret ID 
         "latest" = { #arbitrary version name
