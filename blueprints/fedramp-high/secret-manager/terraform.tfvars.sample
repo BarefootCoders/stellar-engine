@@ -11,19 +11,19 @@ secrets = {
         key = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
     }
 }
-iam = {
+iam = { //secret ids must match existing secrets
     "secret-id-one" = { 
         "roles/secretmanager.secretAccessor" = [ 
-            "serviceAccount:sa-one@your-project.iam.gserviceaccount.com",
-            "group:admins@your-domain.com" 
+            //"serviceAccount:sa-one@your-project.iam.gserviceaccount.com",
+            //"group:admins@your-domain.com" 
         ],
         "roles/viewer" = [ 
-            "user:user-one@your-domain.com" 
+            "user:user-one@your-domain.com" #update this
         ]
     },
     "secret-id-two" = {  
         "roles/secretmanager.secretAccessor" = [ 
-            "serviceAccount:sa-two@your-project.iam.gserviceaccount.com" 
+            //"serviceAccount:sa-two@your-project.iam.gserviceaccount.com" 
         ]
     }
 }
