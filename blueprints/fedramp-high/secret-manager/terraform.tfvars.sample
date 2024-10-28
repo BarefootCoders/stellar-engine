@@ -1,7 +1,6 @@
 project_id    = "your-project-id"
 
 region        = "us-east4"
-
 zone          = "us-east4-a"
 
 secrets = {
