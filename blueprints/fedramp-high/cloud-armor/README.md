@@ -6,7 +6,7 @@ Google Cloud Armor helps you protect your Google Cloud deployments from multiple
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-<!-- BEGIN_TF_DOCS -->
+<!-- BEGIN TFDOC -->
 ## Variables
 
 | Name | Description | Type | Default | Required |
@@ -23,7 +23,7 @@ Google Cloud Armor helps you protect your Google Cloud deployments from multiple
 | <a name="output_policies"></a> [policies](#output\_policies) | All created policy resources. |
 | <a name="output_policy_names"></a> [policy\_names](#output\_policy\_names) | All created policy names. |
 | <a name="output_policy_rules"></a> [policy\_rules](#output\_policy\_rules) | All created policy rule resources. |
-<!-- END_TF_DOCS -->
+<!-- END TFDOC -->
 ## Deployment Steps
 
 You should see this README and some terraform files in the directory. 
