@@ -9,32 +9,32 @@ Google Cloud Armor helps you protect your Google Cloud deployments from multiple
 <!-- BEGIN TFDOC -->
 ## Variables
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_policies"></a> [policies](#input\_policies) | Map of policies to manage. | <pre>map(object({ # map the name of the policy to the data<br/>        region = optional(string)<br/>        project = optional(string)<br/>        description = optional(string)<br/>    }))</pre> | `{}` | no |
-| <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The ID for the project that the Cloud Armor policies will be used in. | `string` | n/a | yes |
-| <a name="input_region"></a> [region](#input\_region) | The Google Cloud region. | `string` | `"us-east4"` | no |
-| <a name="input_rules"></a> [rules](#input\_rules) | Map of policy rules to manage. Each rule should be assigned to an existing policy. | <pre>list(object({ <br/>        project = optional(string, null)<br/>        description = optional(string, null)<br/>        policy = string               # name of the policy that this rule is applied to<br/>        region = string<br/>        priority = number             # 0 is the highest priority and 2147483647 is the lowest priority<br/>        action = string               # allow, deny(STATUS), rate_based_ban, redirect, throttle<br/>        preview = optional(bool)      # If set to true, the specified action is not enforced.<br/><br/>        match = object({<br/>            versioned_expr = optional(string, null)<br/>            expr = optional(object({<br/>                expression = string<br/>            }))<br/>            config = optional(object({ <br/>                src_ip_ranges = optional(list(string)) # Maximum number of srcIpRanges allowed is 10.<br/>            }))<br/>        })<br/><br/>        preconfigured_waf_config = optional(list(object({<br/>            exclusion = optional(list(object({<br/>                request_header = optional(list(object({<br/>                    operator = string<br/>                    value    = optional(string)<br/>                })))<br/>                request_cookie = optional(list(object({<br/>                    operator = string<br/>                    value    = optional(string)<br/>                })))<br/>                request_uri = optional(list(object({<br/>                    operator = string<br/>                    value    = optional(string)<br/>                })))<br/>                request_query_param = optional(list(object({<br/>                    operator = string<br/>                    value    = optional(string)<br/>                })))<br/>                target_rule_set = string<br/>                target_rule_ids = optional(list(string))<br/>            })))<br/>        })))<br/><br/>        rate_limit_options = optional(object({ # Must be specified if the action is "rate_based_ban" or "throttle"<br/>            rate_limit_threshold = optional(object({ <br/>                count = optional(number) <br/>                interval_sec = optional(number) #must be one of 10, 30, 60, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, 3600<br/>            }))<br/>            conform_action = optional(string) # Only option is "allow"<br/>            exceed_action = optional(string) # Only option is "deny(STATUS)"<br/>            enforce_on_key_configs = optional(list(object({ # You can specify up to 3 enforceOnKeyConfigs<br/>                enforce_on_key_type = optional(string) # Possible values: ALL, IP, HTTP_HEADER, XFF_IP, HTTP_COOKIE, HTTP_PATH, SNI, REGION_CODE, TLS_JA3_FINGERPRINT, USER_IP<br/>                enforce_on_key_name = optional(string) # Rate limit key name, only applicable for: HTTP_HEADER, HTTP_COOKIE<br/>            })))<br/>            ban_threshold = optional(object({ # Can only be specified if the action for the rule is "rate_based_ban"<br/>                count = optional(number) <br/>                interval_sec = optional(number)<br/>            }))<br/>            ban_duration_sec = optional(number) <br/>        }))<br/>    }))</pre> | `[]` | no |
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [project_id](variables.tf#L1) | The ID for the project that the Cloud Armor policies will be used in. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L6) | The Google Cloud region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [rules_file](variables.tf#L12) | Path to the YAML file containing the rules. | <code>string</code> |  | <code>&#34;rules.yaml&#34;</code> |
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| <a name="output_policies"></a> [policies](#output\_policies) | All created policy resources. |
-| <a name="output_policy_names"></a> [policy\_names](#output\_policy\_names) | All created policy names. |
-| <a name="output_policy_rules"></a> [policy\_rules](#output\_policy\_rules) | All created policy rule resources. |
+| name | description | sensitive |
+|---|---|:---:|
+| [policies](outputs.tf#L1) | All created policy resources. |  |
+| [policy_names](outputs.tf#L6) | All created policy names. |  |
+| [policy_rules](outputs.tf#L13) | All created policy rule resources. |  |
 <!-- END TFDOC -->
 ## Deployment Steps
 
-You should see this README and some terraform files in the directory. 
-1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file. For reference update the following variables and associated properties:
+You should see this README, some terraform files, and a .yaml file in the directory. 
+1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file. For reference update the following variables:
 
 - ```project_id```  with your GCP Project ID <br />
 - ```region``` with the GCP Location <br />
-- ```policies``` with the desired policies to be created, as well as the region they will be used in <br />
--  ```rules```  with the desired rules assigned to each policy <br />
+- ```rules_file``` with the path to the rules.yaml file <br />
 
-2. The usual terraform commands will be used to deploy the policies. To provision this example, run the following from within this directory:
+2. The rules file is called "rules.yaml" by default. If you would like to change its name or location, the rules_file variable in "terraform.tfvars" must reflect those changes.
+3. Change the values in "rules.yaml" to create policies and attach rules to them. This file has examples of acceptable values. 
+4. The usual terraform commands will be used to deploy the policies. To provision this example, run the following from within this directory:
 
 ```terraform init ```<br />
 ```terraform plan``` to see the infrastructure plan<br />
