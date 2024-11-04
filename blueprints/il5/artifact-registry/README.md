@@ -19,8 +19,8 @@ For this blueprint, we demonstrate how to use a factory pattern to create proxy 
 The blueprint also creates a CentOS-9-Stream instance with a startup-script that disables non-GAR registries and writes a configuration to `/etc/yum.repos.d/` for using GAR.
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in an Fedramp-High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- An Assured Workloads and Fedramp-High environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -55,7 +55,7 @@ This will create a GAR that proxies the URL [https://<base>/<path>](https://mirr
 To add more Yum repositories, simply add new objects below `yum:`
 
 ### Docker Registries
-This blueprint deploys 3 Docker Registries for pull-through proxying access
+This blueprint deploys 3 Docker Registries for pull-through proxying access.
 
 Structure
 ```yaml
@@ -75,6 +75,3 @@ To verify the correct deployment of this blueprint:
 1. Use the oslogin SSH to connect to the "rpm-consumer" VM
 1. Run `sudo dnf update -y` from inside the "rpm-consumer" VM, wait for it to complete
 1. Revisit the "centos9-stream-appstream" page in Google Artifact Registry and refresh the page, you should now see RPMs cached.
-
-
-

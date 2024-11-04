@@ -2,7 +2,7 @@
 This blueprint contains all the necessary Terraform modules to build and deploy a Pub/Sub. This is an asynchronous and scalable messaging service that decouples services producing messages from services processing those messages.
 
 ## Introduction
-Pub/Sub allows services to communicate asynchronously, and it is used for streamlining analytics and data integration pipelines. The purpose of pub-sub is to load as well as transfer data. Pub-Sub permits latencies on the order of 100 milliseconds. Moreover, it enables the creation of systems of event producers and consumers, referred to as publishers and subscribers. The way that this works is that publishers communicate with subscribers asynchronously by broadcasting events instead of the synchronous remote procedure calls (RPCs). Then, publishers send events to the Pub/Sub service, without regard to how or when these events are to be processed. Afterwards, Pub/Sub delivers events to all the services that react to them. 
+Pub/Sub allows services to communicate asynchronously, and it is used for streamlining analytics and data integration pipelines. The purpose of pub-sub is to load as well as transfer data. Pub-Sub permits latencies on the order of 100 milliseconds. Moreover, it enables the creation of systems of event producers and consumers, referred to as publishers and subscribers. The way that this works is that publishers communicate with subscribers asynchronously by broadcasting events instead of the synchronous remote procedure calls (RPCs). Then, publishers send events to the Pub/Sub service, without regard to how or when these events are to be processed. Afterwards, Pub/Sub delivers events to all the services that react to them.
 
 ## Pre-requisite
 1. The Principal (user or group) must have Cloud KMS Admin permission at the GCP Level.
@@ -11,8 +11,8 @@ Pub/Sub allows services to communicate asynchronously, and it is used for stream
 
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRamp-high or IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- Assured Workloads in both environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -39,7 +39,7 @@ Pub/Sub allows services to communicate asynchronously, and it is used for stream
 <!-- END TFDOC -->
 ## How to deploy the Terraform Code. The Deployment Steps
 You should see this README and some terraform files.
-1. Update the Variables in the variables.tf 
+1. Update the Variables in the variables.tf
 2. There is a sample ```terraform.tfvars.sample``` available as well.
 3. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
 

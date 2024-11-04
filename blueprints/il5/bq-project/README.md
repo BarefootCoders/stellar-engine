@@ -3,19 +3,19 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 
 ## Introduction Google BigQuery (BigQuery)
 Google BigQuery is a fully-managed, serverless data system in which querying data is made possible. Database does not need to be constantly monitored, and users can levarage data and analyze the data.
-1. The Rotation Period ``` rotation_period ``` is set to 90 days indicated by 7776000s seconds, 
+1. The Rotation Period ``` rotation_period ``` is set to 90 days indicated by 7776000s seconds,
 2. The Destory Schedulded Duration is ``` destroy_scheduled_duration ``` is set to 30 days indicated by 2592000 seconds.
 3. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` is assigned
 
 ## Pre-requisite for Google BigQuery (BigQuery)
-1. The Principal (user or group) must enablw BigQuery API in their Google Cloud Project 
+1. The Principal (user or group) must enablw BigQuery API in their Google Cloud Project
 2. Have access to the GCP Project ID
 3.  You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
 4.  __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRamp-high or IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- Assured Workloads in both environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -51,15 +51,15 @@ You should see this README and some terraform files.
 - ```project_id```  with your GCP Project ID<br />
 -  ```email```  with your email address<br />
 - ```location```  with the GCP Location<br />
-- ```keyring``` with the location of the keyring and the name of the 
+- ```keyring``` with the location of the keyring and the name of the
 keyring, for example <br />
-```bash 
+```bash
   default = {
     location = "us-east4"
     name     = "may-bq-keyring"
   }
 ```
-- ```keys```  with the right properties, update the ```updated-the-runner-key-name``` , ```labels = { "team" = ``` , 
+- ```keys```  with the right properties, update the ```updated-the-runner-key-name``` , ```labels = { "team" = ``` ,
 ```iam = { roles/cloudkms.cryptoKeyEncrypterDecrypter = ["user:YOUR-EMAIL-ADDRESS]```
 
 2. There is a sample ```terraform.tfvars.sample``` available as well.
@@ -70,7 +70,7 @@ keyring, for example <br />
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` to destroy the built infrastructure<br />
 
-Verification of a successful deployment? 
+Verification of a successful deployment?
 The dataset in BigQuery will look like this in your Google Cloud Console.
 ![Deployment of BigQuery Dataset](https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/c34d61ae-6fdb-4b62-a33e-f441b84f94ed)
 
@@ -78,7 +78,7 @@ It will take a few minutes. When complete, you should see an output stating the 
 The Output will look like following
 ```
 
-Outputs: 
+Outputs:
 
 id = "projects/my-project/datasets/dataset_name"
 keyring = {

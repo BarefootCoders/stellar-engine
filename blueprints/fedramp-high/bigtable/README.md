@@ -7,6 +7,7 @@ CMEK allows you to encrypt your Bigtable data at rest using keys that you manage
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -53,14 +54,14 @@ You should see this README and some terraform files.
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` to destroy the built infrastructure<br />
 
-Verification of a successful deployment? 
+Verification of a successful deployment?
 The instance in Bigtable will be available through the Bigtable console with the set Table, Cluster, and Instance name you provided.
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 The Output will look like following
 ```
 
-Outputs: 
+Outputs:
 
 bigtable_service_identity_email = "service-{id}@gcp-sa-bigtable.iam.gserviceaccount.com"
 bigtable_service_identity_uid = "projects/project_id/services/bigtableadmin.googleapis.com"

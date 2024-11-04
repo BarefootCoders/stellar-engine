@@ -1,5 +1,5 @@
 # Secret Manager Blueprint
-This blueprint demonstrates how to create Secrets on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS. 
+This blueprint demonstrates how to create Secrets on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS.
 
 ## Introduction to Secret Manager
 Secret Manager is a secure and convenient storage system for API keys, passwords, certificates, and other sensitive data.
@@ -9,8 +9,8 @@ Secret Manager is a secure and convenient storage system for API keys, passwords
 - Secret data is immutable and most operations take place on secret versions. With Secret Manager, you can pin a secret to specific versions like "42" or floating aliases like "latest."
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- Warning: This blueprint uses a bash script to update the secret versions so that Terraform doesn't store any secret data. If you chose to manage versions in Terraform, the data (the actual secret you want to protect) will be stored in the Terraform state in unencrypted form, accessible to any identity able to read or pull the state file. 
+- The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRamp-high or IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- Warning: This blueprint uses a bash script to update the secret versions so that Terraform doesn't store any secret data. If you chose to manage versions in Terraform, the data (the actual secret you want to protect) will be stored in the Terraform state in unencrypted form, accessible to any identity able to read or pull the state file.
 
 ## Requirements
 
@@ -52,7 +52,7 @@ resources of this module:
 <!-- END_TF_DOCS -->
 ## Deployment Steps
 
-You should see this README and some terraform files. There is also a bash script and a folder labeled "secrets" with some example secret files in it. 
+You should see this README and some terraform files. There is also a bash script and a folder labeled "secrets" with some example secret files in it.
 1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file. For reference update the following variables and associated properties:
 
 - ```project_id```  with your GCP Project ID<br />
@@ -68,7 +68,7 @@ You should see this README and some terraform files. There is also a bash script
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` only if you wish to destroy the built infrastructure<br />
 
-Verification of a successful deployment? 
+Verification of a successful deployment?
 All of the secrets will be created and available through the Cloud Console in the Secret Manager. These secrets will simply have a region and a key associated with them. They will not have versions, which actually contain the secret data. In order to add versions to your newly created secrets, follow the remaining steps:
 
 3. Go into the add_secret_versions.sh script and replace the PROJECT_ID variable with your Google Cloud project ID.
@@ -81,7 +81,7 @@ Troubleshooting: If the script doesn't run, try the following steps.
 - Authentication: Ensure that your gcloud CLI is authenticated with a service account or user that has the required permissions to create and manage secret versions.
 
 You should see the message "Secret versions added successfully" after the script runs. If not, there may have been an error in your file structure/naming.
-Now you can go into the Cloud Console and view your secrets again. This time they should have versions associated with them. 
+Now you can go into the Cloud Console and view your secrets again. This time they should have versions associated with them.
 
 It is recommended to delete the local secret files after you run this script.
 
@@ -133,4 +133,4 @@ resource "google_compute_instance" "default" {
 }
 </pre>
 
-Within this VM, create the secret files containing your secret values and run the bash script to create the secret versions. Remember to delete the secret files and stop this GCE instance after you are done. 
+Within this VM, create the secret files containing your secret values and run the bash script to create the secret versions. Remember to delete the secret files and stop this GCE instance after you are done.

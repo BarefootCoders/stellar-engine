@@ -10,10 +10,10 @@ Obtains access credentials for your user account via a web-based authorization f
 3. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in an FedRamp-high environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- An Assured Workloads and FedRamp-high environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 
-## How can you connect to the Bastion? 
+## How can you connect to the Bastion?
 To access the web portal through the bastion host, follow these steps:
 
 1. **Set the Active Project** :
@@ -21,7 +21,7 @@ To access the web portal through the bastion host, follow these steps:
 gcloud config set project set project <your-project-id>
 ```
 
-This command will configure the gcloud CLI to utilize the specified project for every subsequent command. Thus, you should replace your project ID of your project with the ID of your Google Cloud Platform project. 
+This command will configure the gcloud CLI to utilize the specified project for every subsequent command. Thus, you should replace your project ID of your project with the ID of your Google Cloud Platform project.
 
 2. **SSH into the Bastion Host via Port Forwarding**:
 Use the following command to create an SSH tunnel through the bastion host and set up port forwarding for multiple ports:

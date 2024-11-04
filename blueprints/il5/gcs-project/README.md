@@ -4,7 +4,7 @@
 
 This blueprint contains all the necessary Terraform modules to build and deploy a Google Cloud Storage Bucket meeting the following requirements
 
-1. Enforce that all the GCP Buckets are ONLY Private with NO PUBLIC access 
+1. Enforce that all the GCP Buckets are ONLY Private with NO PUBLIC access
 ```
 public_access_prevention = "enforced"
 ```
@@ -19,8 +19,8 @@ autoclass { enabled = true }
 1. The Principal (user or group) must have Cloud KMS Admin permission at the GCP Level.
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRamp-high or IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- Assured Workloads in both environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 
 ## Deployment Steps
 You should see this README and some terraform files.
