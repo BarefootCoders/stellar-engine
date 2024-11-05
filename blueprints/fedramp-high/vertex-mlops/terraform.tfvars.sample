@@ -1,0 +1,26 @@
+bucket_name             = "oct31_vertex_ai_bucket"
+dataset_name            = "oct31_vertex_ai_data"
+deletion_protection     = false
+identity_pool_claims    = null
+labels                  = {
+    "created_by" = "creator",
+}
+location                = "us"
+notebooks               = {
+    "test-notebook" = {
+        type = "USER_MANAGED"
+    }
+}
+prefix                  = "prefix"
+project_config          = {
+    project_id = "your-project" // "${prefix}-${project_id}" is the actual project id
+}                               // in this example, the project is "prefix-your-project"
+region                  = "us-east4"
+repo_name               = null
+service_encryption_keys = {
+    aiplatform    = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+    bq            = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+    notebooks     = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+    secretmanager = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+    storage       = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+}

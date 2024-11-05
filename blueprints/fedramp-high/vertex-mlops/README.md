@@ -1,11 +1,9 @@
 # MLOps with Vertex AI
+This blueprint demonstrates how to create a Vertex AI Workbench on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS. 
 
-## Tagline
+## Introduction to Vertex AI
 
-Create a Vertex AI environment needed for MLOps.
-
-## Detailed
-
+Vertex AI is a fully-managed, unified AI development platform for building and using generative AI. Access and utilize Vertex AI Studio, Agent Builder, and 150+ foundation models. Evaluate, tune, and deploy generative AI models or train your own custom models. 
 This example implements the infrastructure required to deploy an end-to-end [MLOps process](https://services.google.com/fh/files/misc/practitioners_guide_to_mlops_whitepaper.pdf) using [Vertex AI](https://cloud.google.com/vertex-ai) platform.
 
 ## Architecture
@@ -24,13 +22,11 @@ The blueprint will deploy all the required resources to have a fully functional 
 1. Service account (`PREFIX-sa-github@`) to be used by Workload Identity Federation, to federate Github identity (Optional).
 1. Secret Manager to store the Github SSH key to get access the CICD code repo.
 
-## Documentation
+## Overview
 
 ![MLOps project description](./images/mlops_projects.png "MLOps project description")
 
-## Pre-requirements
-
-### User groups
+## User groups
 
 Assign roles relying on User groups is a way to decouple the final set of permissions from the stage where entities and resources are created, and their IAM bindings defined. You can configure the group names through the `groups` variable. These groups should be created before launching Terraform.
 
@@ -41,39 +37,6 @@ We use the following groups to control access to resources:
 - *ML Viewer* (gcp-ml-eng@<company.org>). Group with wiewer permission for the different resources.
 
 Please note that these groups are not suitable for production grade environments. Roles can be customized in the `main.tf`file.
-
-## Instructions
-
-### Deploy the experimentation environment
-
-- Create a `terraform.tfvars` file and specify the variables to match your desired configuration. You can use the provided `terraform.tfvars.sample`  as reference.
-- Run `terraform init` and `terraform apply`
-
-## What's next?
-
-This blueprint can be used as a building block for setting up an end2end ML Ops solution. As next step, you can follow this [guide](https://cloud.google.com/architecture/architecture-for-mlops-using-tfx-kubeflow-pipelines-and-cloud-build) to setup a Vertex AI pipeline and run it on the deployed infraestructure.
-
-## Usage
-
-Basic usage of this module is as follows:
-
-```hcl
-module "test" {
-  source = "./fabric/blueprints/data-solutions/vertex-mlops/"
-  notebooks = {
-    "myworkbench" = {
-      type = "USER_MANAGED"
-    }
-  }
-  prefix = "pref-dev"
-  project_config = {
-    billing_account_id = "000000-123456-123456"
-    parent             = "folders/111111111111"
-    project_id         = "test-dev"
-  }
-}
-# tftest modules=11 resources=86
-```
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -102,6 +65,39 @@ module "test" {
 | [notebook](outputs.tf#L35) | Vertex AI notebooks ids. |  |
 | [project_id](outputs.tf#L43) | Project ID. |  |
 <!-- END TFDOC -->
+## Instructions
+
+### Deploy the experimentation environment
+
+- Create a `terraform.tfvars` file and specify the variables to match your desired configuration. You can use the provided `terraform.tfvars.sample` as reference.
+- Run `terraform init` and `terraform apply`
+
+## What's next?
+
+This blueprint can be used as a building block for setting up an end2end ML Ops solution. As next step, you can follow this [guide](https://cloud.google.com/architecture/architecture-for-mlops-using-tfx-kubeflow-pipelines-and-cloud-build) to setup a Vertex AI pipeline and run it on the deployed infraestructure.
+
+## Usage
+
+Basic usage of this module is as follows:
+
+```hcl
+module "test" {
+  source = "./fabric/blueprints/data-solutions/vertex-mlops/"
+  notebooks = {
+    "myworkbench" = {
+      type = "USER_MANAGED"
+    }
+  }
+  prefix = "pref-dev"
+  project_config = {
+    billing_account_id = "000000-123456-123456"
+    parent             = "folders/111111111111"
+    project_id         = "test-dev"
+  }
+}
+# tftest modules=11 resources=86
+```
+
 ## Test
 
 ```hcl

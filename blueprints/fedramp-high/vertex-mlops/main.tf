@@ -135,15 +135,16 @@ module "bq-dataset" {
 }
 
 module "vpc-local" {
-  count      = local.use_shared_vpc ? 0 : 1
-  source     = "../../../modules/net-vpc"
-  project_id = module.project.project_id
-  name       = "vertex"
+  count        = local.use_shared_vpc ? 0 : 1
+  source       = "../../../modules/net-vpc"
+  project_id   = module.project.project_id
+  routing_mode = "REGIONAL" #make a regional vpc
+  name         = "vertex"
   subnets = [
     {
       "name" : "subnet-${var.region}",
       "region" : "${var.region}",
-      "ip_cidr_range" : "10.4.0.0/24",
+      "ip_cidr_range" : "10.0.0.0/16",
       "secondary_ip_range" : null
     }
   ]

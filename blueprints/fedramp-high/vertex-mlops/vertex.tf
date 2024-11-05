@@ -14,25 +14,6 @@
  * limitations under the License.
  */
 
-resource "google_vertex_ai_metadata_store" "store" {
-  provider    = google-beta
-  project     = module.project.project_id
-  name        = "default"
-  description = "Vertex Ai Metadata Store"
-  region      = var.region
-  dynamic "encryption_spec" {
-    for_each = var.service_encryption_keys.aiplatform == null ? [] : [""]
-
-    content {
-      kms_key_name = var.service_encryption_keys.aiplatform
-    }
-  }
-  # `state` value will be decided automatically based on the result of the configuration
-  lifecycle {
-    ignore_changes = [state]
-  }
-}
-
 module "service-account-notebook" {
   source     = "../../../modules/iam-service-account"
   project_id = module.project.project_id
@@ -79,54 +60,39 @@ resource "google_notebooks_runtime" "runtime" {
   }
 }
 
-resource "google_notebooks_instance" "playground" {
-  for_each     = { for k, v in var.notebooks : k => v if v.type == "USER_MANAGED" }
-  name         = "${var.prefix}-${each.key}"
-  location     = "${var.region}-b"
-  machine_type = var.notebooks[each.key].machine_type
-  project      = module.project.project_id
+resource "google_workbench_instance" "playground" {
+  for_each = { for k, v in var.notebooks : k => v if v.type == "USER_MANAGED" }
+  name     = "${var.prefix}-${each.key}"
+  location = "${var.region}-b"
+  project  = module.project.project_id
 
-  container_image {
-    repository = "gcr.io/deeplearning-platform-release/base-cpu"
-    tag        = "latest"
+  gce_setup {
+    machine_type      = var.notebooks[each.key].machine_type
+    disable_public_ip = var.notebooks[each.key].internal_ip_only
+
+    container_image {
+      repository = "gcr.io/deeplearning-platform-release/base-cpu"
+      tag        = "latest"
+    }
+
+    boot_disk {
+      disk_size_gb    = 200
+      disk_type       = "PD_SSD"
+      disk_encryption = var.service_encryption_keys.notebooks != null ? "CMEK" : null
+      kms_key         = var.service_encryption_keys.notebooks
+    }
+
+    network_interfaces {
+      network = local.vpc
+      subnet  = local.subnet
+    }
   }
 
-  install_gpu_driver = true
-  boot_disk_type     = "PD_SSD"
-  boot_disk_size_gb  = 110
-  disk_encryption    = var.service_encryption_keys.notebooks != null ? "CMEK" : null
-  kms_key            = var.service_encryption_keys.notebooks
-
-  no_public_ip    = var.notebooks[each.key].internal_ip_only
-  no_proxy_access = false
-
-  network = local.vpc
-  subnet  = local.subnet
+  disable_proxy_access = false
 
   instance_owners = try(tolist(var.notebooks[each.key].owner), null)
-  service_account = module.service-account-notebook.email
-  service_account_scopes = [
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/userinfo.email",
-  ]
 
-
-  metadata = {
-    notebook-disable-nbconvert = "false"
-    notebook-disable-downloads = "false"
-    notebook-disable-terminal  = "false"
-    notebook-disable-root      = "true"
-  }
-
-  # Remove once terraform-provider-google/issues/9164 is fixed
-  lifecycle {
-    ignore_changes = [disk_encryption, kms_key]
-  }
-
-  #TODO Uncomment once terraform-provider-google/issues/9273 is fixed
-  # tags = ["ssh"]
   depends_on = [
     google_project_iam_member.shared_vpc,
   ]
 }
-
