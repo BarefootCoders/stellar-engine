@@ -1,71 +1,32 @@
-policy-one:
-  description: This is a policy.
-  #region: 
-  #project: 
-  default_action: allow
-  default_versioned_expr: SRC_IPS_V1
-  default_src_ip_ranges:
-  - 10.0.0.0/8
-  rules:
-  - description: Example rule.
-    priority: 100
-    #versioned_expr: SRC_IPS_V1
-    #src_ip_ranges:
-      # 10.0.0.0/8
-    #or
-    #expression: xss-stable
-    #can only choose versioned_expr + ip_ranges or expression, not both
-    #don't need to set them in this rule because of default values in this policy
-  - description: Rule with WAF
-    priority: 101
-    expression: xss-stable
-    preconfigured_waf_config:
-    - exclusion:
-      # request_header: 
-        # operator:
-        # value:
-      # request_cookie: 
-        # operator:
-        # value:
-      - request_uri:
-        - operator: STARTS_WITH
-          value: /admin
-        target_rule_set: rce-stable
-      - request_query_param:
-        - operator: CONTAINS
-          value: password
-        - operator: STARTS_WITH
-          value: freeform
-        - operator: EQUALS
-          value: description
-        target_rule_set: xss-stable
-        target_rule_ids:
-        - owasp-crs-v030001-id941330-xss
-        - owasp-crs-v030001-id941340-xss
+policy-one: #Policy name
+  description: This is a policy. #Optional
+  rules: #List of rules in order of priority
+  - description: Example rule. #Optional
+    action: allow #Optional - defaults to allow
+    #possible actions: allow, deny(STATUS), rate_based_ban, throttle
+    #possible STATUS: 403, 404, 502
+  - expression: xss-v33-stable #Optional - if expression isn't selected, defaults to affect all incoming traffic
+    #possible expressions: xss-v33-stable, lfi-v33-stable, rfi-v33-stable, rce-v33-stable, methodenforcement-v33-stable
+    #scannerdetection-v33-stable, protocolattack-v33-stable, php-v33-stable, sessionfixation-v33-stable, java-v33-stable
+    #nodejs-v33-stable
     action: deny(403)
-    #preview: true 
+    preview: true #Optional - makes the rule preview only - defaults to false 
 policy-two:
-  region: us-east1
-  description: This is another policy.
-  default_src_ip_ranges:
-  - 10.0.0.0/8
   rules:
-  - description: Example with rate limits.
-    priority: 90
-    versioned_expr: SRC_IPS_V1
-    src_ip_ranges:
-    - 10.0.0.0/16
-    rate_limit_options:
-      rate_limit_threshold:
+  - action: throttle
+    rate_limit_options: #Only set this if action is throttle or rate_based_ban
+      rate_limit_threshold: #Must set this if you make a rate_limit_options block
         count: 40
+        interval_sec: 10 #Possible values: 10, 30, 60, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, or 3600
+  - action: rate_based_ban
+    expression: nodejs-v33-stable
+    rate_limit_options:
+      rate_limit_threshold: #Must set this if you make a rate_limit_options block
+        #rate_limit_threshold determines initial rate limiting actions
+        count: 10
         interval_sec: 10
-      conform_action: allow
-      exceed_action: deny(429)
-      #enforce_on_key_configs:
-        #enforce_on_key_type: Possible values are ALL, IP, HTTP_HEADER, XFF_IP, HTTP_COOKIE, HTTP_PATH, SNI, REGION_CODE, TLS_JA3_FINGERPRINT, USER_IP
-        #enforce_on_key_name: Only applicable for key type: HTTP_HEADER, HTTP_COOKIE
-      #ban_threshold: 
-        #count: 
-        #interval_sec:
-      #ban_duration_sec: 
-    action: throttle
+      ban_threshold: #Only set this if action is rate_based_ban
+        #set a higher limit for ban_threshold, this takes effect after rate_limit_threshold to ban the incoming traffic
+        count: 100
+        interval_sec: 60 #Possible values: 60, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, or 3600
+      ban_duration_sec: 60 #Possible values: 60, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, or 3600

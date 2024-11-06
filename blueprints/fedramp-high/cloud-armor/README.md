@@ -55,5 +55,4 @@ Many of the options in the rules variable have requirements that must be followe
 A few examples are:
 - If you specify the action as "rate_based_ban" or "throttle", you must create a rate_limit_options block.
 - When choosing the interval time in "rate_limit_threshold", you can only select 10, 30, 60, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, or 3600 seconds.
-- The only accepted value for "versioned_expr" in the match block is "SRC_IPS_V1".
-- When selecting "deny(STATUS)" for the "action", STATUS must be 403, 404, 429, or 502.
+- When selecting "deny(STATUS)" for the "action", STATUS must be 403, 404, or 502.
