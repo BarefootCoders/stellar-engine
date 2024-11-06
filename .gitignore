@@ -65,3 +65,4 @@ blueprints/gke/patterns/batch/job-*.yaml
 **/mock-versions.tf
 **/venv/
 tmp_project_policy.yaml
+setIAM.yaml

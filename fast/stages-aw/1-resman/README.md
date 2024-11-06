@@ -322,6 +322,7 @@ This will result in
 - one service account in the automation project with the correct IAM policies on the folder and bucket
 - a IAM policy on the folder that assigns `roles/viewer` to the `team-b` group
 - a IAM policy on the service account that allows `team-b` to impersonate it
+- one default KMS CMEK for use by the main tenant project(s)
 
 This allows to centralize the minimum set of resources to delegate control of each team's folder to a pipeline, and/or to the team group. This can be used as a starting point for scenarios that implement more complex requirements (e.g. environment folders per team, etc.).
 

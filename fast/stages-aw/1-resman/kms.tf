@@ -22,6 +22,16 @@ module "tenant-project-keys" {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "HSM"
       }
+    },
+    default = {
+      purpose         = "ENCRYPT_DECRYPT"
+      labels          = { service = "iac-core" }
+      locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
+      rotation_period = "7776000s"
+      version_template = {
+        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
+        protection_level = "HSM"
+      }
     }
   }
 }
@@ -39,6 +49,3 @@ resource "google_kms_crypto_key_iam_member" "tenant_kms" {
   member        = "serviceAccount:service-${module.tenant-self-iac-projects[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 }
-
-# projects/il5-prod-iac-core-0/locations/us-east4/keyRings/gcs/cryptoKeys/gcs
-# projects/il5-prod-iac-core-0/locations/us-east4/keyRings/gcs/cryptoKeys/gcs
