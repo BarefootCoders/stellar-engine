@@ -67,18 +67,6 @@ output "host_project_numbers" {
   value       = local.host_project_numbers
 }
 
-output "tfvars" {
-  description = "Terraform variables file for the following stages."
-  sensitive   = true
-  value       = local.tfvars
-}
-
-output "ngfw_password" {
-  description = "Password for authenticating to the NGFW."
-  sensitive   = true
-  value       = random_password.password
-}
-
 resource "local_file" "rsa-out" {
   content  = nonsensitive(tls_private_key.ngfw-ssh.private_key_openssh)
   filename = "${path.module}/id_rsa"
@@ -87,4 +75,16 @@ resource "local_file" "rsa-out" {
 resource "local_file" "rsa-pub-out" {
   content  = nonsensitive(tls_private_key.ngfw-ssh.public_key_openssh)
   filename = "${path.module}/id_rsa.pub"
+}
+
+output "ngfw_password" {
+  description = "Password for authenticating to the NGFW."
+  sensitive   = true
+  value       = random_password.password
+}
+
+output "tfvars" {
+  description = "Terraform variables file for the following stages."
+  sensitive   = true
+  value       = local.tfvars
 }

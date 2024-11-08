@@ -12,22 +12,26 @@ CMEK allows you to encrypt your Bigtable data at rest using keys that you manage
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [project_id](variables.tf#L1) | GCP Project to deploy Bigtable instance to. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L6) | GCP Region to deploy Bigtable to. | <code>string</code> | ✓ | <code>"us-east4"</code> |
-| [zone](variables.tf#L12) | GCP Zone to deploy Bigtable to. | <code>string</code> | ✓ | <code>"us-east4-a"</code> |
-| [cluster_id](variables.tf#23) | The Bigtable cluster ID | <code>string</code> | ✓ | |
-| [key_name](variables.tf#45) | The entire path to the KMS key to be used for encryption | <code>string</code> | ✓ | 
-| [instance_name](variables.tf#18) | The Bigtable instance name to create | <code>string</code> | ✓ |
-| [num_nodes](variables.tf#28) | Number of nodes in the Bigtable cluster | <code>number</code> | ✓ | <code>1</code> |
-| [storage_type](variables.tf#57) | Either SSD or HDD | <code>string</code> | ✓ | <code>"SSH"</code> |
-| [table](variables.tf#69) | Table to create in the Bigtable instance. | <code title="map&#40;object&#40;&#123;&#10;  split_keys      &#61; optional&#40;list#40;string&#41;&#41;&#10;  column_families &#61; map&#40;object&#40;&#123;&#125;&#41;&#41;&#10;&#125;&#41;&#41;">map(object({ split_keys = optional(list(string)), column_families = map(object({}))}))</code> | |
+| [cluster_id](variables.tf#L1) | The Bigtable cluster ID. | <code>string</code> | ✓ |  |
+| [instance_name](variables.tf#L12) | The Bigtable instance name. | <code>string</code> | ✓ |  |
+| [project_id](variables.tf#L29) | The project ID to deploy Bigtable to. | <code>string</code> | ✓ |  |
+| [deletion_protection](variables.tf#L6) | Permission to delete instance via terraform. | <code>bool</code> |  | <code>true</code> |
+| [key_name](variables.tf#L17) | The name of the existing key (required if use_existing_keys is true). | <code>string</code> |  | <code>null</code> |
+| [num_nodes](variables.tf#L23) | Number of nodes in the Bigtable cluster. | <code>number</code> |  | <code>1</code> |
+| [region](variables.tf#L34) | The Google Cloud region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [storage_type](variables.tf#L40) | Either SSD or HDD. | <code>string</code> |  | <code>&#34;SSD&#34;</code> |
+| [table](variables.tf#L46) | Table to create in the bigtable instance. Default is null. | <code title="map&#40;object&#40;&#123;&#10;  split_keys      &#61; optional&#40;list&#40;string&#41;&#41;&#10;  column_families &#61; map&#40;object&#40;&#123;&#125;&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code title="&#123;&#10;  &#34;Test&#34; &#61; &#123;&#10;    column_families &#61; &#123;&#125;&#10;  &#125;&#10;&#125;">&#123;&#8230;&#125;</code> |
+| [zone](variables.tf#L59) | The Google Cloud zone. | <code>string</code> |  | <code>&#34;us-east4-a&#34;</code> |
+
 ## Outputs
 
 | name | description | sensitive |
 |---|---|:---:|
-| [cluster_info](outputs.tf#L6) | Information about the created Bigtable cluster. |  |
-| [instance_name](outputs.tf#L1) | Bigtable instance name. |  |
-| [table_info](outputs.tf#L16) | Information about the tables created (if any). |  |
+| [bigtable_service_identity_email](outputs.tf#L1) | The email of the Bigtable Service Identity. |  |
+| [bigtable_service_identity_uid](outputs.tf#L6) | The ID of the Bigtable Service Identity. |  |
+| [cluster_info](outputs.tf#L11) | Information about the created Bigtable cluster. |  |
+| [instance_name](outputs.tf#L21) | Bigtable instance name. |  |
+| [table_info](outputs.tf#L26) | Information about the tables created (if any). |  |
 <!-- END TFDOC -->
 ## Deployment Steps
 

@@ -18,7 +18,7 @@ keyring = {
 
 keys = {
   "postgres" = {
-    rotation_period            = "7776000s"
+    rotation_period            = "7776000s"    # Compliant with CIS IAM 1.10
     destroy_scheduled_duration = "2592000s"
     version_template = {
       algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"

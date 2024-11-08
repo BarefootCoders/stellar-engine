@@ -17,7 +17,7 @@ module "tenant-project-keys" {
       purpose         = "ENCRYPT_DECRYPT"
       labels          = { service = "gcs" }
       locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
-      rotation_period = "7776000s"
+      rotation_period = "7776000s" # Compliant with CIS IAM 1.10
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "HSM"

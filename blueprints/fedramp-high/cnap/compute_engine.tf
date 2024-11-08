@@ -142,7 +142,8 @@ module "kms" {
   project_id = data.google_project.project.project_id
   keys = {
     "default" = {
-      purpose = "ENCRYPT_DECRYPT"
+      rotation_period = "7776000s" # Compliant with CIS IAM 1.10
+      purpose         = "ENCRYPT_DECRYPT"
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "HSM"

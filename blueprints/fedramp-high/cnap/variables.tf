@@ -20,12 +20,12 @@ variable "access_policy_number" {
 }
 
 variable "default_backend" {
-  description = "The default backend for traffic at the load-balancer. Must match the key of one of the backends in the data/apps.yaml file"
+  description = "The default backend for traffic at the load-balancer. Must match the key of one of the backends in the data/apps.yaml file."
   type        = string
 }
 
 variable "domain" {
-  description = "FQDN for the load-balancer hosted apps, where the subdomain will be prepended to"
+  description = "FQDN for the load-balancer hosted apps, where the subdomain will be prepended to."
   type        = string
 }
 
@@ -36,54 +36,58 @@ variable "ids_name" {
 }
 
 variable "ids_private_ip_prefix_length" {
-  type    = number
-  default = 24
+  description = "The length of the IDS Private IP Prefix."
+  type        = number
+  default     = 24
 }
 
 variable "landing_project_id" {
-  type = string
+  description = "The Landing Project ID."
+  type        = string
 }
 
 variable "machine_type" {
-  type    = string
-  default = "n2d-highcpu-2"
+  description = "The type of machine to use."
+  type        = string
+  default     = "n2d-highcpu-2"
 }
 
 variable "net_project" {
-  description = "GCP Project to the VPC belongs to. (Defaults to the variable project if not defined)"
+  description = "GCP Project to the VPC belongs to. (Defaults to the variable project if not defined)."
   type        = string
   nullable    = true
   default     = null
 }
 
 variable "network" {
-  description = "Host network for IDS and GCE instance deployment"
+  description = "Host network for IDS and GCE instance deployment."
   type        = string
 }
 
 variable "oauth_brand_number" {
-  description = "External Oauth2 consent screens can only be configured via the interactive console. After configuring it, use `gcloud alpha iap oauth-brands list` to lookup the brand id number"
+  description = "External Oauth2 consent screens can only be configured via the interactive console. After configuring it, use `gcloud alpha iap oauth-brands list` to lookup the brand id number."
   type        = number
 }
 
 variable "packet_mirroring_policy_name" {
-  description = "Name of packet mirror policy"
+  description = "Name of packet mirror policy."
   type        = string
   default     = "cnap-packet-mirror"
 }
 
 variable "prefix" {
-  description = "Prefix for naming resources in this blueprint"
+  description = "Prefix for naming resources in this blueprint."
   type        = string
   default     = "cnap"
 }
 
 variable "project" {
-  type = string
+  description = "The GCP Project name."
+  type        = string
 }
 
 variable "region" {
-  description = "GCP Region to deploy into"
+  description = "GCP Region to deploy into."
   type        = string
 }
 
@@ -94,13 +98,13 @@ variable "severity" {
 }
 
 variable "subnet" {
-  description = "Subnet for deploying the instances"
+  description = "Subnet for deploying the instances."
   type        = string
   default     = "default-us-east4"
 }
 
 variable "subnet_list" {
-  description = "Subnet list to monitor with Cloud IDS"
+  description = "Subnet list to monitor with Cloud IDS."
   type        = list(any)
   default     = null
 }

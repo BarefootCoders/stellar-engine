@@ -9,7 +9,7 @@ keyring = {
 
 keys = {
   "update-the-keys-name" = {
-    rotation_period            = "7776000s"
+    rotation_period            = "7776000s"    # Compliant with CIS IAM 1.10
     destroy_scheduled_duration = "2592000s"
     labels = {
       "team" = "update-label-team"

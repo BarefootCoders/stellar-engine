@@ -14,6 +14,7 @@ module "logging-kms" {
   }
   keys = {
     "log-sink" = {
+      rotation_period  = "7776000s" # Compliant with CIS IAM 1.10
       version_template = local.version_template
     }
   }
@@ -44,6 +45,7 @@ module "gcs-kms" {
   }
   keys = {
     "gcs" = {
+      rotation_period  = "7776000s" # Compliant with CIS IAM 1.10
       version_template = local.version_template
     }
   }
