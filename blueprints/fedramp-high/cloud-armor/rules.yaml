@@ -1,8 +1,6 @@
-policy-one: #Policy name
-  description: This is a policy. #Optional
+gitlab-waf-policy: #Policy name
+  description: WAF Policy tested for protecting GitLab #Optional
   rules: #List of rules in order of priority
-  - description: Example rule. #Optional
-    action: allow #Optional - defaults to allow
     #possible actions: allow, deny(STATUS), rate_based_ban, throttle
     #possible STATUS: 403, 404, 502
   - expression: xss-v33-stable #Optional - if expression isn't selected, defaults to affect all incoming traffic
@@ -10,7 +8,17 @@ policy-one: #Policy name
     #scannerdetection-v33-stable, protocolattack-v33-stable, php-v33-stable, sessionfixation-v33-stable, java-v33-stable
     #nodejs-v33-stable
     action: deny(403)
-    preview: true #Optional - makes the rule preview only - defaults to false 
+  - expression: rce-v33-stable
+    action: deny(403)
+  - expression: scannerdetection-v33-stable
+    action: deny(403)
+  - expression: cve-canary
+    action: deny(403)
+  - action: throttle
+    rate_limit_options: #Only set this if action is throttle or rate_based_ban
+      rate_limit_threshold: #Must set this if you make a rate_limit_options block
+        count: 40
+        interval_sec: 10 #Possible values: 10, 30, 60, 120, 180, 240, 300, 600, 900, 1200, 1800, 2700, or 3600
 policy-two:
   rules:
   - action: throttle
