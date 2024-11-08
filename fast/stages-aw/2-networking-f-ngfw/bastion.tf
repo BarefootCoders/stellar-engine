@@ -10,7 +10,7 @@ module "bastion-vm" {
     enable_integrity_monitoring = true
   }
   tags          = ["bastion"]
-  instance_type = "n2d-standard-2"
+  instance_type = "e2-small"
   network_interfaces = [{
     network = module.mgmt-vpc.self_link
     subnetwork = try(
