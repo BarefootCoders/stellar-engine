@@ -8,7 +8,7 @@ Compute Engine is an Infrastructure-as-a-Service product offering flexible, self
 2. Enable the Customer-Managed Encryption Keys (CMEK) Cloud KMS for Google Compute Engine and Disk
 3.  The IL5 Requirements as of the creation of the project the region of deployment to US Only for example in us-east4 and us-central1
 
-4. __Important Note__: The project is scoped around the computer engine VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module. As per requirements, The CFF stages are supposed to set that up for new projects.
+4. __Important Note__: The project is scoped around the computer engine VM, and in order to deploy the code, there is a dependency on the Google VPC module (VPC and subnet), and the code uses the Google VPC module along with the Google KMS module.
 
 ## Pre-requisite
 1. The Principal (user or group) must have Cloud KMS Admin permission at the GCP Level.
