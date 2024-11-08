@@ -68,6 +68,10 @@ resource "google_compute_region_security_policy_rule" "policy_rule" {
     content {
       conform_action = "allow"
       exceed_action  = "deny(429)"
+      enforce_on_key = ""
+      enforce_on_key_configs {
+                enforce_on_key_type = "IP"
+        }
       dynamic "rate_limit_threshold" {
         for_each = try(each.value.rate_limit_options.rate_limit_threshold, null) != null ? [1] : []
         content {
