@@ -1,7 +1,0 @@
-cluster_name  = "test-dataproc-cluster"
-project_id    = "sep24-int-net-host"
-account_id    = "dataproc-sa-id"
-region        = "us-east4"
-network       = "int-spoke-0"
-subnet        = "default-us-east4"
-kms_key       = "dataproc-key-example"
