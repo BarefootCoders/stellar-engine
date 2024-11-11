@@ -38,7 +38,7 @@ module "bastion-vm" {
       image = "projects/cos-cloud/global/images/family/cos-stable"
     }
   }
-  
+
   service_account = {
     email = module.ngfw-service-account.email
   }
