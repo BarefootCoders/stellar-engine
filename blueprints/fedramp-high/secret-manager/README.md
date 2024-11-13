@@ -9,7 +9,7 @@ Secret Manager is a secure and convenient storage system for API keys, passwords
 - Secret data is immutable and most operations take place on secret versions. With Secret Manager, you can pin a secret to specific versions like "42" or floating aliases like "latest."
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRamp-high or IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRAMP-High or IL5 (Impact Level 5) environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
 - Warning: This blueprint uses a bash script to update the secret versions so that Terraform doesn't store any secret data. If you chose to manage versions in Terraform, the data (the actual secret you want to protect) will be stored in the Terraform state in unencrypted form, accessible to any identity able to read or pull the state file.
 
 ## Requirements

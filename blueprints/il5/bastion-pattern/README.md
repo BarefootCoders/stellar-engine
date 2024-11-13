@@ -10,8 +10,8 @@ Obtains access credentials for your user account via a web-based authorization f
 3. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in an FedRamp-high environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- An Assured Workloads and FedRamp-high environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in an FedRAMP-High environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
+- An Assured Workloads and FedRAMP-High environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 
 ## How can you connect to the Bastion?
 To access the web portal through the bastion host, follow these steps:

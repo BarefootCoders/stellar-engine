@@ -6,7 +6,7 @@ Bigtable is a fully managed, scalable NoSQL wide-column database service for lar
 CMEK allows you to encrypt your Bigtable data at rest using keys that you manage in Cloud KMS. This provides greater control over key lifecycle management, including key rotation and access control. This blueprint supports creating new KMS keys, using pre-existing keys, or not using any keys.
 
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
 
 <!-- BEGIN TFDOC -->
 ## Variables
