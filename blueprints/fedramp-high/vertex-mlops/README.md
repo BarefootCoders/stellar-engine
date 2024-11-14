@@ -2,12 +2,13 @@
 This blueprint demonstrates how to create a Vertex AI Workbench on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS. 
 
 ## Introduction to Vertex AI
-
 Vertex AI is a fully-managed, unified AI development platform for building and using generative AI. Access and utilize Vertex AI Studio, Agent Builder, and 150+ foundation models. Evaluate, tune, and deploy generative AI models or train your own custom models. 
 This example implements the infrastructure required to deploy an end-to-end [MLOps process](https://services.google.com/fh/files/misc/practitioners_guide_to_mlops_whitepaper.pdf) using [Vertex AI](https://cloud.google.com/vertex-ai) platform.
 
-## Architecture
+## Disclaimer
+- The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRAMP-High or IL5 (Impact Level 5) environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
 
+## Architecture
 The blueprint will deploy all the required resources to have a fully functional MLOPs environment containing:
 
 1. Vertex Workbench (for the experimentation environment).
@@ -20,11 +21,9 @@ The blueprint will deploy all the required resources to have a fully functional 
 1. Secret Manager to store the Github SSH key to get access the CICD code repo.
 
 ## Overview
-
 ![MLOps project description](./images/mlops_projects.png "MLOps project description")
 
 ## User groups
-
 Assign roles relying on User groups is a way to decouple the final set of permissions from the stage where entities and resources are created, and their IAM bindings defined. You can configure the group names through the `groups` variable. These groups should be created before launching Terraform.
 
 We use the following groups to control access to resources:
@@ -34,6 +33,47 @@ We use the following groups to control access to resources:
 - *ML Viewer* (gcp-ml-eng@<company.org>). Group with wiewer permission for the different resources.
 
 Please note that these groups are not suitable for production grade environments. Roles can be customized in the `main.tf`file.
+
+## Instructions
+### Deploy the experimentation environment
+- Create a `terraform.tfvars` file and specify the variables to match your desired configuration. You can use the provided `terraform.tfvars.sample` as reference.
+- Before choosing a region to create your resources in, it is recommended to view your system [quotas](https://console.cloud.google.com/iam-admin/quotas) in order to check which regions have access to GPU and TPU accelerators. If you choose a region where the quota is 0, you will have to request a quota increase (common accelerators are NVIDIA_A100 and NVIDIA_H100). It is recommended to create project resources in the 'us-central1' region.
+- When configuring your network settings, remeber that you must use a shared VPC. It is recomended that you have a separate 'networking project' that manages network traffic, and share this VPC to any projects that need access to it. This shared VPC must have internet access or JupyterLabs will not work. In addition, the account that runs the terraform code must have the Compute Shared VPC Admin role at an organization level. 
+- Run `terraform init` and `terraform apply`
+
+## Demo
+To try out the new notebook, you can use the provided code sample (the .ipynb file), adapted from [here](https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/main/notebooks/community/model_garden/model_garden_pytorch_flux.ipynb). Alternatively, you can view the list of [Vertex AI code samples](https://cloud.google.com/vertex-ai/docs/samples) to find one that you like. Simply open the Google Cloud Console and navigate to Vertex AI workbenches. Under the list of instances, you should see your newly created workbench instance. Click on the button that says "Open JupyterLab" to use your workbench. Within JupyterLab, you should see the option to upload files. Upload a demo notebook, then update the variables as necessary (in the provided demo, you will have to update BUCKET_URI, REGION, and PROJECT_ID). 
+
+## What's next?
+This blueprint can be used as a building block for setting up an end2end ML Ops solution. As next step, you can follow this [guide](https://cloud.google.com/architecture/architecture-for-mlops-using-tfx-kubeflow-pipelines-and-cloud-build) to setup a Vertex AI pipeline and run it on the deployed infrastructure.
+
+## Usage
+Basic usage of this module is as follows:
+
+```hcl
+module "test" {
+  source = "./fabric/blueprints/data-solutions/vertex-mlops/"
+  labels = {
+    "env"  = "dev",
+    "team" = "ml"
+  }
+  bucket_name          = "gcs-test"
+  dataset_name         = "bq_test"
+  identity_pool_claims = "attribute.repository/ORGANIZATION/REPO"
+  notebooks = {
+    "myworkbench" = {
+      type = "USER_MANAGED"
+    }
+  }
+  prefix = var.prefix
+  project_config = {
+    billing_account_id = var.billing_account_id
+    parent             = var.folder_id
+    project_id         = "test-dev"
+  }
+}
+# tftest modules=13 resources=91 e2e
+```
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -62,48 +102,3 @@ Please note that these groups are not suitable for production grade environments
 | [notebook](outputs.tf#L35) | Vertex AI notebook ids. |  |
 | [project_id](outputs.tf#L43) | Project ID. |  |
 <!-- END TFDOC -->
-## Instructions
-
-### Deploy the experimentation environment
-
-- Create a `terraform.tfvars` file and specify the variables to match your desired configuration. You can use the provided `terraform.tfvars.sample` as reference.
-- Before choosing a region to create your resources in, it is recommended to view your system [quotas](https://console.cloud.google.com/iam-admin/quotas) in order to check which regions have access to GPU and TPU accelerators. If you choose a region where the quota is 0, you will have to request a quota increase (common accelerators are NVIDIA_A100 and NVIDIA_H100). It is recommended to create project resources in the 'us-central1' region.
-- When configuring your network settings, remeber that you must use a shared VPC. It is recomended that you have a separate 'networking project' that manages network traffic, and share this VPC to any projects that need access to it. This shared VPC must have internet access or JupyterLabs will not work. In addition, the account that runs the terraform code must have the Compute Shared VPC Admin role at an organization level. 
-- Run `terraform init` and `terraform apply`
-
-## Demo
-
-To try out the new notebook, you can use the provided code sample (the .ipynb file), adapted from [here](https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/main/notebooks/community/model_garden/model_garden_pytorch_flux.ipynb). Alternatively, you can view the list of [Vertex AI code samples](https://cloud.google.com/vertex-ai/docs/samples) to find one that you like. Simply open the Google Cloud Console and navigate to Vertex AI workbenches. Under the list of instances, you should see your newly created workbench instance. Click on the button that says "Open JupyterLab" to use your workbench. Within JupyterLab, you should see the option to upload files. Upload a demo notebook, then update the variables as necessary (in the provided demo, you will have to update BUCKET_URI, REGION, and PROJECT_ID). 
-
-## What's next?
-
-This blueprint can be used as a building block for setting up an end2end ML Ops solution. As next step, you can follow this [guide](https://cloud.google.com/architecture/architecture-for-mlops-using-tfx-kubeflow-pipelines-and-cloud-build) to setup a Vertex AI pipeline and run it on the deployed infraestructure.
-
-## Usage
-
-Basic usage of this module is as follows:
-
-```hcl
-module "test" {
-  source = "./fabric/blueprints/data-solutions/vertex-mlops/"
-  labels = {
-    "env"  = "dev",
-    "team" = "ml"
-  }
-  bucket_name          = "gcs-test"
-  dataset_name         = "bq_test"
-  identity_pool_claims = "attribute.repository/ORGANIZATION/REPO"
-  notebooks = {
-    "myworkbench" = {
-      type = "USER_MANAGED"
-    }
-  }
-  prefix = var.prefix
-  project_config = {
-    billing_account_id = var.billing_account_id
-    parent             = var.folder_id
-    project_id         = "test-dev"
-  }
-}
-# tftest modules=13 resources=91 e2e
-```
