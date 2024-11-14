@@ -65,7 +65,7 @@ resource "google_workbench_instance" "playground" {
   name     = "${local.prefix}${each.key}"
   location = "${var.region}-b"
   project  = module.project.project_id
-  
+
   gce_setup {
     machine_type      = var.notebooks[each.key].machine_type
     disable_public_ip = var.notebooks[each.key].internal_ip_only

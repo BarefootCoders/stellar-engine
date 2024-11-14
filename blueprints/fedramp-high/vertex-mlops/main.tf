@@ -139,7 +139,7 @@ module "vpc-local" {
   count        = local.use_shared_vpc ? 0 : 1
   source       = "../../../modules/net-vpc"
   project_id   = module.project.project_id
-  routing_mode = "REGIONAL" 
+  routing_mode = "REGIONAL"
   name         = "vertex"
   subnets = [
     {
@@ -310,9 +310,9 @@ resource "google_sourcerepo_repository" "code-repo" {
 
 //add iam bindings to compute service account running notebooks
 resource "google_project_iam_member" "service_permissions" {
-  for_each = toset(["roles/storage.admin", "roles/viewer", "roles/notebooks.runner", "roles/aiplatform.user", "roles/iam.serviceAccountUser"])
-  project = module.project.project_id
-  role = each.key
-  member = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
-  depends_on = [ google_workbench_instance.playground ]
+  for_each   = toset(["roles/storage.admin", "roles/viewer", "roles/notebooks.runner", "roles/aiplatform.user", "roles/iam.serviceAccountUser"])
+  project    = module.project.project_id
+  role       = each.key
+  member     = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
+  depends_on = [google_workbench_instance.playground]
 }
