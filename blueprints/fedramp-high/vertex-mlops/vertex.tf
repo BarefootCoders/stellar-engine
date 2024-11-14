@@ -22,7 +22,7 @@ module "service-account-notebook" {
 
 resource "google_notebooks_runtime" "runtime" {
   for_each = { for k, v in var.notebooks : k => v if v.type == "MANAGED" }
-  name     = "${var.prefix}-${each.key}"
+  name     = "${local.prefix}${each.key}"
   project  = module.project.project_id
   location = var.region
   access_config {
@@ -62,10 +62,10 @@ resource "google_notebooks_runtime" "runtime" {
 
 resource "google_workbench_instance" "playground" {
   for_each = { for k, v in var.notebooks : k => v if v.type == "USER_MANAGED" }
-  name     = "${var.prefix}-${each.key}"
+  name     = "${local.prefix}${each.key}"
   location = "${var.region}-b"
   project  = module.project.project_id
-
+  
   gce_setup {
     machine_type      = var.notebooks[each.key].machine_type
     disable_public_ip = var.notebooks[each.key].internal_ip_only

@@ -16,6 +16,7 @@
 
 
 locals {
+  prefix = var.prefix == null ? "" : "${var.prefix}-"
   iam_principals = merge(
     var.groups.gcp-ml-viewer == null ? {} : {
       "group:${var.groups.gcp-ml-viewer}" = [
@@ -138,7 +139,7 @@ module "vpc-local" {
   count        = local.use_shared_vpc ? 0 : 1
   source       = "../../../modules/net-vpc"
   project_id   = module.project.project_id
-  routing_mode = "REGIONAL" #make a regional vpc
+  routing_mode = "REGIONAL" 
   name         = "vertex"
   subnets = [
     {
@@ -180,7 +181,6 @@ module "firewall" {
 
 }
 
-/*
 module "cloudnat" {
   count          = local.use_shared_vpc ? 0 : 1
   source         = "../../../modules/net-cloudnat"
@@ -189,7 +189,7 @@ module "cloudnat" {
   name           = "default"
   router_network = module.vpc-local[0].self_link
 }
-*/
+
 
 module "project" {
   source            = "../../../modules/project"
@@ -197,7 +197,7 @@ module "project" {
   parent            = var.project_config.parent
   billing_account   = var.project_config.billing_account_id
   project_create    = var.project_config.billing_account_id != null
-  prefix            = var.prefix
+  prefix            = null
   iam_by_principals = local.iam_principals
   iam_bindings_additive = {
     # we manage aiplatform.user additively since it is also granted to
@@ -248,6 +248,7 @@ module "project" {
       module.service-account-github.iam_email,
       module.service-account-notebook.iam_email
     ]
+    //"roles/storage.objectViewer" = [module.service-account-notebook.iam_email]
   }
   labels = var.labels
 
@@ -290,7 +291,7 @@ module "project" {
 
 module "service-account-mlops" {
   source     = "../../../modules/iam-service-account"
-  name       = "${var.prefix}-sa-mlops"
+  name       = "${local.prefix}sa-mlops"
   project_id = module.project.project_id
 }
 
@@ -305,4 +306,13 @@ resource "google_sourcerepo_repository" "code-repo" {
   count   = var.repo_name == null ? 0 : 1
   name    = var.repo_name
   project = module.project.project_id
+}
+
+//add iam bindings to compute service account running notebooks
+resource "google_project_iam_member" "service_permissions" {
+  for_each = toset(["roles/storage.admin", "roles/viewer", "roles/notebooks.runner", "roles/aiplatform.user", "roles/iam.serviceAccountUser"])
+  project = module.project.project_id
+  role = each.key
+  member = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
+  depends_on = [ google_workbench_instance.playground ]
 }

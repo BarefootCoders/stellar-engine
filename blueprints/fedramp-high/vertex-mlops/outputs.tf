@@ -33,7 +33,7 @@ output "github" {
 }
 
 output "notebook" {
-  description = "Vertex AI notebooks ids."
+  description = "Vertex AI notebook ids."
   value = merge(
     { for k, v in resource.google_notebooks_runtime.runtime : k => v.id },
     { for k, v in resource.google_workbench_instance.playground : k => v.id }

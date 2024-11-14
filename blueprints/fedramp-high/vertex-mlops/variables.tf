@@ -60,7 +60,7 @@ variable "labels" {
 variable "location" {
   description = "Location used for multi-regional resources."
   type        = string
-  default     = "eu"
+  default     = "us"
 }
 
 variable "network_config" {
@@ -70,7 +70,11 @@ variable "network_config" {
     network_self_link = string
     subnet_self_link  = string
   })
-  default = null
+  validation {
+    condition     = var.network_config != null
+    error_message = "Network config must be set."
+  }
+  nullable = false
 }
 
 variable "notebooks" {
@@ -95,7 +99,7 @@ variable "notebooks" {
 }
 
 variable "prefix" {
-  description = "Prefix used for the project id."
+  description = "Prefix used for various resource creation."
   type        = string
   default     = null
 }
@@ -117,11 +121,11 @@ variable "project_config" {
 variable "region" {
   description = "Region used for regional resources."
   type        = string
-  default     = "europe-west4"
+  default     = "us-central1"
 }
 
 variable "repo_name" {
-  description = "Cloud Source Repository name. null to avoid to create it."
+  description = "Cloud Source Repository name, or null to avoid creating it."
   type        = string
   default     = null
 }
