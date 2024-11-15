@@ -190,40 +190,40 @@ resource "google_project_iam_member" "shared_vpc" {
 //add iam bindings to compute service account running notebooks
 resource "google_project_iam_member" "service_permissions" {
   for_each = toset([
-    "roles/notebooks.runner", 
-    "roles/aiplatform.user", 
-    "roles/storage.objectViewer", 
-    "roles/storage.objectCreator", 
-    "roles/iam.serviceAccountUser", 
+    "roles/notebooks.runner",
+    "roles/aiplatform.user",
+    "roles/storage.objectViewer",
+    "roles/storage.objectCreator",
+    "roles/iam.serviceAccountUser",
     "projects/${module.project.project_id}/roles/storage_iam",
   ])
-  project  = module.project.project_id
-  role     = each.key
-  member   = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
+  project = module.project.project_id
+  role    = each.key
+  member  = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "notebook_permissions" {
   for_each = toset([
-    "roles/storage.objectViewer", 
-    "roles/storage.objectCreator", 
+    "roles/storage.objectViewer",
+    "roles/storage.objectCreator",
     "roles/iam.serviceAccountUser",
   ])
-  project  = module.project.project_id
-  role     = each.key
-  member   = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
+  project = module.project.project_id
+  role    = each.key
+  member  = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
   depends_on = [
-    module.project, 
-    google_notebooks_runtime.runtime, 
-    google_project_iam_member.service_permissions, 
+    module.project,
+    google_notebooks_runtime.runtime,
+    google_project_iam_member.service_permissions,
   ]
 }
 
 resource "google_project_iam_custom_role" "storage_role" {
   role_id = "storage_iam"
   project = module.project.project_id
-  title = "Storage IAM Policy Role"
+  title   = "Storage IAM Policy Role"
   permissions = [
-    "storage.buckets.getIamPolicy", 
-    "storage.buckets.setIamPolicy", 
+    "storage.buckets.getIamPolicy",
+    "storage.buckets.setIamPolicy",
   ]
 }
