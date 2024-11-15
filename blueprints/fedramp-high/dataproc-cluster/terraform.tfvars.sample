@@ -1,0 +1,16 @@
+project_id = "project-id"
+landing_project_id = "landing-zone-project-id"
+iac_project_id = "core-project-id"
+
+cluster_name = "cluster-name"
+dataproc_name = "dataproc-instance-name"
+dataproc_bucket_name = "dataprock-bucket-name" # Must be globally unique
+
+network_name = "vpc-name"
+subnet_name = "default-us-east4"
+firewall_name = "allow-dataproc"
+
+keyring = "keyring-name"
+key = "default"
+
+region = "us-east4" # Must match region of KMS Key
