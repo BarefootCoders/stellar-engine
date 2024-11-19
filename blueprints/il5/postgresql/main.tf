@@ -41,7 +41,7 @@ resource "google_project_service_identity" "cloudsql_sa" {
 resource "google_kms_crypto_key_iam_member" "sql_sa" {
   crypto_key_id = data.google_kms_crypto_key.key.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-cloud-sql.iam.gserviceaccount.com"
+  member        = google_project_service_identity.cloudsql_sa.member
 }
 
 resource "google_compute_firewall" "postgres" {
