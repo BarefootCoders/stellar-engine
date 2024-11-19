@@ -17,24 +17,35 @@
 data "google_project" "current" {}
 
 data "google_compute_network" "network" {
-  name = var.network_name
+  name    = var.network_name
+  project = var.landing_project_id
 }
 
-resource "google_compute_global_address" "postgres" {
-  name          = var.google_compute_global_address_name
-  purpose       = "VPC_PEERING"
-  address_type  = "INTERNAL"
-  prefix_length = 16
-  network       = data.google_compute_network.network.self_link
+data "google_kms_key_ring" "keyring" {
+  name     = var.keyring
+  location = var.region
+  project  = var.iac_core_project_id
 }
 
-resource "google_service_networking_connection" "postgres" {
-  network                 = data.google_compute_network.network.self_link
-  service                 = "servicenetworking.googleapis.com"
-  reserved_peering_ranges = [google_compute_global_address.postgres.name]
+data "google_kms_crypto_key" "key" {
+  name     = var.key
+  key_ring = data.google_kms_key_ring.keyring.id
+}
+
+resource "google_project_service_identity" "cloudsql_sa" {
+  provider = google-beta
+  project  = var.project_id
+  service  = "sqladmin.googleapis.com"
+}
+
+resource "google_kms_crypto_key_iam_member" "sql_sa" {
+  crypto_key_id = data.google_kms_crypto_key.key.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-cloud-sql.iam.gserviceaccount.com"
 }
 
 resource "google_compute_firewall" "postgres" {
+  project = var.landing_project_id
   name    = var.firewall_name
   network = data.google_compute_network.network.self_link
   allow {
@@ -42,25 +53,6 @@ resource "google_compute_firewall" "postgres" {
     ports    = var.allowed_firewall_ports
   }
   source_ranges = var.firewall_source_range
-}
-
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
-
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
-      [
-        "serviceAccount:service-${data.google_project.current.number}@service-networking.iam.gserviceaccount.com",
-        "serviceAccount:service-${data.google_project.current.number}@gcp-sa-cloud-sql.iam.gserviceaccount.com"
-      ]
-    )
-  }
-
-  keyring = var.keyring
-
-  depends_on = [google_service_networking_connection.postgres]
 }
 
 module "postgres" {
@@ -78,9 +70,8 @@ module "postgres" {
   database_version = var.database_version
   tier             = var.database_instance_tier
 
-  encryption_key_name = module.kms.keys.postgres.id
+  encryption_key_name = data.google_kms_crypto_key.key.id
 
-  # Required for IL5 - location must be set
   backup_configuration = {
     enabled  = true
     location = var.region
@@ -88,8 +79,6 @@ module "postgres" {
 
   terraform_deletion_protection = var.deletion_protection
   gcp_deletion_protection       = var.deletion_protection
-
-  depends_on = [module.kms, resource.google_service_networking_connection.postgres]
 
   # CIS Compliance Benchmark 6.2
   flags = {

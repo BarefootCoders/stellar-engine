@@ -72,47 +72,24 @@ variable "google_compute_global_address_name" {
   default     = "postgres"
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
+variable "iac_core_project_id" {
+  description = "This is the core project ID. Please set using a terraform.tfvars file."
+  type        = string
 }
 
-variable "keys" {
-  description = "Key names and base attributes. Set attributes to null if not needed."
-  type = map(object({
-    destroy_scheduled_duration    = optional(string)
-    rotation_period               = optional(string, "7776000s") # Compliant with CIS IAM 1.10
-    labels                        = optional(map(string))
-    purpose                       = optional(string, "ENCRYPT_DECRYPT")
-    skip_initial_version_creation = optional(bool, false)
-    version_template = optional(object({
-      algorithm        = string
-      protection_level = optional(string, "HSM")
-    }))
+variable "keyring" {
+  description = "The name of the KMS keyring."
+  type        = string
+}
 
-    iam = optional(map(list(string)), {})
-    iam_bindings = optional(map(object({
-      members = list(string)
-      role    = string
-      condition = optional(object({
-        expression  = string
-        title       = string
-        description = optional(string)
-      }))
-    })), {})
-    iam_bindings_additive = optional(map(object({
-      member = string
-      role   = string
-      condition = optional(object({
-        expression  = string
-        title       = string
-        description = optional(string)
-      }))
-    })), {})
-  }))
+variable "key" {
+  description = "The name of the KMS key."
+  type        = string
+}
+
+variable "landing_project_id" {
+  description = "Project that the Compute Engine VPC is located"
+  type        = string
 }
 
 variable "log_connections" {
@@ -217,4 +194,9 @@ variable "region" {
   description = "This is the region that we are going to be running the cloud sql instance from."
   type        = string
   default     = "us-east4"
+}
+
+variable "subnetwork_name" {
+  description = "This is the name of the subnetwork."
+  type        = string
 }

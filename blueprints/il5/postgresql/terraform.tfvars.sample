@@ -3,29 +3,11 @@ region                 = "us-east4"
 database_version       = "POSTGRES_14"
 database_instance_tier = "db-g1-small"
 database_name          = "postgres"
-
-network_name               = "network-name" # Must already exist
-private_service_connect_ip = "10.2.0.0"
-firewall_source_range      = ["192.168.1.0/24"]
-firewall_name              = "allow-postgres"
-
-tier = "db-g1-small"
-
-keyring = {
-  location = "us-east4"
-  name     = "postgres"
-}
-
-keys = {
-  "postgres" = {
-    rotation_period            = "7776000s"    # Compliant with CIS IAM 1.10
-    destroy_scheduled_duration = "2592000s"
-    version_template = {
-      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-      protection_level = "HSM"
-    }
-    lifecycle = {
-      prevent_destroy = false
-    }
-  }
-}
+network_name           = "test-spoke-0"       # Must already exist
+subnetwork_name        = "default-us-east4"   # Must already exist
+landing_project_id     = "xxxx-net-host"
+iac_core_project_id    = "xxxx-iac-core-0"
+firewall_source_range  = ["192.168.1.0/24"]
+firewall_name          = "allow-postgres"
+keyring                = "keyring"            # Must already exist
+key                    = "default"            # Must already exist
