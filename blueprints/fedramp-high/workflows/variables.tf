@@ -4,6 +4,12 @@ variable "description"{
     default = null
 }
 
+variable "env_vars" {
+  description = "Environment variables made available to your workflow execution."
+  type = map(string)
+  default = null
+}
+
 variable "key" {
   description = "The CMEK used to encrypt the workflow."
   type        = string
