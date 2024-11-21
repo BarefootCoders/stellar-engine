@@ -54,7 +54,7 @@ resource "google_workflows_workflow" "default" {
   description         = var.description
   service_account     = google_service_account.default.id
   call_log_level      = var.logging_level
-  deletion_protection = false
+  //deletion_protection = false
   user_env_vars       = var.env_vars
   crypto_key_name     = var.key
 
