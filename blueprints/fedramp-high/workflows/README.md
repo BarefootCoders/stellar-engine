@@ -1,31 +1,59 @@
-
 # Workflows Blueprint
 This blueprint demonstrates how to create a workflow on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS.
-
+<!-- BEGIN TOC -->
+- [Introduction to Workflows](#introduction-to-workflows)
+- [Disclaimer](#disclaimer)
+- [Deployment Steps](#deployment-steps)
+- [Demo](#demo)
+- [Next Steps](#next-steps)
+- [Variables](#variables)
+- [Outputs](#outputs)
+<!-- END TOC -->
 ## Introduction to Workflows
 Workflows is a fully managed orchestration platform that executes services in an order that you define. These workflows can combine services including custom services hosted on Cloud Run or Cloud Run functions, Google Cloud services such as Cloud Vision AI and BigQuery, and any HTTP-based API.
 By incorporating Workflows into solutions, you can make service dependencies explicit and observable end-to-end. A workflow that specifies an application, operational, or business process provides a source-of-truth or canonical narrative for the process.
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-<!-- BEGIN TFDOC -->
 
-<!-- END TFDOC -->
 ## Deployment Steps
-1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file. For reference update the following variables:
-
-- ```key```  with your encryption key<br />
-- ```name```  with the name of your processor<br />
-- ```project``` with the GCP project id<br />
-- ```region``` with the GCP location <br />
-
-2. The usual terraform commands will be used to deploy the processor. To provision this example, run the following from within this directory:
+1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file.
+2. The usual terraform commands will be used to deploy the workflow. To provision this example, run the following from within this directory:
 
 ```terraform init ```<br />
 ```terraform plan``` to see the infrastructure plan<br />
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` only if you wish to destroy the built infrastructure<br />
 
-To verify a successful deployment, search for "Document AI" in the Google Cloud Console, then click on "My processors" in the side bar. From here, you will be able to view your newly created processor.
+3. To verify a successful deployment, search for "Workflows" in the Google Cloud Console. From here, you will be able to view your newly created workflow.
 
 ## Demo
+1. Click on your newly created workflow.
+2. Click the ```Execute``` button.
+3. For this demo, you can leave the input and logging level empty, then click ```execute``` at the bottom of the screen.
+4. Wait for the workflow to run, then view the output in the output box.
+
+## Next Steps
+Workflows can be used to automate various processes, connect different GCP services, and create end to end solutions. View the [workflow documentation](https://cloud.google.com/workflows/docs/best-practice) to learn about some of the capabilities of workflows.
+You can also start a workflow execution through Eventarc triggers, Cloud Scheduler, Cloud Tasks, or even another workflow. Configure the workflow for your specific use case.
+<!-- BEGIN TFDOC -->
+## Variables
+
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [key](variables.tf#L19) | The CMEK used to encrypt the workflow. | <code>string</code> | ✓ |  |
+| [name](variables.tf#L30) | Name of the workflow. | <code>string</code> | ✓ |  |
+| [project](variables.tf#L35) | The Google Project ID. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L40) | The Google Cloud region. | <code>string</code> | ✓ |  |
+| [description](variables.tf#L1) | Description of the workflow. | <code>string</code> |  | <code>null</code> |
+| [env_vars](variables.tf#L7) | Environment variables made available to your workflow execution. | <code>map&#40;string&#41;</code> |  | <code>null</code> |
+| [file](variables.tf#L13) | File path to the instructions for the workflow. | <code>string</code> |  | <code>&#34;example.yaml&#34;</code> |
+| [logging_level](variables.tf#L24) | Logging level of workflow executions. | <code>string</code> |  | <code>&#34;LOG_ERRORS_ONLY&#34;</code> |
+
+## Outputs
+
+| name | description | sensitive |
+|---|---|:---:|
+| [service_account](outputs.tf#L1) | The workflow service account. |  |
+| [workflow](outputs.tf#L6) | The newly created workflow. |  |
+<!-- END TFDOC -->

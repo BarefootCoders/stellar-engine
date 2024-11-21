@@ -1,13 +1,19 @@
-variable "description"{
-    description = "Description of the workflow."
-    type = string
-    default = null
+variable "description" {
+  description = "Description of the workflow."
+  type        = string
+  default     = null
 }
 
 variable "env_vars" {
   description = "Environment variables made available to your workflow execution."
-  type = map(string)
-  default = null
+  type        = map(string)
+  default     = null
+}
+
+variable "file" {
+  description = "File path to the instructions for the workflow."
+  type        = string
+  default     = "example.yaml"
 }
 
 variable "key" {
@@ -16,9 +22,9 @@ variable "key" {
 }
 
 variable "logging_level" {
-    description = "Logging level of workflow executions."
-    type = string
-    default = "LOG_ERRORS_ONLY"
+  description = "Logging level of workflow executions."
+  type        = string
+  default     = "LOG_ERRORS_ONLY"
 }
 
 variable "name" {
