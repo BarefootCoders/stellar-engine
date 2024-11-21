@@ -13,7 +13,6 @@ variable "env_vars" {
 variable "file" {
   description = "File path to the instructions for the workflow."
   type        = string
-  default     = "code/example.yaml"
 }
 
 variable "key" {

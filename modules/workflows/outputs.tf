@@ -1,9 +1,9 @@
 output "service_account" {
   description = "The workflow service account."
-  value       = module.workflows.service_account
+  value       = google_service_account.default
 }
 
 output "workflow" {
   description = "The newly created workflow."
-  value       = module.workflows.workflow
+  value       = google_workflows_workflow.default
 }
