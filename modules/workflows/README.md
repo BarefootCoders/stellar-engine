@@ -36,6 +36,7 @@ module "workflows" {
 | [description](variables.tf#L1) | Description of the workflow. | <code>string</code> |  | <code>null</code> |
 | [env_vars](variables.tf#L7) | Environment variables made available to your workflow execution. | <code>map&#40;string&#41;</code> |  | <code>null</code> |
 | [logging_level](variables.tf#L23) | Logging level of workflow executions. | <code>string</code> |  | <code>&#34;LOG_ERRORS_ONLY&#34;</code> |
+| [roles](variables.tf#L44) | Additional roles to grant to the workflows service account. | <code>list&#40;string&#41;</code> |  | <code>&#91;&#34;roles&#47;workflows.invoker&#34;&#93;</code> |
 
 ## Outputs
 

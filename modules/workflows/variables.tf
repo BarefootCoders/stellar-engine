@@ -40,3 +40,10 @@ variable "region" {
   description = "The Google Cloud region."
   type        = string
 }
+
+variable "roles" {
+  description = "Additional roles to grant to the workflows service account."
+  type        = list(string)
+  default     = ["roles/workflows.invoker"]
+  nullable    = false
+}

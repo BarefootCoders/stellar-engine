@@ -28,6 +28,14 @@ resource "google_project_iam_member" "default" {
   depends_on = [google_service_account.default]
 }
 
+resource "google_project_iam_member" "roles" {
+  for_each   = toset(var.roles)
+  project    = var.project
+  role       = each.key
+  member     = "serviceAccount:${google_service_account.default.email}"
+  depends_on = [google_service_account.default]
+}
+
 resource "google_kms_crypto_key_iam_member" "workflows_key_user" {
   crypto_key_id = var.key
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
@@ -38,6 +46,7 @@ resource "google_workflows_workflow" "default" {
   depends_on = [
     google_service_account.default,
     google_project_iam_member.default,
+    google_project_iam_member.roles,
     google_kms_crypto_key_iam_member.workflows_key_user,
   ]
   name                = var.name
