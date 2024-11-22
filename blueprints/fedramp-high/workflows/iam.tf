@@ -1,7 +1,3 @@
-data "google_project" "project" {
-  project_id = var.project
-}
-
 resource "google_service_account" "workflow_sa" {
   account_id   = "workflows-sa"
   display_name = "Workflows Service Account."
@@ -31,22 +27,4 @@ resource "google_kms_crypto_key_iam_member" "workflows_key_user" {
   crypto_key_id = var.key
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-workflows.iam.gserviceaccount.com"
-}
-
-module "workflows" {
-  source          = "../../../modules/workflows"
-  project         = var.project
-  name            = var.name
-  region          = var.region
-  description     = var.description
-  logging_level   = var.logging_level
-  env_vars        = var.env_vars
-  key             = var.key
-  file            = var.file
-  service_account = google_service_account.workflow_sa.email
-
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [data.google_bigquery_default_service_account.bq_sa.member]
-  }
-  depends_on = [ google_service_account.workflow_sa ]
 }
