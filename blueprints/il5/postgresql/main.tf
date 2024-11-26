@@ -21,17 +21,6 @@ data "google_compute_network" "network" {
   project = var.landing_project_id
 }
 
-data "google_kms_key_ring" "keyring" {
-  name     = var.keyring
-  location = var.region
-  project  = var.iac_core_project_id
-}
-
-data "google_kms_crypto_key" "key" {
-  name     = var.key
-  key_ring = data.google_kms_key_ring.keyring.id
-}
-
 resource "google_project_service_identity" "cloudsql_sa" {
   provider = google-beta
   project  = var.project_id
@@ -39,7 +28,7 @@ resource "google_project_service_identity" "cloudsql_sa" {
 }
 
 resource "google_kms_crypto_key_iam_member" "sql_sa" {
-  crypto_key_id = data.google_kms_crypto_key.key.id
+  crypto_key_id = var.kms_key
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = google_project_service_identity.cloudsql_sa.member
 }
@@ -70,7 +59,7 @@ module "postgres" {
   database_version = var.database_version
   tier             = var.database_instance_tier
 
-  encryption_key_name = data.google_kms_crypto_key.key.id
+  encryption_key_name = var.kms_key
 
   backup_configuration = {
     enabled  = true

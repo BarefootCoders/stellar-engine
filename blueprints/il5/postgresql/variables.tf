@@ -77,13 +77,8 @@ variable "iac_core_project_id" {
   type        = string
 }
 
-variable "key" {
-  description = "The name of the KMS key."
-  type        = string
-}
-
-variable "keyring" {
-  description = "The name of the KMS keyring."
+variable "kms_key" {
+  description = "Full path to KMS key."
   type        = string
 }
 

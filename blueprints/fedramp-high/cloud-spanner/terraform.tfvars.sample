@@ -1,0 +1,6 @@
+project              = "project"
+location_id          = "us-east4"
+database_name        = "database-name"
+instance_name        = "instance-name"
+display_name         = "display-name"
+database_user        = "group:group@domain"

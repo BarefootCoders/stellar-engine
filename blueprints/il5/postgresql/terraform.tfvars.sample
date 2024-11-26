@@ -9,5 +9,4 @@ landing_project_id     = "xxxx-net-host"
 iac_core_project_id    = "xxxx-iac-core-0"
 firewall_source_range  = ["192.168.1.0/24"]
 firewall_name          = "allow-postgres"
-keyring                = "keyring"            # Must already exist
-key                    = "default"            # Must already exist
+kms_key                = "projects/project/locations/location/keyRings/your-keyring/cryptoKeys/your-key" # Must already exist
