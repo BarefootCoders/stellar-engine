@@ -4,7 +4,6 @@ env_vars = {                                                                   #
   key = "value",
 }
 file          = "code/example.yaml"
-key           = "projects/YOUR_PROJECT/locations/REGION/keyRings/KEYRING/cryptoKeys/KEY" #update this with your key
 logging_level = "LOG_ERRORS_ONLY" #defaults to LOG_ERRORS_ONLY, other options are CALL_LOG_LEVEL_UNSPECIFIED, LOG_ALL_CALLS, and LOG_NONE
 name          = "test-workflow"
 project       = "YOUR_PROJECT"

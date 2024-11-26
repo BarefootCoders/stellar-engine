@@ -16,11 +16,6 @@ variable "file" {
   default     = "code/example.yaml"
 }
 
-variable "key" {
-  description = "The CMEK used to encrypt the workflow."
-  type        = string
-}
-
 variable "logging_level" {
   description = "Logging level of workflow executions."
   type        = string

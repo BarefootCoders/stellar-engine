@@ -22,11 +22,6 @@ variable "iam" {
   nullable    = false
 }
 
-variable "key" {
-  description = "The CMEK used to encrypt the workflow."
-  type        = string
-}
-
 variable "logging_level" {
   description = "Logging level of workflow executions."
   type        = string

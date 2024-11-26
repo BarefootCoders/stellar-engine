@@ -1,3 +1,5 @@
+data "google_project" "project" {}
+
 # Enable the API
 resource "google_project_service" "workflows" {
   for_each = toset([
@@ -7,7 +9,16 @@ resource "google_project_service" "workflows" {
   disable_on_destroy = false
 }
 
-data "google_project" "project" {}
+resource "google_service_account" "workflow_sa" {
+  account_id   = "workflows-sa"
+  display_name = "Workflows Service Account."
+}
+
+# Provide time for Workflows Service Agent to be created
+resource "time_sleep" "wait_30_seconds" {
+  depends_on      = [google_service_account.workflow_sa]
+  create_duration = "30s"
+}
 
 module "workflows" {
   source          = "../../../modules/workflows"
@@ -17,7 +28,6 @@ module "workflows" {
   description     = var.description
   logging_level   = var.logging_level
   env_vars        = var.env_vars
-  key             = var.key
   file            = var.file
   service_account = google_service_account.workflow_sa.email
 
@@ -28,7 +38,7 @@ module "workflows" {
   }
   depends_on = [
     google_project_service.workflows,
-    google_service_account.workflow_sa,
-    google_kms_crypto_key_iam_member.workflows_key_user,
+    google_service_account.workflow_sa.
+    time_sleep.wait_30_seconds
   ]
 }
