@@ -1,0 +1,29 @@
+main:
+  steps:
+    - start:
+        call: sys.log
+        args:
+          text: "Doc AI Workflow started."
+    - vars:
+        assign:
+          - input_gcs_bucket: ${sys.get_env("input_bucket")}
+          - output_gcs_bucket: ${sys.get_env("output_bucket")}
+          - processor_id: ${sys.get_env("processor_id")}
+          - location: "us"
+          - project_id: ${sys.get_env("project_id")}
+    - batch_process:
+        call: googleapis.documentai.v1.projects.locations.processors.batchProcess
+        args:
+          name: ${processor_id}
+          location: ${location}
+          body:
+            inputDocuments:
+              gcsPrefix:
+                gcsUriPrefix: ${input_gcs_bucket}
+            documentOutputConfig:
+              gcsOutputConfig:
+                gcsUri: ${output_gcs_bucket}
+            skipHumanReview: true
+        result: batch_process_resp
+    - return:
+        return: ${batch_process_resp}

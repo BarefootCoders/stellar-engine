@@ -1,0 +1,4 @@
+name    = "doc-ai-test"
+project = "YOUR-PROJECT"
+region  = "us-east4"
+type    = "OCR_PROCESSOR" #https://cloud.google.com/document-ai/docs/processors-list (look for "Type in API" field)
