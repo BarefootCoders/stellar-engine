@@ -1,0 +1,5 @@
+project = "YOUR-PROJECT-ID"
+region  = "us-east4"
+deletion_protection = false
+src_lang = "es" # https://cloud.google.com/translate/docs/languages
+target_lang = "en" 

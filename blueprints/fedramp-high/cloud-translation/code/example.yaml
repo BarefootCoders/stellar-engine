@@ -1,0 +1,24 @@
+main:
+  steps:
+    - init:
+        assign:
+          - source_bucket: ${sys.get_env("input_bucket")}
+          - destination_bucket: ${sys.get_env("output_bucket")}
+          - source_lang: ${sys.get_env("src_lang")}
+          - target_lang: ${sys.get_env("target_lang")}
+          - parent: ${sys.get_env("parent")}
+
+    - translateText:
+        call: googleapis.translate.v3.projects.locations.batchTranslateText
+        args:
+          parent: ${parent} 
+          body:
+            sourceLanguageCode: ${source_lang}
+            targetLanguageCodes: [${target_lang}]
+            inputConfigs:
+              gcsSource:
+                inputUri: ${source_bucket}
+            outputConfig:
+              gcsDestination:
+                outputUriPrefix: ${destination_bucket}
+        result: translatedContent
