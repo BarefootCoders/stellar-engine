@@ -3,7 +3,7 @@ locals {
     project-owner-log     = "metric.type=\"logging.googleapis.com/user/project-owner-log\" AND resource.type=\"global\""
     audit-config-change   = "metric.type=\"logging.googleapis.com/user/audit-config-change\" AND resource.type=\"global\""
     custom-role-change    = "metric.type=\"logging.googleapis.com/user/custom-role-change\" AND resource.type=\"global\""
-    vpc-firewall-change   = "metric.type=\"logging.googleapis.com/user/custom-role-change\" AND resource.type=\"global\""
+    vpc-firewall-change   = "metric.type=\"logging.googleapis.com/user/vpc-firewall-change\" AND resource.type=\"global\""
     vpc-route-change      = "metric.type=\"logging.googleapis.com/user/vpc-route-change\" AND resource.type=\"global\""
     vpc-networking-change = "metric.type=\"logging.googleapis.com/user/vpc-network-change\" AND resource.type=\"gce_network\""
     storage-iam-change    = "metric.type=\"logging.googleapis.com/user/storage-iam-change\" AND resource.type=\"gcs_bucket\""
