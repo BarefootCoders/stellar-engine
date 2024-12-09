@@ -1,4 +1,4 @@
-# Required for Assurd Workloads
+# Required for Assured Workloads
 provider "google" {
   project               = var.bootstrap_project
   billing_project       = var.bootstrap_project
