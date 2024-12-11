@@ -41,7 +41,7 @@ The final number of subnets, and their IP addressing will depend on the user-spe
 - [How to run this stage](#how-to-run-this-stage)
   - [Provider and Terraform variables](#provider-and-terraform-variables)
   - [Impersonating the automation service account](#impersonating-the-automation-service-account)
-  - [Setting default Pproject for manual run](#setting-default-pproject-for-manual-run)
+  - [Setting default project for manual run](#setting-default-project-for-manual-run)
   - [Variable configuration](#variable-configuration)
   - [Using delayed billing association for projects](#using-delayed-billing-association-for-projects)
   - [Running the stage](#running-the-stage)
@@ -260,7 +260,7 @@ gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/tfvars/1-resman.auto.tf
 
 The preconfigured provider file uses impersonation to run with this stage's automation service account's credentials. The `gcp-devops` and `organization-admins` groups have the necessary IAM bindings in place to do that, so make sure the current user is a member of one of those groups.
 
-### Setting default Pproject for manual run
+### Setting default project for manual run
 **Important**: Before running this, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' project created in 0-bootstrap.
 To find the 'automation' project,
 ```bash

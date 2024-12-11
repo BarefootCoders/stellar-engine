@@ -26,6 +26,7 @@ The following diagram illustrates the high-level design of created resources and
   - [Variable configuration](#variable-configuration)
   - [Using delayed billing association for projects](#using-delayed-billing-association-for-projects)
   - [Running the stage](#running-the-stage)
+  - [Disabling overpermissive service accounts](#disabling-overpermissive-service-accounts)
 - [Customizations](#customizations)
   - [KMS keys](#kms-keys)
   - [VPC Service Controls configuration](#vpc-service-controls-configuration)
@@ -147,6 +148,28 @@ Once provider and variable values are in place and the correct user is configure
 terraform init
 terraform apply
 ```
+### Disabling overpermissive service accounts
+
+Each stage of this deployment uses service accounts with admin roles. Once the deployment has been completed, these service accounts should be disabled for security reasons. You can disable the service accounts by running:
+
+```bash
+./sa_lockdown.sh
+```
+
+You can also run this script with the following flags:
+- enable: enables the service accounts instead of disabling them (useful if you would like to rerun a stage or make customizations).
+- sa: comma-separated list of service account names if you don't want to enable/disable all of them (possible values are: bootstrap, resman, networking, security).
+
+```bash
+./sa_lockdown.sh --enable --sa "bootstrap,networking"
+```
+
+Some common troubleshooting steps:
+- Ensure the file is executable by running 
+```bash
+chmod +x sa_lockdown.sh
+```
+- Ensure the user running the command has the Service Account Admin role
 
 ## Customizations
 
