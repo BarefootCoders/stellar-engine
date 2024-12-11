@@ -10,6 +10,12 @@ variable "file" {
   default     = "code/example.yaml"
 }
 
+variable "output_folder" {
+  description = "Name of the folder that will be created in the output bucket to store the translated text."
+  type        = string
+  default     = "output"
+}
+
 variable "project" {
   description = "The Google Project ID."
   type        = string

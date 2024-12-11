@@ -47,7 +47,7 @@ module "workflows" {
   service_account     = google_service_account.workflow_sa.email
   env_vars = {
     input_bucket  = "${module.input_bucket.url}/*.txt"
-    output_bucket = "${module.output_bucket.url}/output/"
+    output_bucket = "${module.output_bucket.url}/${var.output_folder}/"
     src_lang      = var.src_lang
     target_lang   = var.target_lang
     parent        = "projects/${var.project}/locations/us-central1"
