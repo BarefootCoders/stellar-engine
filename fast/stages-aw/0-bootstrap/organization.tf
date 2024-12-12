@@ -183,7 +183,7 @@ resource "google_assured_workloads_workload" "primary" {
   display_name                 = "StellarEngine-${var.prefix}"
   location                     = var.assured_workloads.location
   organization                 = var.organization.id
-  billing_account              = "billingAccounts/${var.billing_account.id}"
+  billing_account              = var.billing_account.id != null ? "billingAccounts/${var.billing_account.id}" : null
   provisioned_resources_parent = ""
   resource_settings {
     display_name  = "StellarEngine-${var.prefix}"
@@ -193,6 +193,7 @@ resource "google_assured_workloads_workload" "primary" {
   violation_notifications_enabled = true
   lifecycle {
     create_before_destroy = true
+    ignore_changes        = [billing_account]
   }
 }
 
