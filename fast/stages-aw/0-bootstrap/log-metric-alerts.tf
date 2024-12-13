@@ -1,10 +1,11 @@
 # CIS Compliance Benchmark 2.4, 2.5, 2.6, 2.7, 2.8, 2.0, 2.10, 2.11
 
 locals {
-  bootstrap_projects = [
+  bootstrap_projects = compact([
     module.log-export-project.id,
     module.automation-project.id,
-  module.billing-export-project[0].id]
+    local.billing_mode == "org" ? module.billing-export-project[0].id : ""
+  ])
 }
 
 module "bootstrap_log_metrics" {
