@@ -31,7 +31,7 @@ data "google_compute_network" "network" {
 
 # Dataproc Customer Service Account
 resource "google_service_account" "dataproc_vm" {
-  account_id   = var.project_id
+  account_id   = "dp-${var.project_id}"
   display_name = "Dataproc Worker Service Account"
 }
 

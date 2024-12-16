@@ -1,0 +1,7 @@
+region             = "us-east4"
+project_id         = "project-id"
+kms_key            = "projects/<iac-project-id>/locations/us-east4/keyRings/<keyring>/cryptoKeys/default"
+network            = "projects/<landing-project-id>/global/networks/<network>"
+name               = "name"
+landing_project_id = "landing-project-id"
+subnet             = "projects/<landing-project-id>/regions/us-east4/subnetworks/default-us-east4"
