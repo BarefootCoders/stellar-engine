@@ -1,0 +1,20 @@
+project = "your-project-id"
+region  = "us-east4"
+
+keyring = "test-keyring"
+key     = "test-key"
+
+landing_project = "your-landing-project-id"
+network         = "int-spoke-0"
+subnet          = "default-us-east4"
+
+workstations = {
+  "station-1" = {
+    env = {
+      CONFIG = "TEST"
+      FOO    = "BAR"
+    }
+    users = ["user:steve@domain.com"] # change/delete this
+  }
+  "station-2" = {}
+}
