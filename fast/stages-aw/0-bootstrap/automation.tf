@@ -158,6 +158,14 @@ module "automation-project" {
   )
 }
 
+resource "google_compute_project_metadata" "metadata-automation" {
+  project = module.automation-project.project_id
+  metadata = {
+    block-project-ssh-keys = "TRUE" # CIS Compliance Benchmark 4.3
+    enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4
+  }
+}
+
 # output files bucket
 
 module "automation-tf-output-gcs" {

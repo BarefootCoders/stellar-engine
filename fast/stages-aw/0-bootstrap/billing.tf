@@ -67,6 +67,14 @@ module "billing-export-project" {
   ]
 }
 
+resource "google_compute_project_metadata" "metadata-billing" {
+  project = module.billing-export-project[0].project_id
+  metadata = {
+    block-project-ssh-keys = "TRUE" # CIS Compliance Benchmark 4.3
+    enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4
+  }
+}
+
 module "billing-export-dataset" {
   source        = "../../../modules/bigquery-dataset"
   count         = local.billing_mode == "org" ? 1 : 0

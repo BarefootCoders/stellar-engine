@@ -65,6 +65,14 @@ module "log-export-project" {
   ]
 }
 
+resource "google_compute_project_metadata" "metadata-log-export" {
+  project = module.log-export-project.project_id
+  metadata = {
+    block-project-ssh-keys = "TRUE" # CIS Compliance Benchmark 4.3
+    enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4
+  }
+}
+
 # one log export per type, with conditionals to skip those not needed
 
 module "log-export-dataset" {
