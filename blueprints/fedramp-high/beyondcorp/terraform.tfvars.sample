@@ -1,0 +1,8 @@
+project_id            = "YOUR-PROJECT-ID"
+organization_id       = "YOUR-ORG-ID"
+policy_title          = "YOUR-POLICY-TITLE"
+oauth_client_id       = "YOUR-OAUTH-CLIENT-ID"
+oauth_client_secret   = "YOUR-OAUTH-CLIENT-SECRET"
+iap_user_email        = "YOUR-IAP-USER-EMAIL"
+endpoint_name         = "accessPolicies/<ACCESS_POLICY_ID>/accessLevels/<NAME_OF_ACCESS_POLICY>"
+region                = "us-east4"
