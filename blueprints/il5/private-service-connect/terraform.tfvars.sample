@@ -1,0 +1,3 @@
+project = "your-project-id"
+region  = "us-east4"
+network = "projects/your-project-id/global/networks/network-name"
