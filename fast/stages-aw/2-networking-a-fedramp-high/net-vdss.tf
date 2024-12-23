@@ -45,6 +45,14 @@ module "vdss-host-project" {
   }
 }
 
+resource "google_compute_project_metadata" "metadata-vdss-host-project" {
+  project = module.vdss-host-project.project_id
+  metadata = {
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
+    enable-oslogin         = true # CIS Compliance Benchmark 4.4
+  }
+}
+
 # DMZ (untrusted) VPC
 
 module "dmz-vpc" {
