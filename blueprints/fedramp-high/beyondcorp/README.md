@@ -1,8 +1,20 @@
-# BeyondCorp Blueprint
-This blueprint simplifies the deployment and configuration of BeyondCorp resources in your cloud environment.
-
 ## Introduction to BeyondCorp
 BeyondCorp is Google Cloud's zero-trust network security framework, enabling secure access to applications and resources without relying on traditional VPNs.
+
+# BeyondCorp Blueprint
+This blueprint simplifies the deployment and configuration of BeyondCorp resources in your cloud environment. This blueprint creates 4 different resources:
+
+<mark>Required APIs:</mark> Enables the required APIs in the specified GCP project.<br />
+- accesscontextmanager.googleapis.com: Manages Access Context Manager resources.<br />
+- cloudresourcemanager.googleapis.com: Manages GCP resources like projects and IAM policies.<br />
+- iap.googleapis.com: Enables Identity-Aware Proxy (IAP) functionality.<br />
+
+<mark>Access Level for Device Endpoint Verification:</mark> Enforces device-based security policies. Endpoint verification enforces devices to access resources, ensuring only secure devices are allowed.<br />
+<mark>Identity-Aware Proxy (IAP) backend:</mark> Configures a Compute Backend Service with IAP enabled (with OAuth2 credentials for authentication).<br />
+<mark>Identity-Aware Proxy (IAP) user:</mark> Grants the specified user access to IAP-secured resources. <span style="color: grey">Roles/iap.httpsResourceAccessor:</span> Allows users to access HTTPS resources protected by IAP.<br/>
+
+For more information, please look at this Google Cloud Communiity [Article](https://www.googlecloudcommunity.com/gc/Community-Blogs/Improve-the-security-of-your-Google-Workspace-Environment/ba-p/714629).
+
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
@@ -28,10 +40,10 @@ The name is the ID.
 
 Use GCP Console to verify if resources were created
 
-To check endpoint: Go to Access Context Manager (NOTE: This is created at the ORG level)
-To check IAP backend: Go to Network Services -> Load balancer -> Backends
-To check if IAP is attached to user: Go to IAMs and search for User. See if IAP-secured Web App User is listed
-To check if iap.googleapis.com, cloudresourcemanager.googleapis.com and accesscontextmanager.googleapis.com is attached to project: Go to IAM and search for project. See if those roles are listed.
+<mark>To check endpoint:</mark> Go to Access Context Manager (NOTE: This is created at the ORG level)<br/>
+<mark>To check IAP backend:</mark> Go to Network Services -> Load balancer -> Backends<br/>
+<mark>To check if IAP is attached to user:</mark> Go to IAMs and search for User. See if IAP-secured Web App User is listed<br/>
+<mark>To check if iap.googleapis.com, cloudresourcemanager.googleapis.com and accesscontextmanager.googleapis.com is attached to project:</mark> Go to IAM and search for project. See if those roles are listed.<br/>
 <!-- BEGIN TFDOC -->
 ## Variables
 

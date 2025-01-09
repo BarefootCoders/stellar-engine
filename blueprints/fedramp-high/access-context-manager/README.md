@@ -1,29 +1,30 @@
-# Access Context Manager Blueprint
-This blueprint demonstrates how to deploy Access Context Manager (ACM) on Google Cloud Platform (GCP). Access Context Manager (ACM) in Google Cloud Platform (GCP) is a security service that allows you to define and enforce fine-grained access controls for your resources.
 
 ## Introduction to ACM
 The primary purpose of ACM is to define and manage access levels and access policies to control access to GCP resources based on contextual attributes, such as:
 
-User identity: Restrict access to specific users or groups.
-Device attributes: Require users to access resources only from approved devices.
-Location: Allow or deny access based on geographic location.
-IP address: Restrict access to specific IP ranges.
-These controls help implement zero-trust security, ensuring that access is granted only under specific conditions, regardless of whether the request originates from inside or outside your network.
+<mark>User identity:</mark> Restrict access to specific users or groups. <br />
+<mark>Device attributes:</mark> Require users to access resources only from approved devices. <br />
+<mark>Location:</mark> Allow or deny access based on geographic location. <br />
+<mark>IP address:</mark> Restrict access to specific IP ranges. <br />
+
+These controls help implement zero-trust security, ensuring that access is granted only under specific conditions, regardless of whether the request originates from inside or outside your network. <br />
+
+# Access Context Manager Blueprint
+This blueprint demonstrates how to deploy Access Context Manager (ACM) on Google Cloud Platform (GCP). Access Context Manager (ACM) in Google Cloud Platform (GCP) is a security service that allows you to define and enforce fine-grained access controls for your resources. This blueprint runs create two different resources:
+
+<mark>Service Perimeters:</mark> A core feature of Access Context Manager, service perimeters provide a way to define and enforce boundaries around GCP services to enhance security and control data access. They help protect sensitive data, restrict access to services (based on definded policies) and prevent data from being exfiltrated to unauthoried networks or regions.
+
+<mark>Access Levels:</mark> Allow you to define and enforce fine-grained access control policies for resources and services; providing an additional layer of security
+
+By using Access Levels and Service Perimeters, you can control access based on attributes like user identity, device security, IP address, and more. For more information: please look at the Access Context Manager [Overview](https://cloud.google.com/access-context-manager/docs/overview#:~:text=Service%20perimeters%20define%20sandboxes%20of,to%20describe%20the%20desired%20rules.).
 
 <!-- BEGIN TOC -->
-- [Introduction to ACM](#introduction-to-acm)
-- [Access Policy ID number](#access-policy-id-number)
+- [Access Context Manager Blueprint](#access-context-manager-blueprint)
 - [Deployment Steps](#deployment-steps)
 - [Verification of a successful deployment?](#verification-of-a-successful-deployment)
 - [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->
-
-## Access Policy ID number
-
-To get Access Policy ID number, run the following commmand:
-
-```gcloud access-context-manager policies list```
 
 ## Deployment Steps
 1. Run ```cp terraform.tfvars.sample terraform.tfvars``` to copy the sample variables to your own tfvars file.
@@ -37,9 +38,9 @@ To get Access Policy ID number, run the following commmand:
 
 ## Verification of a successful deployment?
 
-Use GCP console to verify if the resources have been created. NOTE: Everything is checked on the ORG level
-To check access level: Go to Access Context Manager and it should be listed if it was created.
-To check service perimeters: Go to VPC Service Control and it should be listed if it was created.
+Use GCP console to verify if the resources have been created. NOTE: Everything is checked on the ORG level <br />
+To check access level: Go to Access Context Manager and it should be listed if it was created. <br />
+To check service perimeters: Go to VPC Service Control and it should be listed if it was created. <br />
 <!-- BEGIN TFDOC -->
 ## Variables
 
