@@ -48,7 +48,11 @@ locals {
     AND protoPayload.methodName="storage.setIamPermissions"
     EOH
 
-    sql-config-change = "protoPayload.methodName=\"cloudsql.instances.update\""
+    sql-config-change = <<EOH
+    protoPayload.methodName:"cloudsql.instances.update"
+    OR protoPayload.methodName:"cloudsql.instances.create"
+    OR protoPayload.methodName:"cloudsql.instances.delete"
+    EOH
 
     dns-logging = <<EOH
     gcloud compute networks list --format="table[box,title='All VPC Networks'](name:label='VPC Network Name')"
