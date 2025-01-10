@@ -1,0 +1,6 @@
+region               = "us-east4"
+project              = "my-MAIN-cnap-project"
+network              = "NAME-OF-VPC"
+landing_project_id   = "prefix-int-net-host"
+prefix               = "prefix-name"
+ids_name             = "NAME-OF-IDS"

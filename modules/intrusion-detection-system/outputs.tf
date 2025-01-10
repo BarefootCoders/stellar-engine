@@ -13,12 +13,20 @@
 ##  limitations under the License.
 
 
-output "ids_endpoint_id" {
-  description = "IDS Endpoint id"
-  value       = google_cloud_ids_endpoint.ids_endpoint.id
-}
 
 output "ids_endpoint_severity" {
   description = "IDS Endpoint severity"
   value       = google_cloud_ids_endpoint.ids_endpoint.severity
+}
+
+output "ids_name" {
+  value = var.ids_name
+}
+
+output "ids_private_ip_range_name" {
+  value = var.ids_private_ip_range_name
+}
+
+output "packet_mirroring_policy_name" {
+  value = var.packet_mirroring_policy_name
 }
