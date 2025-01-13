@@ -156,6 +156,9 @@ check-docs-blueprints:
     - cd tools
     - pip install click marko
     - python check_documentation.py blueprints
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 checkov-stages-aw:
   stage: test
