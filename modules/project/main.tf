@@ -45,8 +45,8 @@ resource "google_project" "project" {
   count               = var.project_create ? 1 : 0
   org_id              = local.parent_type == "organizations" ? local.parent_id : null
   folder_id           = local.parent_type == "folders" ? local.parent_id : null
-  project_id          = "${local.prefix}${var.name}"
-  name                = local.descriptive_name
+  project_id          = trimsuffix(replace(substr("${local.prefix}${var.name}", 0, 30), "_", "-"), "-")
+  name                = trimsuffix(replace(substr(local.descriptive_name, 0, 30), "_", "-"), "-")
   billing_account     = var.billing_account
   auto_create_network = var.auto_create_network
   labels              = var.labels

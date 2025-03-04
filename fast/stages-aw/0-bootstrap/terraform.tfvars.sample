@@ -54,7 +54,7 @@ fast_features = {
 }
 
 assured_workloads = {
-  regime = "compliance-regime" #"IL4, IL5, FEDRAMP_HIGH, etc..."
+  regime = "compliance-regime" #"IL4, IL5, FEDRAMP_HIGH, etc... if you wish to not use assured_workloads, set this value to NO_COMPLIANCE_REGIME"
   location = "us-east4"
 }
 

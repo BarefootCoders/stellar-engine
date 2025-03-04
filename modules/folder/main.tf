@@ -38,7 +38,7 @@ locals {
 
 resource "google_folder" "folder" {
   count               = var.folder_create && var.assured_workload_config == null ? 1 : 0
-  display_name        = var.name
+  display_name        = substr(var.name, 0, 30)
   parent              = var.parent
   deletion_protection = var.deletion_protection
 }

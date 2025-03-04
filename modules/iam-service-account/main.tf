@@ -71,7 +71,7 @@ data "google_service_account" "service_account" {
 resource "google_service_account" "service_account" {
   count        = var.service_account_create ? 1 : 0
   project      = var.project_id
-  account_id   = "${local.prefix}${local.name}"
+  account_id   = trimsuffix(replace(substr("${local.prefix}${local.name}", 0, 30), "_", "-"), "-")
   display_name = var.display_name
   description  = var.description
 }

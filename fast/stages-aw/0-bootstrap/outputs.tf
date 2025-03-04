@@ -111,7 +111,7 @@ locals {
         split("/", k)[1] => v.id
       }
     }
-    assured_workloads      = merge(var.assured_workloads, { "folder" : "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}" })
+    assured_workloads      = merge(var.assured_workloads, { "folder" = var.assured_workloads.regime != "NO_COMPLIANCE_REGIME" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}" })
     common_services_folder = module.branch-common-services-folder.folder.name
   }
 
@@ -132,7 +132,7 @@ output "alert_email" {
 
 output "assured_workload" {
   description = "Assured Workload folder for the deployment."
-  value       = "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}"
+  value       = var.assured_workloads.regime != "NO_COMPLIANCE_REGIME" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "folders/${module.no-compliance-folder[0].folder.id}"
 }
 
 output "automation" {
