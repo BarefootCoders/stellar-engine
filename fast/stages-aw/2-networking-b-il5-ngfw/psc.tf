@@ -5,7 +5,7 @@ resource "google_compute_global_address" "private_service_connect_ip" {
   name          = "default-peering"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
-  prefix_length = 24
+  prefix_length = 22
   network       = module.env-spoke-vpc[each.key].self_link
 }
 
