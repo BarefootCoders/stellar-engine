@@ -1,6 +1,6 @@
 # Gitlab Blueprint
 
-This blueprint is responsible for provisioning a production ready Gitlab instance on the landing zone infrastructure. The [reference architecture](https://docs.gitlab.com/ee/administration/reference_architectures/1k_users.html) of this deployment target 1K users, updates to the current code is required in of HA and/or higher capacity requirements.
+This blueprint is responsible for provisioning a production ready Gitlab Community Edition instance on the landing zone infrastructure. The [reference architecture](https://docs.gitlab.com/ee/administration/reference_architectures/1k_users.html) of this deployment target 1K users, updates to the current code is required in of HA and/or higher capacity requirements.
 
 The following diagram illustrates the high-level design of created resources, which can be adapted to specific requirements via variables:
 
@@ -247,7 +247,7 @@ if required and when the prompt appears, click on “confirm”.
 Otherwise, in your console of choice:
 
 ```bash
-git clone https://github.com/GoogleCloudPlatform/cloud-foundation-fabric
+git clone https://github.com/gcp-stellar-engine/stellar-engine.git
 ```
 
 Before you deploy the architecture, you will need at least the following
