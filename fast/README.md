@@ -1,4 +1,7 @@
-# Stellar Engine FAST
+# Stellar Engine FAST Security
+
+_Documenting the desired infrastructure state of the `/fast/stages-aw/3-security` Terraform codebase._
+
 Setting up a production-ready compliant Google Cloud organization is often a time-consuming process. Stellar Engine FAST has been adopted from the Cloud Foundation Fabric FAST, and aims to speed up this process via two complementary goals. On the one hand, FAST provides a design of a Google Cloud organization that includes the typical elements required by enterprise customers. Secondly, we provide a reference implementation of the FAST design using Terraform.
 
 Note that while our implementation is necessarily influenced (and constrained) by the way Terraform works, the design we put forward only refers to Google Cloud constructs and features. In other words, while we use Terraform for our reference implementation, in theory, the FAST design can be implemented using any other tool (e.g., Pulumi, bash scripts, or even calling the relevant APIs directly).
@@ -6,6 +9,18 @@ Note that while our implementation is necessarily influenced (and constrained) b
 Fabric FAST comes from engineers in Google Cloud's Professional Services Organization, with a combined experience of decades solving the typical technical problems faced by Google Cloud customers. While every Google Cloud user has specific requirements, many common issues arise repeatedly. Solving those issues correctly from the beginning is key to a robust and scalable Google Cloud setup. It's those common issues and their solutions that Fabric FAST aims to collect and present coherently.
 
 Fabric FAST was initially conceived to help enterprises quickly set up a GCP organization following battle-tested and widely-used patterns. Despite its origin in enterprise environments, FAST includes many customization points making it an ideal blueprint for organizations of all sizes, ranging from startups to the largest companies.
+
+<!-- BEGIN TOC --> 
+- [Stellar Engine FAST Security](#stellar-engine-fast-security)
+  - [Guiding principles](#guiding-principles)
+    - [Contracts and stages](#contracts-and-stages)
+    - [Security-first design](#security-first-design)
+    - [Extensive use of factories](#extensive-use-of-factories)
+    - [CI/CD](#cicd)
+  - [Implementation](#implementation)
+<!-- END TOC --> 
+
+---
 
 ## Guiding principles
 

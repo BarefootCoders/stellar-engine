@@ -1,6 +1,6 @@
 # Shared security resources and VPC Service Controls
 
-This stage sets up security resources and configurations which impact the whole organization, or are shared across the hierarchy to other projects and teams.
+This stage sets up security resources and configurations which impact the whole Google Cloud Organization, or are shared across the hierarchy to other projects and teams.
 
 The design of this stage is fairly general, providing
 
@@ -15,7 +15,10 @@ The following diagram illustrates the high-level design of created resources and
   <img src="diagram.png" alt="Security diagram">
 </p>
 
+# Table of Contents
+
 <!-- BEGIN TOC -->
+- [Table of Contents](#table-of-contents)
 - [Design overview and choices](#design-overview-and-choices)
   - [Cloud KMS](#cloud-kms)
   - [VPC Service Controls](#vpc-service-controls)
@@ -24,7 +27,7 @@ The following diagram illustrates the high-level design of created resources and
   - [Impersonating the automation service account](#impersonating-the-automation-service-account)
   - [Setting default project for manual run](#setting-default-project-for-manual-run)
   - [Variable configuration](#variable-configuration)
-  - [Using delayed billing association for projects](#using-delayed-billing-association-for-projects)
+  - [Using delayed billing association for Google Cloud Projects](#using-delayed-billing-association-for-google-cloud-projects)
   - [Running the stage](#running-the-stage)
   - [Disabling overpermissive service accounts](#disabling-overpermissive-service-accounts)
   - [Deleting the bootstrap project](#deleting-the-bootstrap-project)
@@ -38,9 +41,9 @@ The following diagram illustrates the high-level design of created resources and
 
 ## Design overview and choices
 
-Project-level security resources are grouped into two separate projects, one per environment. This setup matches requirements we frequently observe in real life and provides enough separation without needlessly complicating operations.
+Google Cloud Project level security resources are grouped into two separate Google Cloud Projects, one per environment. This setup matches requirements we frequently observe in real life and provides enough separation without needlessly complicating operations.
 
-Cloud KMS is configured and designed mainly to encrypt GCP resources with a [Customer-managed encryption key](https://cloud.google.com/kms/docs/cmek) but it may be used to create cryptokeys used to [encrypt application data](https://cloud.google.com/kms/docs/encrypting-application-data) too.
+Cloud KMS is configured and designed mainly to encrypt Google Cloud resources with a [Customer-managed encryption key](https://cloud.google.com/kms/docs/cmek) but it may be used to create cryptokeys used to [encrypt application data](https://cloud.google.com/kms/docs/encrypting-application-data) too.
 
 IAM for day to day operations is already assigned at the folder level to the security team by the previous stage, but more granularity can be added here at the project level, to grant control of separate services across environments to different actors.
 
@@ -48,13 +51,13 @@ IAM for day to day operations is already assigned at the folder level to the sec
 
 A reference Cloud KMS implementation is part of this stage, to provide a simple way of managing centralized keys, that are then shared and consumed widely across the organization to enable customer-managed encryption. The implementation is also easy to clone and modify to support other services like Secret Manager.
 
-The Cloud KMS configuration allows defining keys by name (typically matching the downstream service that uses them) in different locations. It then takes care internally of provisioning the relevant keyrings and creating keys in the appropriate location.
+The Cloud KMS configuration allows defining keys by name (typically matching the downstream service that uses them) in different locations. It then takes care internally of provisioning the relevant `keyrings` and creating keys in the appropriate location.
 
 IAM roles on keys can be configured at the logical level for all locations where a logical key is created. Their management can also be delegated via [delegated role grants](https://cloud.google.com/iam/docs/setting-limits-on-granting-roles) exposed through a simple variable, to allow other identities to set IAM policies on keys. This is particularly useful in setups like project factories, making it possible to configure IAM bindings during project creation for team groups or service agent accounts (compute, storage, etc.).
 
 ### VPC Service Controls
 
-This stage also provisions the VPC Service Controls configuration that protects the whole organization, implementing a simplified design that leverages a single perimeter and optionally provides automatic enrollment of projects in the perimeter.
+This stage also provisions the VPC Service Controls configuration that protects the whole Google Cloud Organization, implementing a simplified design that leverages a single perimeter and optionally provides automatic enrollment of Google Cloud Projects in the perimeter.
 
 The VPC SC configuration is controlled via the top-level `vpc_sc` variable, and is disabled by default unless `vpc_sc.perimeter_default` is populated. Access levels and ingress/egress policies can be defined in code via the respective `vpc_sc` variable attributes, or via YAML-based factories configured via the usual `factories_config` variable.
 
@@ -74,9 +77,11 @@ The commands to link or copy the provider and terraform variable files can be ea
 
 ```bash
 ../../stage-links.sh gs://xxx-prod-iac-core-outputs-0
+```
 
-# copy and paste the following commands for '3-security'
+_Copy and paste the following commands for '3-security'_
 
+```bash
 gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/providers/3-security-providers.tf ./
 gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/tfvars/0-globals.auto.tfvars.json ./
 gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/tfvars/0-bootstrap.auto.tfvars.json ./
@@ -89,7 +94,8 @@ The preconfigured provider file uses impersonation to run with this stage's auto
 
 Make sure the `network` service account has the `Service Usage Consumer` role.
 
-Find the network service account
+Find the network service account by changing directories to `1-resman` in order to run Terraform to query the values needed.
+
 ```bash
 cd ../1-resman/
 terraform output security
@@ -98,26 +104,34 @@ terraform output security
 And make sure it has the "Service Usage Consumer" role in the project that you are using to bootstrap.
 
 ### Setting default project for manual run
-**Important**: Before running this, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' project created in 0-bootstrap.
+
+**Important**: Before running this, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' Google Cloud Project created in 0-bootstrap.
+
 To find the 'automation' project,
+
 ```bash
-pushd ../0-bootstrap
+cd ../0-bootstrap
 terraform output project_ids
-popd
 ```
+
 And to set the gcloud project default in your CLI
 ```bash
 gcloud config set project <prefix>-prod-iac-core-0
 ```
 
+Now return to the Security directory.
+
+```bash
+cd ../3-security
+```
 
 ### Variable configuration
 
 Variables in this stage -- like most other FAST stages -- are broadly divided into three separate sets:
 
-- variables which refer to global values for the whole organization (org id, billing account id, prefix, etc.), which are pre-populated via the `0-globals.auto.tfvars.json` file linked or copied above
+- variables which refer to global values for the whole Google Cloud Organization (org id, billing account id, prefix, etc.), which are pre-populated via the `0-globals.auto.tfvars.json` file linked or copied above
 - variables which refer to resources managed by previous stages, which are prepopulated here via the `0-bootstrap.auto.tfvars.json` and `1-resman.auto.tfvars.json` files linked or copied above
-- and finally variables that optionally control this stage's behaviour and customizations, and can to be set in a custom `terraform.tfvars` file
+- and finally variables that optionally control this stage's behavior and customizations, and can to be set in a custom `terraform.tfvars` file
 
 The latter set is explained in the [Customization](#customizations) sections below, and the full list can be found in the [Variables](#variables) table at the bottom of this document.
 
@@ -127,7 +141,7 @@ Note that the `outputs_location` variable is disabled by default, you need to ex
 outputs_location = "~/fast-config"
 ```
 
-### Using delayed billing association for projects
+### Using delayed billing association for Google Cloud Projects
 
 This configuration is possible but unsupported and only exists for development purposes, use at your own risk:
 
@@ -137,7 +151,7 @@ This configuration is possible but unsupported and only exists for development p
     `terraform apply -target 'module.prod-sec-project.google_project.project[0]'`
   - untaint the project resource after applying, for example
     `terraform untaint 'module.prod-sec-project.google_project.project[0]'`
-- go through the process to associate the billing account with the two projects
+- go through the process to associate the billing account with the two Google Cloud Projects
 - switch `billing_account.id` back to the real billing account id
 - resume applying normally
 
@@ -147,6 +161,7 @@ Once provider and variable values are in place and the correct user is configure
 
 ```bash
 terraform init
+terraform plan
 terraform apply
 ```
 ### Disabling overpermissive service accounts
@@ -157,7 +172,8 @@ Each stage of this deployment uses service accounts with admin roles. Once the d
 ./sa_lockdown.sh
 ```
 
-You can also run this script with the following flags:
+You can also run this script with the following flags
+
 - enable: enables the service accounts instead of disabling them (useful if you would like to rerun a stage or make customizations).
 - sa: comma-separated list of service account names if you don't want to enable/disable all of them (possible values are: bootstrap, resman, networking, security).
 
@@ -166,7 +182,9 @@ You can also run this script with the following flags:
 ```
 
 Some common troubleshooting steps:
+
 - Ensure the file is executable by running
+  
 ```bash
 chmod +x sa_lockdown.sh
 ```
@@ -174,15 +192,17 @@ chmod +x sa_lockdown.sh
 
 ### Deleting the bootstrap project
 
-Once Stellar Engine has been deployed, the bootstrap project is no longer necessary. You can delete the bootstrap project by running the following script within the "3-security" directory.  Be sure to insert your appropriate boostrap Project ID.
+Once Stellar Engine has been deployed, the bootstrap Google Cloud Project is no longer necessary. You can delete the bootstrap Google Cloud Project by running the following script within the "3-security" directory.  Be sure to insert your appropriate boostrap Google Cloud Project ID.
 
 ```bash
 ./delete_gcp_project.sh --project-id=<bootstrap-project-id>
 ```
 
 Troubleshooting Steps
+
 - Ensure that you are authenticated with `gcloud auth login`
 - Ensure the file is executable by running
+
 ```bash
 chmod +x delete_gcp_project.sh
 ```
@@ -228,19 +248,19 @@ The script will create one keyring for each specified location and keys on each 
 
 The `vpc_sc` variable controls VPC-SC configuration and project auto-discovery via Cloud Asset Inventory. VPC-SC configuration can also leverage YAML factories via the `factories_config` variable. Both variables mostly pass through to the underlying [`vpc-sc` module](../../../modules/vpc-sc/), which serves as a reference for their individual types.
 
-The `vpc_sc` variable has the following attributes:
+The `vpc_sc` variable has the following attributes
 
 - `access_levels`, `egress_policies`, `ingress_policies` define the corresponding objects, internally merged with any data coming from the YAML factories
-- `perimeter_default` configures the single organization-wide perimeter by referencing access levels and policies by key, setting included projects, and allowing to turn on dry run mode
-- `resource_discovery` controls automatic discovery of projects via Asset Inventory, and allows defining inclusion and exclusions lists
+- `perimeter_default` configures the single organization-wide perimeter by referencing access levels and policies by key, setting included Google Cloud Projects, and allowing to turn on dry run mode
+- `resource_discovery` controls automatic discovery of Google Cloud Projects via Asset Inventory, and allows defining inclusion and exclusions lists
 
 A few things to note on the default perimeter
 
 - writer identities for sinks defined in the bootstrap stage are passed through via output files, and automatically included in an ingress policy
 - the perimeter is brought up in enforced mode by default
-- project discovery is turned on by default and includes all projects in the organization
+- Google Cloud Project discovery is turned on by default and includes all Google Cloud Projects in the Google Cloud Organization
 
-The following example configures the default perimeter, with a single broad geo-based access level. Refer to the [vpc-sc module](../../../modules/vpc-sc/) for details on how to configure ingress/egress policies, and how to leverage the YAML factories. The perimeter is set to enforced mode and leverages auto discovery of projects.
+The following example configures the default perimeter, with a single broad geo-based access level. Refer to the [vpc-sc module](../../../modules/vpc-sc/) for details on how to configure ingress/egress policies, and how to leverage the YAML factories. The perimeter is set to enforced mode and leverages auto discovery of Google Cloud Projects.
 
 The following YAML file leverages factories to configure the broad geo-based access level (the factory path can be changed via the `factories_config` variable):
 
@@ -267,9 +287,12 @@ vpc_sc = {
 
 ## Notes
 
-Some references that might be useful in setting up this stage:
+Some references that might be useful in setting up this stage
 
 - [VPC SC CSCC requirements](https://cloud.google.com/security-command-center/docs/troubleshooting).
+
+---
+
 <!-- BEGIN TFDOC -->
 ## Variables
 
