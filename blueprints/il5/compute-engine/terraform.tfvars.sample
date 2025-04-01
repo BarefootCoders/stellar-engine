@@ -9,8 +9,8 @@ zone                       = "us-east4-c"
 instance_name              = "compute-engine-name"
 instance_type              = "n2d-standard-2"
 
-kms_keyring                = "xxxx-xxxx-keyring"
-kms_key                    = "default"            # Must already exist
+kms_keyring = "xxxx-xxxx-keyring"
+kms_key     = "default"   # Must already exist
 
-network_name               = "xxxx-spoke-0"       # Must already exist
-subnetwork_name            = "default-us-east4"   # Must already exist
+network_name    = "xxxx-spoke-0"       # Must already exist
+subnetwork_name = "default-us-east4"   # Must already exist
