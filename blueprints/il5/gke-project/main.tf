@@ -125,10 +125,6 @@ module "cluster" {
     dataplane_v2          = true
     binary_authorization  = true
   }
-  private_cluster_config = {
-    enable_private_endpoint = var.gke_cluster_enable_private_endpoint
-    master_global_access    = var.gke_cluster_master_global_access
-  }
   depends_on = [module.vpc, module.kms]
 }
 

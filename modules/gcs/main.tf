@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,32 @@
  */
 
 locals {
+  _name        = "${local.prefix}${lower(var.name)}"
   prefix       = var.prefix == null ? "" : "${var.prefix}-"
   notification = try(var.notification_config.enabled, false)
   topic_create = try(var.notification_config.create_topic, null) != null
+  bucket = (
+    var.bucket_create ? {
+      name = try(google_storage_bucket.bucket[0].name, null)
+      id   = try(google_storage_bucket.bucket[0].id, null)
+      url  = try(google_storage_bucket.bucket[0].url, null)
+    }
+    : {
+      name = local._name
+      id   = local._name
+      url  = "gs://${local._name}"
+    }
+  )
+}
+
+moved {
+  from = google_storage_bucket.bucket
+  to   = google_storage_bucket.bucket[0]
 }
 
 resource "google_storage_bucket" "bucket" {
-  name                        = "${local.prefix}${lower(var.name)}"
+  count                       = var.bucket_create ? 1 : 0
+  name                        = local._name
   project                     = var.project_id
   location                    = var.location
   storage_class               = var.storage_class
@@ -29,6 +48,7 @@ resource "google_storage_bucket" "bucket" {
   uniform_bucket_level_access = var.uniform_bucket_level_access
   labels                      = var.labels
   default_event_based_hold    = var.default_event_based_hold
+  enable_object_retention     = var.enable_object_retention
   requester_pays              = var.requester_pays
   public_access_prevention    = var.public_access_prevention
   rpo                         = var.rpo
@@ -70,6 +90,14 @@ resource "google_storage_bucket" "bucket" {
 
     content {
       default_kms_key_name = var.encryption_key
+    }
+  }
+
+  dynamic "hierarchical_namespace" {
+    for_each = var.enable_hierarchical_namespace == null ? [] : [""]
+
+    content {
+      enabled = var.enable_hierarchical_namespace
     }
   }
 
@@ -133,7 +161,7 @@ resource "google_storage_bucket" "bucket" {
 resource "google_storage_bucket_object" "objects" {
   for_each = var.objects_to_upload
 
-  bucket              = google_storage_bucket.bucket.id
+  bucket              = local.bucket.id
   name                = each.value.name
   metadata            = each.value.metadata
   content             = each.value.content
@@ -161,7 +189,7 @@ resource "google_storage_bucket_object" "objects" {
 
 resource "google_storage_notification" "notification" {
   count          = local.notification ? 1 : 0
-  bucket         = google_storage_bucket.bucket.name
+  bucket         = local.bucket.name
   payload_format = var.notification_config.payload_format
   topic = try(
     google_pubsub_topic.topic[0].id, var.notification_config.topic_name

@@ -21,11 +21,12 @@ variable "admin_enabled" {
 }
 
 variable "dedicated_interconnect_config" {
-  description = "Partner interconnect configuration."
+  description = "Dedicated interconnect configuration."
   type = object({
     # Possible values @ https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_interconnect_attachment#bandwidth  
     bandwidth    = optional(string, "BPS_10G")
-    bgp_range    = optional(string, "169.254.128.0/29")
+    bgp_range    = optional(string)
+    bgp_priority = optional(number)
     interconnect = string
     vlan_tag     = string
   })
@@ -103,7 +104,7 @@ variable "router_config" {
     }))
     md5_authentication_key = optional(object({
       name = string
-      key  = string
+      key  = optional(string)
     }))
     keepalive = optional(number)
     name      = optional(string, "router")

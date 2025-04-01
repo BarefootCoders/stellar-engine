@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ locals {
       {
         for k, v in module.automation-service-accounts :
         k => v.iam_email
-      }
+      },
+      # module.service-accounts are excluded here, as adding them here results in dependency cycles
     )
   }
 }
@@ -41,6 +42,7 @@ module "projects" {
     local.context.folder_ids, each.value.parent, each.value.parent
   )
   prefix              = each.value.prefix
+  alerts              = try(each.value.alerts, null)
   auto_create_network = try(each.value.auto_create_network, false)
   compute_metadata    = try(each.value.compute_metadata, {})
   # TODO: concat lists for each key
@@ -49,57 +51,29 @@ module "projects" {
   )
   default_service_account = try(each.value.default_service_account, "keep")
   descriptive_name        = try(each.value.descriptive_name, null)
-  iam = {
-    for k, v in lookup(each.value, "iam", {}) : k => [
-      for vv in v : try(
-        # automation service account
-        local.context.iam_principals["${each.key}/${vv}"],
-        # other context
-        local.context.iam_principals[vv],
-        # passthrough
-        vv
-      )
-    ]
+  factories_config = {
+    custom_roles  = each.value.factories_config.custom_roles
+    observability = each.value.factories_config.observability
+    org_policies  = each.value.factories_config.org_policies
+    quotas        = each.value.factories_config.quotas
+    context = {
+      notification_channels = var.factories_config.context.notification_channels
+    }
   }
-  iam_bindings = {
-    for k, v in lookup(each.value, "iam_bindings", {}) : k => merge(v, {
-      members = [
-        for vv in v.members : try(
-          # automation service account
-          local.context.iam_principals["${each.key}/${vv}"],
-          # other context
-          local.context.iam_principals[vv],
-          # passthrough
-          vv
-        )
-      ]
-    })
-  }
-  iam_bindings_additive = {
-    for k, v in lookup(each.value, "iam_bindings_additive", {}) : k => merge(v, {
-      member = try(
-        # automation service account
-        local.context.iam_principals["${each.key}/${v.member}"],
-        # other context
-        local.context.iam_principals[v.member],
-        # passthrough
-        v.member
-      )
-    })
-  }
-  # IAM by principals would trigger dynamic key errors so we don't interpolate
-  iam_by_principals = try(each.value.iam_by_principals, {})
   labels = merge(
     each.value.labels, var.data_merges.labels
   )
   lien_reason         = try(each.value.lien_reason, null)
+  log_scopes          = try(each.value.log_scopes, null)
   logging_data_access = try(each.value.logging_data_access, {})
   logging_exclusions  = try(each.value.logging_exclusions, {})
+  logging_metrics     = try(each.value.logging_metrics, null)
   logging_sinks       = try(each.value.logging_sinks, {})
   metric_scopes = distinct(concat(
     each.value.metric_scopes, var.data_merges.metric_scopes
   ))
-  org_policies = each.value.org_policies
+  notification_channels = try(each.value.notification_channels, null)
+  org_policies          = each.value.org_policies
   service_encryption_key_ids = merge(
     each.value.service_encryption_key_ids,
     var.data_merges.service_encryption_key_ids
@@ -109,6 +83,82 @@ module "projects" {
     var.data_merges.services
   ))
   shared_vpc_host_config = each.value.shared_vpc_host_config
+  tag_bindings = {
+    for k, v in merge(each.value.tag_bindings, var.data_merges.tag_bindings) :
+    k => lookup(var.factories_config.context.tag_values, v, v)
+  }
+  vpc_sc = each.value.vpc_sc
+}
+
+module "projects-iam" {
+  source   = "../project"
+  for_each = local.projects
+  name     = module.projects[each.key].project_id
+  project_reuse = {
+    use_data_source = false
+    project_attributes = {
+      name             = module.projects[each.key].name
+      number           = module.projects[each.key].number
+      services_enabled = module.projects[each.key].services
+    }
+  }
+  iam = {
+    for k, v in lookup(each.value, "iam", {}) : k => [
+      for vv in v : try(
+        # project service accounts
+        module.service-accounts["${each.key}/${vv}"].iam_email,
+        # automation service account
+        local.context.iam_principals["${each.key}/${vv}"],
+        # other projects service accounts
+        module.service-accounts[vv].iam_email,
+        # other automation service account
+        local.context.iam_principals[vv],
+        # passthrough + error handling using tonumber until Terraform gets fail/raise function
+        strcontains(vv, ":") ? vv : tonumber("[Error] Invalid member: '${vv}' in project '${each.key}'")
+      )
+    ]
+  }
+  iam_bindings = {
+    for k, v in lookup(each.value, "iam_bindings", {}) : k => merge(v, {
+      members = [
+        for vv in v.members : try(
+          # project service accounts
+          module.service-accounts["${each.key}/${vv}"].iam_email,
+          # automation service account
+          local.context.iam_principals["${each.key}/${vv}"],
+          # other projects service accounts
+          module.service-accounts[vv].iam_email,
+          # other automation service account
+          local.context.iam_principals[vv],
+          # passthrough + error handling using tonumber until Terraform gets fail/raise function
+          strcontains(vv, ":") ? vv : tonumber("[Error] Invalid member: '${vv}' in project '${each.key}'")
+        )
+      ]
+    })
+  }
+  iam_bindings_additive = {
+    for k, v in lookup(each.value, "iam_bindings_additive", {}) : k => merge(v, {
+      member = try(
+        # project service accounts
+        module.service-accounts["${each.key}/${v.member}"].iam_email,
+        # automation service account
+        local.context.iam_principals["${each.key}/${v.member}"],
+        # other projects service accounts
+        module.service-accounts[v.member].iam_email,
+        # other automation service account
+        local.context.iam_principals[v.member],
+        # passthrough + error handling using tonumber until Terraform gets fail/raise function
+        strcontains(v.member, ":") ? v.member : tonumber("[Error] Invalid member: '${v.member}' in project '${each.key}'")
+      )
+    })
+  }
+  # IAM by principals would trigger dynamic key errors so we don't interpolate
+  iam_by_principals = try(each.value.iam_by_principals, {})
+  # Shared VPC configuration is done at stage 2, to avoid dependency cycle between project service accounts and
+  # IAM grants done for those service accounts
+  factories_config = {
+    custom_roles = each.value.factories_config.custom_roles
+  }
   shared_vpc_service_config = (
     try(each.value.shared_vpc_service_config.host_project, null) == null
     ? null
@@ -120,16 +170,96 @@ module "projects" {
       )
       network_users = [
         for v in try(each.value.shared_vpc_service_config.network_users, []) :
-        lookup(local.context.iam_principals, v, v)
+        try(
+          # project service accounts
+          module.service-accounts["${each.key}/${v}"].iam_email,
+          # automation service account
+          local.context.iam_principals["${each.key}/${v}"],
+          # other projects service accounts
+          module.service-accounts[v].iam_email,
+          # other automation service account
+          local.context.iam_principals[v],
+          # passthrough + error handling using tonumber until Terraform gets fail/raise function
+          strcontains(v, ":") ? v : tonumber("[Error] Invalid member: '${v}' in project '${each.key}'")
+        )
       ]
       # TODO: network subnet users
     })
   )
-  tag_bindings = {
-    for k, v in merge(each.value.tag_bindings, var.data_merges.tag_bindings) :
-    k => lookup(var.factories_config.context.tag_values, v, v)
+  # add service agents config, so Service Agents can be referred in the IAM grants
+  service_agents_config = {
+    grant_default_roles = false # Default roles are granted in module.project
   }
-  vpc_sc = each.value.vpc_sc
+}
+
+module "buckets" {
+  source = "../gcs"
+  for_each = {
+    for k in local.buckets : "${k.project}/${k.name}" => k
+  }
+  project_id     = module.projects[each.value.project].project_id
+  prefix         = each.value.prefix
+  name           = "${each.value.project}-${each.value.name}"
+  encryption_key = each.value.encryption_key
+  iam = {
+    for k, v in each.value.iam : k => [
+      for vv in v : try(
+        # project service accounts
+        module.service-accounts["${each.value.project}/${vv}"].iam_email,
+        # automation service account
+        local.context.iam_principals["${each.value.project}/${vv}"],
+        # other projects service accounts
+        module.service-accounts[vv].iam_email,
+        # other automation service account
+        local.context.iam_principals[vv],
+        # passthrough + error handling using tonumber until Terraform gets fail/raise function
+        strcontains(vv, ":") ? vv : tonumber("[Error] Invalid member: '${vv}' for bucket '${each.key}' in project '${each.value.project}'")
+      )
+    ]
+  }
+  iam_bindings = {
+    for k, v in each.value.iam_bindings : k => merge(v, {
+      members = [
+        for vv in v.members : try(
+          # project service accounts
+          module.service-accounts["${each.value.project}/${vv}"].iam_email,
+          # automation service account
+          local.context.iam_principals["${each.value.project}/${vv}"],
+          # other projects service accounts
+          module.service-accounts[vv].iam_email,
+          # other automation service account
+          local.context.iam_principals[vv],
+          # passthrough + error handling using tonumber until Terraform gets fail/raise function
+          strcontains(vv, ":") ? vv : tonumber("[Error] Invalid member: '${vv}' for bucket '${each.key}' in project '${each.value.project}'")
+        )
+      ]
+    })
+  }
+  iam_bindings_additive = {
+    for k, v in each.value.iam_bindings_additive : k => merge(v, {
+      member = try(
+        # project service accounts
+        module.service-accounts["${each.value.project}/${v.member}"].iam_email,
+        # automation service account
+        local.context.iam_principals["${each.value.project}/${v.member}"],
+        # other projects service accounts
+        module.service-accounts[v.member].iam_email,
+        # other automation service account
+        local.context.iam_principals[v.member],
+        # passthrough + error handling using tonumber until Terraform gets fail/raise function
+        strcontains(v.member, ":") ? v.member : tonumber("[Error] Invalid member: '${v.member}' for bucket '${each.key}' in project '${each.value.project}'")
+      )
+    })
+  }
+  labels = each.value.labels
+  location = coalesce(
+    var.data_overrides.storage_location,
+    lookup(each.value, "location", null),
+    var.data_defaults.storage_location
+  )
+  storage_class               = each.value.storage_class
+  uniform_bucket_level_access = each.value.uniform_bucket_level_access
+  versioning                  = each.value.versioning
 }
 
 module "service-accounts" {

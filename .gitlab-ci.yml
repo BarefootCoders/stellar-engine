@@ -24,7 +24,7 @@ stages:          # List of stages for jobs, and their order of execution
 stages-aw-formatting:
   stage: lint
   image:
-    name: hashicorp/terraform:1.9.2
+    name: hashicorp/terraform:1.11.1
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -38,7 +38,7 @@ stages-aw-formatting:
 blueprints-formatting:
   stage: lint
   image:
-    name: hashicorp/terraform:1.9.2
+    name: hashicorp/terraform:1.11.1
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -91,7 +91,7 @@ tflint-blueprints:
 validate-stages-aw:
   stage: test
   image:
-    name: hashicorp/terraform:1.9
+    name: hashicorp/terraform:1.11.1
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -107,7 +107,7 @@ validate-stages-aw:
 validate-blueprints:
   stage: test
   image:
-    name: hashicorp/terraform:1.9
+    name: hashicorp/terraform:1.11.1
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'

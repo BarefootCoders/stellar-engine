@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+variable "access_config" {
+  description = "Control plane endpoint and nodes access configurations."
+  type = object({
+    dns_access = optional(bool, true)
+    ip_access = optional(object({
+      authorized_ranges       = optional(map(string), {})
+      disable_public_endpoint = optional(bool, true)
+      private_endpoint_config = optional(object({
+        endpoint_subnetwork = optional(string)
+        global_access       = optional(bool, true)
+      }), {})
+    }), {})
+    private_nodes = optional(bool, true)
+  })
+  nullable = false
+  default  = {}
+  validation {
+    condition = (
+      try(var.access_config.ip_access.disable_public_endpoint, null) != true ||
+      var.access_config.private_nodes == true
+    )
+    error_message = "Private endpoint can only be enabled with private nodes."
+  }
+}
 
 variable "backup_configs" {
   description = "Configuration for Backup for GKE."
@@ -67,7 +92,7 @@ variable "enable_features" {
   type = object({
     beta_apis            = optional(list(string))
     binary_authorization = optional(bool, false)
-    cost_management      = optional(bool, false)
+    cost_management      = optional(bool, true)
     dns = optional(object({
       provider = optional(string)
       scope    = optional(string)
@@ -77,11 +102,12 @@ variable "enable_features" {
       state    = string
       key_name = string
     }))
-    gateway_api         = optional(bool, false)
-    groups_for_rbac     = optional(string)
-    l4_ilb_subsetting   = optional(bool, false)
-    mesh_certificates   = optional(bool)
-    pod_security_policy = optional(bool, false)
+    gateway_api           = optional(bool, false)
+    groups_for_rbac       = optional(string)
+    l4_ilb_subsetting     = optional(bool, false)
+    mesh_certificates     = optional(bool)
+    pod_security_policy   = optional(bool, false)
+    secret_manager_config = optional(bool)
     security_posture_config = optional(object({
       mode               = string
       vulnerability_mode = string
@@ -98,6 +124,7 @@ variable "enable_features" {
       topic_id = optional(string)
     }))
     vertical_pod_autoscaling = optional(bool, false)
+    enterprise_cluster       = optional(bool)
   })
   default = {}
 }
@@ -173,6 +200,7 @@ variable "monitoring_config" {
     enable_pod_metrics         = optional(bool, false)
     enable_statefulset_metrics = optional(bool, false)
     enable_storage_metrics     = optional(bool, false)
+    enable_cadvisor_metrics    = optional(bool, false)
     # Google Cloud Managed Service for Prometheus. Autopilot clusters version >= 1.25 must have this on.
     enable_managed_prometheus = optional(bool, true)
   })
@@ -186,6 +214,7 @@ variable "monitoring_config" {
       var.monitoring_config.enable_pod_metrics,
       var.monitoring_config.enable_statefulset_metrics,
       var.monitoring_config.enable_storage_metrics,
+      var.monitoring_config.enable_cadvisor_metrics,
     ]) ? var.monitoring_config.enable_managed_prometheus : true
     error_message = "Kube state metrics collection requires Google Cloud Managed Service for Prometheus to be enabled."
   }
@@ -199,11 +228,20 @@ variable "name" {
 variable "node_config" {
   description = "Configuration for nodes and nodepools."
   type = object({
-    boot_disk_kms_key = optional(string)
-    service_account   = optional(string)
-    tags              = optional(list(string))
+    boot_disk_kms_key             = optional(string)
+    service_account               = optional(string)
+    tags                          = optional(list(string))
+    workload_metadata_config_mode = optional(string)
   })
-  default = {}
+  default  = {}
+  nullable = false
+  validation {
+    condition = contains(
+      ["GCE_METADATA", "GKE_METADATA", "null"],
+      coalesce(var.node_config.workload_metadata_config_mode, "null")
+    )
+    error_message = "node_config.workload_metadata_config_mode must be GCE_METADATA or GKE_METADATA."
+  }
 }
 
 variable "node_locations" {
@@ -211,20 +249,6 @@ variable "node_locations" {
   type        = list(string)
   default     = []
   nullable    = false
-}
-
-variable "private_cluster_config" {
-  description = "Private cluster configuration."
-  type = object({
-    enable_private_endpoint = optional(bool)
-    master_global_access    = optional(bool)
-    peering_config = optional(object({
-      export_routes = optional(bool)
-      import_routes = optional(bool)
-      project_id    = optional(string)
-    }))
-  })
-  default = null
 }
 
 variable "project_id" {
@@ -246,11 +270,9 @@ variable "release_channel" {
 variable "vpc_config" {
   description = "VPC-level configuration."
   type = object({
-    disable_default_snat       = optional(bool)
-    network                    = string
-    subnetwork                 = string
-    master_ipv4_cidr_block     = optional(string)
-    master_endpoint_subnetwork = optional(string)
+    disable_default_snat = optional(bool)
+    network              = string
+    subnetwork           = string
     secondary_range_blocks = optional(object({
       pods     = string
       services = string
@@ -259,9 +281,8 @@ variable "vpc_config" {
       pods     = optional(string)
       services = optional(string)
     }))
-    additional_ranges        = optional(list(string))
-    master_authorized_ranges = optional(map(string))
-    stack_type               = optional(string)
+    additional_ranges = optional(list(string))
+    stack_type        = optional(string)
   })
   nullable = false
 }

@@ -194,7 +194,8 @@ variable "network_config" {
           replica = optional(string)
         }))
       }))
-      psc_allowed_consumer_projects = optional(list(string))
+      psc_allowed_consumer_projects    = optional(list(string))
+      enable_private_path_for_services = optional(bool, false)
     })
   })
   validation {
@@ -203,6 +204,19 @@ variable "network_config" {
   }
 }
 
+variable "password_validation_policy" {
+  description = "Password validation policy configuration for instances."
+  type = object({
+    enabled = optional(bool, true)
+    # change interval is only supported for postgresql
+    change_interval             = optional(number)
+    default_complexity          = optional(bool)
+    disallow_username_substring = optional(bool)
+    min_length                  = optional(number)
+    reuse_interval              = optional(number)
+  })
+  default = null
+}
 
 variable "prefix" {
   description = "Optional prefix used to generate instance names."
@@ -230,13 +244,22 @@ variable "replicas" {
     region              = string
     encryption_key_name = optional(string)
   }))
-  default = {}
+  default  = {}
+  nullable = false
 }
 
 variable "root_password" {
-  description = "Root password of the Cloud SQL instance. Required for MS SQL Server."
-  type        = string
-  default     = null
+  description = "Root password of the Cloud SQL instance, or flag to create a random password. Required for MS SQL Server."
+  type = object({
+    password        = optional(string)
+    random_password = optional(bool, false)
+  })
+  default  = {}
+  nullable = false
+  validation {
+    condition     = !(var.root_password.password != null && var.root_password.random_password)
+    error_message = "Cannot provide root_password.password and root_password.random_password at the same time"
+  }
 }
 
 variable "ssl" {
@@ -244,13 +267,13 @@ variable "ssl" {
   type = object({
     client_certificates = optional(list(string))
     # More details @ https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/sql_database_instance#ssl_mode
-    ssl_mode = optional(string)
+    mode = optional(string)
   })
   default  = {}
   nullable = false
   validation {
-    condition     = var.ssl.ssl_mode == null || var.ssl.ssl_mode == "ALLOW_UNENCRYPTED_AND_ENCRYPTED" || var.ssl.ssl_mode == "ENCRYPTED_ONLY" || var.ssl.ssl_mode == "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"
-    error_message = "The variable ssl_mode can be ALLOW_UNENCRYPTED_AND_ENCRYPTED, ENCRYPTED_ONLY for all, or TRUSTED_CLIENT_CERTIFICATE_REQUIRED for PostgreSQL or MySQL."
+    condition     = var.ssl.mode == null || var.ssl.mode == "ALLOW_UNENCRYPTED_AND_ENCRYPTED" || var.ssl.mode == "ENCRYPTED_ONLY" || var.ssl.mode == "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"
+    error_message = "The variable mode can be ALLOW_UNENCRYPTED_AND_ENCRYPTED, ENCRYPTED_ONLY for all, or TRUSTED_CLIENT_CERTIFICATE_REQUIRED for PostgreSQL or MySQL."
   }
 }
 

@@ -55,7 +55,6 @@ module "cloud_run" {
       }
     }
   }
-  binary_authorization_default = true
-  service_account              = google_service_account.cloud_run_service_account.email
-  deletion_protection          = false
+  service_account     = google_service_account.cloud_run_service_account.email
+  deletion_protection = false
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,37 @@ locals {
         try(v.contacts, null),
         var.data_defaults.contacts
       )
+      factories_config = {
+        custom_roles = try(
+          coalesce(
+            var.data_overrides.factories_config.custom_roles,
+            try(v.factories_config.custom_roles, null),
+            var.data_defaults.factories_config.custom_roles
+          ),
+          null
+        )
+        observability = try(
+          coalesce(
+            var.data_overrides.factories_config.observability,
+            try(v.factories_config.observability, null),
+            var.data_defaults.factories_config.observability
+          ),
+        null)
+        org_policies = try(
+          coalesce(
+            var.data_overrides.factories_config.org_policies,
+            try(v.factories_config.org_policies, null),
+            var.data_defaults.factories_config.org_policies
+          ),
+        null)
+        quotas = try(
+          coalesce(
+            var.data_overrides.factories_config.quotas,
+            try(v.factories_config.quotas, null),
+            var.data_defaults.factories_config.quotas
+          ),
+        null)
+      }
       labels = coalesce(
         try(v.labels, null),
         var.data_defaults.labels
@@ -99,6 +130,7 @@ locals {
         try(v.shared_vpc_service_config, null) != null
         ? merge(
           {
+            host_project             = null
             network_users            = []
             service_agent_iam        = {}
             service_agent_subnet_iam = {}
@@ -120,6 +152,7 @@ locals {
         : (
           try(v.vpc_sc, null) != null
           ? merge({
+            perimeter_name    = null
             perimeter_bridges = []
             is_dry_run        = false
           }, v.vpc_sc)
@@ -127,12 +160,45 @@ locals {
         )
       )
       logging_data_access = coalesce(
-        var.data_overrides.logging_data_access
+        var.data_overrides.logging_data_access,
+        try(v.logging_data_access, null),
+        var.data_defaults.logging_data_access
       )
       # non-project resources
+      buckets          = try(v.buckets, {})
       service_accounts = try(v.service_accounts, {})
     })
   }
+  buckets = flatten([
+    for k, v in local.projects : [
+      for name, opts in v.buckets : {
+        project               = k
+        name                  = name
+        description           = lookup(opts, "description", "Terraform-managed.")
+        encryption_key        = lookup(opts, "encryption_key", null)
+        iam                   = lookup(opts, "iam", {})
+        iam_bindings          = lookup(opts, "iam_bindings", {})
+        iam_bindings_additive = lookup(opts, "iam_bindings_additive", {})
+        labels                = lookup(opts, "labels", {})
+        location              = lookup(opts, "location", null)
+        prefix = coalesce(
+          var.data_overrides.prefix,
+          try(v.prefix, null),
+          var.data_defaults.prefix
+        )
+        storage_class = lookup(
+          opts, "storage_class", "STANDARD"
+        )
+        uniform_bucket_level_access = lookup(
+          opts, "uniform_bucket_level_access", true
+        )
+        versioning = lookup(
+          opts, "versioning", false
+        )
+
+      }
+    ]
+  ])
   service_accounts = flatten([
     for k, v in local.projects : [
       for name, opts in v.service_accounts : {

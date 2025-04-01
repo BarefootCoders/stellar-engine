@@ -153,6 +153,35 @@ variable "encryption" {
   default = null
 }
 
+variable "gpu" {
+  description = "GPU information. Based on https://cloud.google.com/compute/docs/gpus."
+  type = object({
+    count = number
+    type  = string
+  })
+  default = null
+
+  validation {
+    condition = (
+      var.gpu == null ||
+      contains(
+        [
+          "nvidia-tesla-a100",
+          "nvidia-tesla-p100",
+          "nvidia-tesla-v100",
+          "nvidia-tesla-k80",
+          "nvidia-tesla-p4",
+          "nvidia-tesla-t4",
+          "nvidia-l4",
+          "nvidia-a2"
+        ],
+        try(var.gpu.type, "-")
+      )
+    )
+    error_message = "GPU type must be one of the allowed values: nvidia-tesla-a100, nvidia-tesla-p100, nvidia-tesla-v100, nvidia-tesla-k80, nvidia-tesla-p4, nvidia-tesla-t4, nvidia-l4, nvidia-a2."
+  }
+}
+
 variable "group" {
   description = "Define this variable to create an instance group for instances. Disabled for template use."
   type = object({
@@ -263,6 +292,14 @@ variable "network_interfaces" {
 variable "options" {
   description = "Instance options."
   type = object({
+    advanced_machine_features = optional(object({
+      enable_nested_virtualization = optional(bool)
+      enable_turbo_mode            = optional(bool)
+      enable_uefi_networking       = optional(bool)
+      performance_monitoring_unit  = optional(string)
+      threads_per_core             = optional(number)
+      visible_core_count           = optional(number)
+    }))
     allow_stopping_for_update = optional(bool, true)
     deletion_protection       = optional(bool, false)
     max_run_duration = optional(object({
@@ -283,10 +320,25 @@ variable "options" {
     termination_action        = null
   }
   validation {
-    condition = (var.options.termination_action == null
+    condition = (
+      var.options.termination_action == null
       ||
-    contains(["STOP", "DELETE"], coalesce(var.options.termination_action, "1")))
+      contains(["STOP", "DELETE"], coalesce(var.options.termination_action, "1"))
+    )
     error_message = "Allowed values for options.termination_action are 'STOP', 'DELETE' and null."
+  }
+  validation {
+    condition = (
+      try(var.options.advanced_machine_features.performance_monitoring_unit, null) == null
+      ||
+      contains(["ARCHITECTURAL", "ENHANCED", "STANDARD"], coalesce(
+        try(
+          var.options.advanced_machine_features.performance_monitoring_unit, null
+        ), "-"
+        )
+      )
+    )
+    error_message = "Allowed values for options.advanced_machine_features.performance_monitoring_unit are ARCHITECTURAL', 'ENHANCED', 'STANDARD' and null."
   }
 }
 
@@ -392,3 +444,5 @@ variable "zone" {
   description = "Compute zone."
   type        = string
 }
+
+

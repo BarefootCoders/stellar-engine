@@ -83,7 +83,6 @@ module "project" {
   name            = var.project_config.project_id
   parent          = var.project_config.parent
   billing_account = var.project_config.billing_account_id
-  project_create  = var.project_config.billing_account_id != null
   iam_bindings_additive = {
     # we manage aiplatform.user additively since it is also granted to
     # the vertex-shtune service agent by the project module

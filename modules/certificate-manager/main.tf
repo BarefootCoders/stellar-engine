@@ -45,9 +45,13 @@ resource "google_certificate_manager_certificate" "certificates" {
   dynamic "managed" {
     for_each = each.value.managed == null ? [] : [""]
     content {
-      domains            = each.value.managed.domains
-      dns_authorizations = each.value.managed.dns_authorizations
-      issuance_config    = each.value.managed.issuance_config
+      domains = each.value.managed.domains
+      dns_authorizations = each.value.managed.dns_authorizations != null ? [
+        for v in each.value.managed.dns_authorizations : (
+          google_certificate_manager_dns_authorization.dns_authorizations[v].id
+        )
+      ] : null
+      issuance_config = try(google_certificate_manager_certificate_issuance_config.default[each.value.managed.issuance_config].id, null)
     }
   }
   dynamic "self_managed" {
@@ -80,6 +84,7 @@ resource "google_certificate_manager_certificate_issuance_config" "default" {
     }
   }
   lifetime                   = each.value.lifetime
+  location                   = each.value.location
   rotation_window_percentage = each.value.rotation_window_percentage
   key_algorithm              = each.value.key_algorithm
   labels                     = each.value.labels

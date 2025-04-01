@@ -18,30 +18,31 @@ locals {
   prefix       = var.prefix == null ? "" : "${var.prefix}-"
   is_mysql     = can(regex("^MYSQL", var.database_version))
   is_postgres  = can(regex("^POSTGRES", var.database_version))
-  has_replicas = try(length(var.replicas) > 0, false)
+  has_replicas = length(var.replicas) > 0
   is_regional  = var.availability_type == "REGIONAL" ? true : false
-
-  // Enable backup if the user asks for it or if the user is deploying
-  // MySQL in HA configuration (regional or with specified replicas)
-  enable_backup = var.backup_configuration.enabled || (local.is_mysql && local.has_replicas) || (local.is_mysql && local.is_regional)
-
+  # enable backup if the user asks for it or if the user is deploying
+  # MySQL in HA configuration (regional or with specified replicas)
+  enable_backup = (
+    var.backup_configuration.enabled ||
+    (local.is_mysql && local.has_replicas) ||
+    (local.is_mysql && local.is_regional)
+  )
   users = {
-    for k, v in coalesce(var.users, {}) :
-    k =>
-    local.is_mysql ?
-    {
-      name     = try(v.type, "BUILT_IN") == "BUILT_IN" ? split("@", k)[0] : k
-      host     = try(v.type, "BUILT_IN") == "BUILT_IN" ? try(split("@", k)[1], null) : null
-      password = try(v.type, "BUILT_IN") == "BUILT_IN" ? try(random_password.passwords[k].result, v.password) : null
-      type     = try(v.type, "BUILT_IN")
-      } : {
+    for k, v in coalesce(var.users, {}) : k =>
+    local.is_mysql
+    ? {
+      name     = coalesce(v.type, "BUILT_IN") == "BUILT_IN" ? split("@", k)[0] : k
+      host     = coalesce(v.type, "BUILT_IN") == "BUILT_IN" ? try(split("@", k)[1], null) : null
+      password = coalesce(v.type, "BUILT_IN") == "BUILT_IN" ? try(random_password.passwords[k].result, v.password) : null
+      type     = coalesce(v.type, "BUILT_IN")
+    }
+    : {
       name     = local.is_postgres ? try(trimsuffix(k, ".gserviceaccount.com"), k) : k
       host     = null
-      password = try(v.type, "BUILT_IN") == "BUILT_IN" ? try(random_password.passwords[k].result, v.password) : null
-      type     = try(v.type, "BUILT_IN")
+      password = coalesce(v.type, "BUILT_IN") == "BUILT_IN" ? try(random_password.passwords[k].result, v.password) : null
+      type     = coalesce(v.type, "BUILT_IN")
     }
   }
-
 }
 
 resource "google_sql_database_instance" "primary" {
@@ -51,7 +52,7 @@ resource "google_sql_database_instance" "primary" {
   region              = var.region
   database_version    = var.database_version
   encryption_key_name = var.encryption_key_name
-  root_password       = var.root_password
+  root_password       = var.root_password.random_password ? random_password.root_password[0].result : var.root_password.password
 
   settings {
     tier                        = var.tier
@@ -69,12 +70,23 @@ resource "google_sql_database_instance" "primary" {
     time_zone                   = var.time_zone
 
     ip_configuration {
-      ipv4_enabled       = var.network_config.connectivity.public_ipv4
-      private_network    = try(var.network_config.connectivity.psa_config.private_network, null)
-      allocated_ip_range = try(var.network_config.connectivity.psa_config.allocated_ip_ranges.primary, null)
-      ssl_mode           = var.ssl.ssl_mode
+      ipv4_enabled = var.network_config.connectivity.public_ipv4
+      private_network = try(
+        var.network_config.connectivity.psa_config.private_network, null
+      )
+      allocated_ip_range = try(
+        var.network_config.connectivity.psa_config.allocated_ip_ranges.primary, null
+      )
+      ssl_mode = var.ssl.mode
+      enable_private_path_for_google_cloud_services = (
+        var.network_config.connectivity.enable_private_path_for_services
+      )
       dynamic "authorized_networks" {
-        for_each = var.network_config.authorized_networks != null ? var.network_config.authorized_networks : {}
+        for_each = (
+          var.network_config.authorized_networks != null
+          ? var.network_config.authorized_networks
+          : {}
+        )
         iterator = network
         content {
           name  = network.key
@@ -82,10 +94,16 @@ resource "google_sql_database_instance" "primary" {
         }
       }
       dynamic "psc_config" {
-        for_each = var.network_config.connectivity.psc_allowed_consumer_projects != null ? [""] : []
+        for_each = (
+          var.network_config.connectivity.psc_allowed_consumer_projects != null
+          ? [""]
+          : []
+        )
         content {
-          psc_enabled               = true
-          allowed_consumer_projects = var.network_config.connectivity.psc_allowed_consumer_projects
+          psc_enabled = true
+          allowed_consumer_projects = (
+            var.network_config.connectivity.psc_allowed_consumer_projects
+          )
         }
       }
     }
@@ -94,7 +112,6 @@ resource "google_sql_database_instance" "primary" {
       for_each = local.enable_backup ? { 1 = 1 } : {}
       content {
         enabled = true
-
         // enable binary log if the user asks for it or we have replicas (default in regional),
         // but only for MySQL
         binary_log_enabled = (
@@ -102,10 +119,14 @@ resource "google_sql_database_instance" "primary" {
           ? var.backup_configuration.binary_log_enabled || local.has_replicas || local.is_regional
           : null
         )
-        start_time                     = var.backup_configuration.start_time
-        location                       = var.backup_configuration.location
-        point_in_time_recovery_enabled = var.backup_configuration.point_in_time_recovery_enabled
-        transaction_log_retention_days = var.backup_configuration.log_retention_days
+        start_time = var.backup_configuration.start_time
+        location   = var.backup_configuration.location
+        point_in_time_recovery_enabled = (
+          var.backup_configuration.point_in_time_recovery_enabled
+        )
+        transaction_log_retention_days = (
+          var.backup_configuration.log_retention_days
+        )
         backup_retention_settings {
           retained_backups = var.backup_configuration.retention_count
           retention_unit   = "COUNT"
@@ -157,6 +178,28 @@ resource "google_sql_database_instance" "primary" {
         update_track = var.maintenance_config.maintenance_window.update_track
       }
     }
+
+    dynamic "password_validation_policy" {
+      for_each = var.password_validation_policy != null ? [""] : []
+      content {
+        complexity = (
+          var.password_validation_policy.default_complexity == true
+          ? "COMPLEXITY_DEFAULT"
+          : null # "COMPLEXITY_UNSPECIFIED" generates a permadiff
+        )
+        disallow_username_substring = (
+          var.password_validation_policy.disallow_username_substring
+        )
+        enable_password_policy = var.password_validation_policy.enabled
+        min_length             = var.password_validation_policy.min_length
+        password_change_interval = (
+          var.password_validation_policy.change_interval == null
+          ? null
+          : "${var.password_validation_policy.change_interval}s"
+        )
+        reuse_interval = var.password_validation_policy.reuse_interval
+      }
+    }
   }
   deletion_protection = var.terraform_deletion_protection
 }
@@ -173,20 +216,40 @@ resource "google_sql_database_instance" "replicas" {
 
   settings {
     tier                        = var.tier
+    edition                     = var.edition
     deletion_protection_enabled = var.gcp_deletion_protection
     disk_autoresize             = var.disk_size == null
+    disk_autoresize_limit       = var.disk_autoresize_limit
     disk_size                   = var.disk_size
     disk_type                   = var.disk_type
     # availability_type = var.availability_type
-    user_labels       = var.labels
-    activation_policy = var.activation_policy
+    user_labels           = var.labels
+    activation_policy     = var.activation_policy
+    collation             = var.collation
+    connector_enforcement = var.connector_enforcement
+    time_zone             = var.time_zone
+
 
     ip_configuration {
-      ipv4_enabled       = var.network_config.connectivity.public_ipv4
-      private_network    = try(var.network_config.connectivity.psa_config.private_network, null)
-      allocated_ip_range = try(var.network_config.connectivity.psa_config.allocated_ip_ranges.replica, null)
+      ipv4_enabled = (
+        var.network_config.connectivity.public_ipv4
+      )
+      private_network = (
+        try(var.network_config.connectivity.psa_config.private_network, null)
+      )
+      allocated_ip_range = try(
+        var.network_config.connectivity.psa_config.allocated_ip_ranges.replica, null
+      )
+      ssl_mode = var.ssl.mode
+      enable_private_path_for_google_cloud_services = (
+        var.network_config.connectivity.enable_private_path_for_services
+      )
       dynamic "authorized_networks" {
-        for_each = var.network_config.authorized_networks != null ? var.network_config.authorized_networks : {}
+        for_each = (
+          var.network_config.authorized_networks != null
+          ? var.network_config.authorized_networks
+          : {}
+        )
         iterator = network
         content {
           name  = network.key
@@ -194,10 +257,16 @@ resource "google_sql_database_instance" "replicas" {
         }
       }
       dynamic "psc_config" {
-        for_each = var.network_config.connectivity.psc_allowed_consumer_projects != null ? [""] : []
+        for_each = (
+          var.network_config.connectivity.psc_allowed_consumer_projects != null
+          ? [""]
+          : []
+        )
         content {
-          psc_enabled               = true
-          allowed_consumer_projects = var.network_config.connectivity.psc_allowed_consumer_projects
+          psc_enabled = true
+          allowed_consumer_projects = (
+            var.network_config.connectivity.psc_allowed_consumer_projects
+          )
         }
       }
     }
@@ -227,8 +296,22 @@ resource "random_password" "passwords" {
     k
     if v.password == null
   ])
-  length  = 16
-  special = true
+  length      = try(var.password_validation_policy.min_length, 16)
+  special     = true
+  min_lower   = 1
+  min_numeric = 1
+  min_special = 1
+  min_upper   = 1
+}
+
+resource "random_password" "root_password" {
+  count       = var.root_password.random_password ? 1 : 0
+  length      = try(var.password_validation_policy.min_length, 16)
+  special     = true
+  min_lower   = 1
+  min_numeric = 1
+  min_special = 1
+  min_upper   = 1
 }
 
 resource "google_sql_user" "users" {
@@ -247,7 +330,11 @@ moved {
 }
 
 resource "google_sql_ssl_cert" "client_certificates" {
-  for_each    = var.ssl.client_certificates != null ? toset(var.ssl.client_certificates) : toset([])
+  for_each = (
+    var.ssl.client_certificates != null
+    ? toset(var.ssl.client_certificates)
+    : toset([])
+  )
   provider    = google-beta
   project     = var.project_id
   instance    = google_sql_database_instance.primary.name

@@ -15,6 +15,7 @@
  */
 
 locals {
+  advanced_mf = var.options.advanced_machine_features
   attached_disks = {
     for disk in var.attached_disks :
     (disk.name != null ? disk.name : disk.device_name) => merge(disk, {
@@ -30,11 +31,12 @@ locals {
     k => v if try(v.options.replica_zone, null) == null
   }
   on_host_maintenance = (
-    var.options.spot || var.confidential_compute
+    var.options.spot || var.confidential_compute || local.gpu
     ? "TERMINATE"
     : "MIGRATE"
   )
   region = join("-", slice(split("-", var.zone), 0, 2))
+  gpu    = var.gpu != null
   service_account = var.service_account == null ? null : {
     email = (
       var.service_account.auto_create
@@ -163,6 +165,20 @@ resource "google_compute_instance" "default" {
   labels                    = var.labels
   metadata                  = var.metadata
   resource_policies         = local.ischedule_attach
+
+  dynamic "advanced_machine_features" {
+    for_each = local.advanced_mf != null ? [""] : []
+    content {
+      enable_nested_virtualization = local.advanced_mf.enable_nested_virtualization
+      enable_uefi_networking       = local.advanced_mf.enable_uefi_networking
+      performance_monitoring_unit  = local.advanced_mf.performance_monitoring_unit
+      threads_per_core             = local.advanced_mf.threads_per_core
+      turbo_mode = (
+        local.advanced_mf.enable_turbo_mode ? "ALL_CORE_MAX" : null
+      )
+      visible_core_count = local.advanced_mf.visible_core_count
+    }
+  }
 
   dynamic "attached_disk" {
     for_each = local.attached_disks_zonal
@@ -333,6 +349,14 @@ resource "google_compute_instance" "default" {
       resource_manager_tags = local.tags_combined
     }
   }
+
+  dynamic "guest_accelerator" {
+    for_each = local.gpu ? [var.gpu] : []
+    content {
+      type  = guest_accelerator.value.type
+      count = guest_accelerator.value.count
+    }
+  }
 }
 
 resource "google_compute_instance_iam_binding" "default" {
@@ -360,6 +384,20 @@ resource "google_compute_instance_template" "default" {
   labels                = var.labels
   resource_manager_tags = local.tags_combined
 
+  dynamic "advanced_machine_features" {
+    for_each = local.advanced_mf != null ? [""] : []
+    content {
+      enable_nested_virtualization = local.advanced_mf.enable_nested_virtualization
+      enable_uefi_networking       = local.advanced_mf.enable_uefi_networking
+      performance_monitoring_unit  = local.advanced_mf.performance_monitoring_unit
+      threads_per_core             = local.advanced_mf.threads_per_core
+      turbo_mode = (
+        local.advanced_mf.enable_turbo_mode ? "ALL_CORE_MAX" : null
+      )
+      visible_core_count = local.advanced_mf.visible_core_count
+    }
+  }
+
   disk {
     auto_delete           = var.boot_disk.auto_delete
     boot                  = true
@@ -367,6 +405,13 @@ resource "google_compute_instance_template" "default" {
     disk_type             = var.boot_disk.initialize_params.type
     resource_manager_tags = var.tag_bindings
     source_image          = var.boot_disk.initialize_params.image
+
+    dynamic "disk_encryption_key" {
+      for_each = var.encryption != null ? [""] : []
+      content {
+        kms_key_self_link = var.encryption.kms_key_self_link
+      }
+    }
   }
 
   dynamic "confidential_instance_config" {
@@ -376,6 +421,13 @@ resource "google_compute_instance_template" "default" {
     }
   }
 
+  dynamic "guest_accelerator" {
+    for_each = local.gpu ? [var.gpu] : []
+    content {
+      type  = guest_accelerator.value.type
+      count = guest_accelerator.value.count
+    }
+  }
   dynamic "disk" {
     for_each = local.attached_disks
     iterator = config

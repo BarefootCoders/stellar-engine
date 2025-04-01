@@ -19,6 +19,14 @@
 variable "urlmap_config" {
   description = "The URL map configuration."
   type = object({
+    default_custom_error_response_policy = optional(object({
+      error_service = optional(string)
+      error_response_rules = optional(list(object({
+        match_response_codes   = optional(list(string))
+        path                   = optional(string)
+        override_response_code = optional(number)
+      })))
+    }))
     default_route_action = optional(object({
       request_mirror_backend = optional(string)
       cors_policy = optional(object({
@@ -57,8 +65,9 @@ variable "urlmap_config" {
         nanos   = optional(number)
       }))
       url_rewrite = optional(object({
-        host        = optional(string)
-        path_prefix = optional(string)
+        host          = optional(string)
+        path_prefix   = optional(string)
+        path_template = optional(string)
       }))
       weighted_backend_services = optional(map(object({
         weight = number
@@ -104,6 +113,14 @@ variable "urlmap_config" {
     })))
     path_matchers = optional(map(object({
       description = optional(string)
+      default_custom_error_response_policy = optional(object({
+        error_service = optional(string)
+        error_response_rules = optional(list(object({
+          match_response_codes   = optional(list(string))
+          path                   = optional(string)
+          override_response_code = optional(number)
+        })))
+      }))
       default_route_action = optional(object({
         request_mirror_backend = optional(string)
         cors_policy = optional(object({
@@ -185,6 +202,14 @@ variable "urlmap_config" {
       path_rules = optional(list(object({
         paths   = list(string)
         service = optional(string)
+        custom_error_response_policy = optional(object({
+          error_service = optional(string)
+          error_response_rules = optional(list(object({
+            match_response_codes   = optional(list(string))
+            path                   = optional(string)
+            override_response_code = optional(number)
+          })))
+        }))
         route_action = optional(object({
           request_mirror_backend = optional(string)
           cors_policy = optional(object({
@@ -271,7 +296,7 @@ variable "urlmap_config" {
           headers = optional(list(object({
             name         = string
             invert_match = optional(bool, false)
-            type         = optional(string, "present") # exact, prefix, suffix, regex, present, range
+            type         = optional(string, "present") # exact, prefix, suffix, regex, present, range, template
             value        = optional(string)
             range_value = optional(object({
               end   = string
@@ -330,8 +355,9 @@ variable "urlmap_config" {
             nanos   = optional(number)
           }))
           url_rewrite = optional(object({
-            host        = optional(string)
-            path_prefix = optional(string)
+            host          = optional(string)
+            path_prefix   = optional(string)
+            path_template = optional(string)
           }))
           weighted_backend_services = optional(map(object({
             weight = number

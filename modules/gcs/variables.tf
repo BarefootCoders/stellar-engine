@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,12 @@ variable "autoclass" {
   description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. Defaults to false."
   type        = bool
   default     = null
+}
+
+variable "bucket_create" {
+  description = "Create bucket."
+  type        = bool
+  default     = true
 }
 
 variable "cors" {
@@ -39,6 +45,18 @@ variable "custom_placement_config" {
 
 variable "default_event_based_hold" {
   description = "Enable event based hold to new objects added to specific bucket, defaults to false."
+  type        = bool
+  default     = null
+}
+
+variable "enable_hierarchical_namespace" {
+  description = "Enables hierarchical namespace."
+  type        = bool
+  default     = null
+}
+
+variable "enable_object_retention" {
+  description = "Enables object retention on a storage bucket."
   type        = bool
   default     = null
 }
@@ -156,7 +174,11 @@ variable "lifecycle_rules" {
 variable "location" {
   description = "Bucket location."
   type        = string
-  default     = "US"
+  default     = null
+  validation {
+    condition     = ((var.bucket_create == true) == (var.location != null))
+    error_message = "Bucket location is required if and only if bucket_create is true."
+  }
 }
 
 variable "logging_config" {
