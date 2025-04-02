@@ -41,7 +41,7 @@ module "tenant-top-folders" {
   source   = "../../../modules/folder"
   for_each = local.tenant_envs
   parent   = module.branch-envs-folders[each.value.env].id
-  name     = "Project ${each.value.tenant} ${each.value.env}"
+  name     = "Project ${each.value.tenant}"
   iam_by_principals = {
     (each.value.tenant_info.admin_principal) = ["roles/browser"]
   }
