@@ -1,0 +1,124 @@
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
+resource "google_project_service" "cloud_functions_apis" {
+  for_each = toset([
+    "artifactregistry.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "cloudfunctions.googleapis.com",
+    "logging.googleapis.com",
+    "pubsub.googleapis.com",
+    "run.googleapis.com",
+    "binaryauthorization.googleapis.com",
+  ])
+
+  project            = var.project_id
+  service            = each.value
+  disable_on_destroy = false
+}
+
+resource "google_project_iam_member" "cloud_build" {
+  project = var.project_id
+  role    = "roles/cloudbuild.builds.builder"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "cloud_invoker" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_kms_crypto_key_iam_binding" "cloud_storage" {
+  crypto_key_id = var.kms_key
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  members = [
+    "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
+    "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+    "serviceAccount:service-${data.google_project.current.number}@gcf-admin-robot.iam.gserviceaccount.com",
+    "serviceAccount:service-${data.google_project.current.number}@gcp-sa-artifactregistry.iam.gserviceaccount.com",
+    "serviceAccount:service-${data.google_project.current.number}@serverless-robot-prod.iam.gserviceaccount.com"
+  ]
+}
+
+resource "google_project_iam_member" "artifactregistry_createOnPushWriter" {
+  project = var.project_id
+  role    = "roles/artifactregistry.createOnPushWriter"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "logging_logWriter" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "storage_objectUser" {
+  project = var.project_id
+  role    = "roles/storage.objectUser"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "null_resource" "cloud_function_deploy" {
+  depends_on = [module.bucket, module.registry-docker]
+  triggers = {
+    project_id       = var.project_id
+    region           = var.region
+    function_name    = var.function_name
+    runtime          = var.function_runtime
+    entry_point      = var.function_entry_point
+    memory           = var.function_memory_mb
+    timeout          = var.function_timeout_seconds
+    source_code_hash = sha256(join("", [for f in fileset("./src-code", "**") : file("./src-code/${f}")]))
+  }
+  provisioner "local-exec" {
+    command = <<EOT
+      gcloud functions deploy "${var.function_name}" \
+        --project="${var.project_id}" \
+        --region="${var.region}" \
+        --runtime="${var.function_runtime}" \
+        --trigger-http \
+        --source="./src-code" \
+        --entry-point="${var.function_entry_point}" \
+        --memory="${var.function_memory_mb}MB" \
+        --timeout="${var.function_timeout_seconds}s" \
+        --ingress-settings="internal-and-gclb" \
+        --binary-authorization default \
+        --docker-repository="${module.registry-docker.id}" \
+        --kms-key="${var.kms_key}"
+    EOT
+  }
+}
+
+
+module "bucket" {
+  source         = "../../../modules/gcs"
+  project_id     = var.project_id
+  name           = var.bucket_name
+  location       = var.region
+  encryption_key = var.kms_key
+  iam = {
+    "roles/storage.objectUser" = [
+      "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
+      "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
+    ]
+  }
+}
+
+module "registry-docker" {
+  source         = "../../../modules/artifact-registry"
+  project_id     = var.project_id
+  location       = var.region
+  name           = var.artifiact_reg_name
+  encryption_key = var.kms_key
+  format = {
+    docker = {
+      standard = {
+        immutable_tags = true
+      }
+    }
+  }
+  depends_on = [google_kms_crypto_key_iam_binding.cloud_storage]
+}

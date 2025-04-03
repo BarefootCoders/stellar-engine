@@ -1,0 +1,8 @@
+region        = "us-east4"
+project_id    = "<project_id>"
+bucket_name   = "<bucket that holds source code>"
+function_name = "function"
+kms_key       = "<path to kms key>"
+iam = {
+  "roles/run.invoker" = ["serviceAccount:<project-number>-compute@developer.gserviceaccount.com"]
+}
