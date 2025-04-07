@@ -1,0 +1,90 @@
+variable "gitlab_uri" {
+  description = "The URL hostname that the gitlab instance will be attached to."
+  type        = string
+}
+
+variable "gke_initial_node_per_zone" {
+  description = "Initial node amount per zone."
+  type        = number
+  default     = 1
+}
+
+variable "gke_name" {
+  description = "Name of the GKE cluster."
+  type        = string
+  default     = "gitlab-cluster"
+}
+
+variable "instance_name" {
+  description = "Name of the vm."
+  type        = string
+  default     = "gitlab-instance"
+}
+
+variable "kms_key" {
+  description = "KMS key path."
+  type        = string
+}
+
+variable "lb_name" {
+  description = "Application load balancer name."
+  type        = string
+  default     = "gitlab-load-balancer"
+}
+
+variable "net_project" {
+  description = "Project name of the spoke network. This project has the Stellar Engine deployed default VPC and is in the Networking folder."
+  type        = string
+}
+
+variable "network" {
+  description = "Network path to use for cluster, VM, and load balancer."
+  type        = string
+}
+
+variable "network_name" {
+  description = "Network name to use for Firewall rules. E.G. test-net-spoke."
+  type        = string
+}
+
+variable "nodepool_node_count" {
+  description = "Number of node per zone in the Nodepool."
+  type = object({
+    current = optional(number)
+    initial = number
+  })
+  nullable = false
+}
+
+variable "project_id" {
+  type        = string
+  description = "Project ID where the GitLab cluster, VM, and load balancer will be deployed to."
+}
+
+variable "region" {
+  description = "Region for deployment."
+  type        = string
+  default     = "us-east4"
+}
+
+variable "sa" {
+  description = "Service account to run GKE and VM."
+  type        = string
+}
+
+variable "subnetwork" {
+  description = "Subnet path to use for cluster, VM, and load balancer."
+  type        = string
+}
+
+variable "vm_name" {
+  description = "VM name."
+  type        = string
+  default     = "gitlab-vm"
+}
+
+variable "zone" {
+  description = "Zone to deploy to."
+  type        = string
+  default     = "us-east4-a"
+}
