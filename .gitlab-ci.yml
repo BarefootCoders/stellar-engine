@@ -32,9 +32,6 @@ shellcheck-lint:
     # Skip modules directory
     - find . -path ./modules -prune -o -type f -name "*.sh" -print0 | xargs -0 shellcheck
 
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 stages-aw-formatting:
   stage: lint
@@ -46,9 +43,6 @@ stages-aw-formatting:
   script:
     - cd "fast/stages-aw/"
     - terraform fmt -check --recursive
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 blueprints-formatting:
   stage: lint
@@ -60,9 +54,6 @@ blueprints-formatting:
   script:
     - cd "blueprints"
     - terraform fmt -check --recursive
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 tflint-stages-aw:
   stage: lint
@@ -80,9 +71,6 @@ tflint-stages-aw:
     paths:
       - reports/stages-tflint.sarif
     when: always
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 tflint-blueprints:
   stage: lint
@@ -99,9 +87,6 @@ tflint-blueprints:
     paths:
       - reports/blueprints-tflint.sarif
     when: always
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 validate-stages-aw:
   stage: test
@@ -115,9 +100,6 @@ validate-stages-aw:
   script:
     - cd fast/stages-aw
     - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 validate-blueprints:
   stage: test
@@ -133,9 +115,6 @@ validate-blueprints:
     - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
     - cd ../il5
     - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 check-docs-stages-aw:
   stage: test
@@ -148,9 +127,6 @@ check-docs-stages-aw:
     - cd tools
     - pip install click marko
     - python check_documentation.py fast/stages-aw
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 check-docs-blueprints:
   stage: test
@@ -163,9 +139,6 @@ check-docs-blueprints:
     - cd tools
     - pip install click marko
     - python check_documentation.py blueprints
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 checkov-stages-aw:
   stage: test
@@ -181,9 +154,6 @@ checkov-stages-aw:
     paths:
       - reports/stages-checkov.sarif
     when: always
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 checkov-blueprints:
   stage: test
@@ -199,9 +169,6 @@ checkov-blueprints:
     paths:
       - reports/blueprints-checkov.sarif
     when: always
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
 
 sonarqube-check:
   needs:
@@ -220,6 +187,3 @@ sonarqube-check:
     - cat reports/stages-tflint.sarif
     - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}"
   allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
