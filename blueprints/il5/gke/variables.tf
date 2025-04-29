@@ -1,9 +1,3 @@
-variable "bucket_name" {
-  description = "The bucket that holds the policy yaml files."
-  type        = string
-  default     = "gke-yaml-files"
-}
-
 variable "gke_cluster_enable_private_endpoint" {
   description = "The Private Cluster configuration to enable private end point."
   type        = bool
