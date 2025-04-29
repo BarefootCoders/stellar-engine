@@ -1,8 +1,21 @@
-# Cloud Armor Blueprint
-This blueprint demonstrates how to use Google Cloud Armor to create policies and rules that can be applied to backend services. These rules will monitor incoming traffic to ensure security.
+# Google Cloud Armor
+
+<!-- BEGIN TOC -->
+- [Introduction to Google Cloud Armor](#introduction-to-google-cloud-armor)
+- [Cloud Armor Blueprint](#cloud-armor-blueprint)
+- [Disclaimer](#disclaimer)
+- [Deployment Steps](#deployment-steps)
+- [Verification of a successful deployment](#verification-of-a-successful-deployment)
+- [Troubleshooting](#troubleshooting)
+- [Variables](#variables)
+- [Outputs](#outputs)
+<!-- END TOC -->
 
 ## Introduction to Google Cloud Armor
 Google Cloud Armor helps you protect your Google Cloud deployments from multiple types of threats, including distributed denial-of-service (DDoS) attacks and application attacks like cross-site scripting (XSS) and SQL injection (SQLi). Google Cloud Armor features some automatic protections and some that you need to configure manually.
+
+## Cloud Armor Blueprint
+This blueprint demonstrates how to use Google Cloud Armor to create policies and rules that can be applied to backend services. Enforced at the HTTP(S) Load Balancer's edge locations, Google Cloud Armor protects from traffic at the root. The framework of the application is by defining security policies with specific rules, using them to monitor against incoming traffic. There are 4 possible actions allow, deny, redirect or throttle, this provides a level of security before the request attributes reach the application instances. 
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
@@ -25,7 +38,7 @@ You should see this README, some terraform files, and a .yaml file in the direct
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` only if you wish to destroy the built infrastructure<br />
 
-Verification of a successful deployment?
+## Verification of a successful deployment
 All of the policies will be created and available through the Cloud Console. They will be located under Network Security in the Cloud Armor policies tab (or you can just search "cloud armor" in the console). Upon clicking on each policy, you should see each associated rule that has been assigned to the policy. From here you can apply each of these policies to existing resources, or apply them to new resources when they are created.
 
 To apply these policies to existing resources:
@@ -45,8 +58,8 @@ A few examples are:
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [main_project_id](variables.tf#L1) | The ID for the project that the Cloud Armor policies will be used in. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L6) | The Google Cloud region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [main_project_id](variables.tf#L1) | Main project ID for Cloud Armor policies. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L6) | Google Cloud Region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
 | [rules_file](variables.tf#L12) | Path to the YAML file containing the rules. | <code>string</code> |  | <code>&#34;rules.yaml&#34;</code> |
 
 ## Outputs

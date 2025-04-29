@@ -1,10 +1,10 @@
 variable "main_project_id" {
-  description = "The ID for the project that the Cloud Armor policies will be used in."
+  description = "Main project ID for Cloud Armor policies."
   type        = string
 }
 
 variable "region" {
-  description = "The Google Cloud region."
+  description = "Google Cloud Region."
   type        = string
   default     = "us-east4"
 }
