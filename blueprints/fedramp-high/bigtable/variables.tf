@@ -1,27 +1,41 @@
+variable "auto_delete" {
+  description = "Persistent Disk auto delete options."
+  type        = bool
+  default     = true
+}
+
+variable "bigtable_service_account_id" {
+  description = "The Service Account for Bigtable."
+  type        = string
+}
+
 variable "cluster_id" {
   description = "The Bigtable cluster ID."
   type        = string
 }
 
-variable "deletion_protection" {
-  description = "Permission to delete instance via terraform."
-  type        = bool
-  default     = true
+variable "core_project_id" {
+  description = "Core project ID."
+  type        = string
 }
 
 variable "instance_name" {
-  description = "The Bigtable instance name."
+  description = "Provide the name of the Bigtable."
   type        = string
 }
 
 variable "kms_key_name" {
-  description = "The name of the existing key (required if use_existing_keys is true)."
+  description = "The Cloud KMS key for encryption."
   type        = string
-  default     = null
+}
+
+variable "kms_keyring_name" {
+  description = "KMS Keyring."
+  type        = string
 }
 
 variable "main_project_id" {
-  description = "The project ID to deploy Bigtable to."
+  description = "Main project ID."
   type        = string
 }
 
@@ -32,7 +46,7 @@ variable "num_nodes" {
 }
 
 variable "region" {
-  description = "The Google Cloud region."
+  description = "Google Cloud Region."
   type        = string
   default     = "us-east4"
 }
@@ -57,7 +71,7 @@ variable "table" {
 }
 
 variable "zone" {
-  description = "The Google Cloud zone."
+  description = "Google Cloud Zone."
   type        = string
   default     = "us-east4-a"
 }
