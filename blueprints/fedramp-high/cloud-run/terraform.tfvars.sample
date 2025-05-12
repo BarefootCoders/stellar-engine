@@ -1,4 +1,5 @@
 main_project_id = "xxxx-xxxx-xxxx-main-0"
+core_project_id = "xxxx-xxxx-xxxx-iac-core-0"
 
 name            = "cloud-run-instance-name-00"
 container_image = "us-docker.pkg.dev/cloudrun/container/hello"
@@ -8,4 +9,8 @@ memory          = "512Mi"
 port            = 80
 region          = "us-east4"
 
-kms_key_name = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"
+binary_authorization_mode   = "default"
+binary_authorization_policy = null
+
+kms_keyring_name = "xxxx-xxxx-keyring"
+kms_key_name     = "default"          

@@ -1,5 +1,30 @@
+variable "binary_authorization_mode" {
+  description = "Binary Authorization mode for the Cloud Run service."
+  type        = string
+  default     = "default"
+  validation {
+    condition     = contains(["default", "policy", "disabled"], var.binary_authorization_mode)
+    error_message = "Allowed values for binary_authorization_mode are 'default', 'policy', or 'disabled'."
+  }
+}
+
+variable "binary_authorization_policy" {
+  description = "The full resource name of the Binary Authorization policy (e.g., 'projects/YOUR_PROJECT_ID/policies/YOUR_POLICY_ID')."
+  type        = string
+  default     = null
+  validation {
+    condition     = var.binary_authorization_mode != "policy" || (var.binary_authorization_mode == "policy" && var.binary_authorization_policy != null)
+    error_message = "If binary_authorization_mode is set to 'policy', then binary_authorization_policy must be specified."
+  }
+}
+
 variable "container_image" {
   description = "Container image to be hosted on cloud run."
+  type        = string
+}
+
+variable "core_project_id" {
+  description = "Core project ID."
   type        = string
 }
 
@@ -38,8 +63,13 @@ variable "kms_key_name" {
   type        = string
 }
 
+variable "kms_keyring_name" {
+  description = "KMS Keyring."
+  type        = string
+}
+
 variable "main_project_id" {
-  description = "The Project ID."
+  description = "Main Project ID."
   type        = string
 }
 
@@ -61,6 +91,6 @@ variable "port" {
 }
 
 variable "region" {
-  description = "Region that Project is in."
+  description = "Google Cloud Region."
   type        = string
 }
