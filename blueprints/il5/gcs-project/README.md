@@ -1,10 +1,26 @@
-# Google Cloud Storage Module Blueprint
+# Google Cloud Storage
 
-## Introduction
+<!-- BEGIN TOC -->
+- [Introduction Google Cloud Storage](#introduction-google-cloud-storage)
+- [Blueprint](#blueprint)
+- [Pre-requisite for Google Cloud Storage](#pre-requisite-for-google-cloud-storage)
+- [Disclaimer](#disclaimer)
+- [The Deployment Steps](#the-deployment-steps)
+- [Verification of a successful deployment](#verification-of-a-successful-deployment)
+- [Variables](#variables)
+<!-- END TOC -->
 
-This blueprint contains all the necessary Terraform modules to build and deploy a Google Cloud Storage Bucket meeting the following requirements
+## Introduction Google Cloud Storage
+Cloud Storage is a service for storing your objects in Google Cloud. An object is an immutable piece of data consisting of a file of any format. You store objects in containers called buckets.
 
-1. Enforce that all the GCP Buckets are ONLY Private with NO PUBLIC access
+All buckets are associated with a project, and you can group your projects under an organization. Each project, bucket, managed folder, and object in Google Cloud is a resource in Google Cloud, as are things such as Compute Engine instances.
+
+After you create a project, you can create Cloud Storage buckets, upload objects to your buckets, and download objects from your buckets. You can also grant permissions to make your data accessible to principals you specify or accessible to everyone on the public internet.
+
+## Blueprint
+This blueprint contains all the necessary Terraform modules to build and deploy a Google Cloud Storage Bucket meeting the following requirements.
+
+1. Enforce that all the GCP Buckets are ONLY Private with NO PUBLIC access.
 ```
 public_access_prevention = "enforced"
 ```
@@ -12,63 +28,59 @@ public_access_prevention = "enforced"
 ```
 autoclass { enabled = true }
 ```
-3. Force  Customer-Managed Encryption Keys (CMEK) Cloud KMS for Google Cloud Storage
-4. Region of deployment to US Only  for example in us-east4 and us-central1
+3. Force Customer-Managed Encryption Keys (CMEK) Cloud KMS for Google Cloud Storage.
+4. Region of deployment to US Only. For example in us-east4 and us-central1.
 
-## Pre-requisite
+## Pre-requisite for Google Cloud Storage
 1. The Principal (user or group) must have Cloud KMS Admin permission at the GCP Level.
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRAMP-High or IL5 (Impact Level 5) environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
 - Assured Workloads in both environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 
-## Deployment Steps
+## The Deployment Steps
 You should see this README and some terraform files.
-1.  Update the Variables in the variables.tf that are marked as "# TODO: Update"
-2. The list of variables to be updated are project_id, keyring, prefix, name, location, email
+1. Review and follow the [Prerequisite for Google Cloud Storage](#pre-requisite-for-google-cloud-storage)
+2. Run ```cp terraform.tfvars.sample terraform.tfvars``` to copy the sample variables to your own tfvars file.
+3. Update the variables as necessary in your tfvars file.
 
+- ```main_project_id``` with your main GCP Project ID.<br />
+- ```core_project_id``` with your core GCP Project ID.<br />
+- ```prefix``` with a prefix for the Google Cloud Storage Bucket.<br />
+- ```bucket_name``` with the name for the bucket. This will be combined with the prefix to create the full bucket name.<br />
+- ```region``` with the region to deploy the Google Cloud Storage Bucket.<br />
+- ```autoclass``` with true to enable autoclass on the Google Cloud Storage Bucket.<br />
+- ```storage_class``` with the Storage Class for the Google Cloud Storage Bucket. This must be set to STANDARD if autoclass is set to true.<br />
+- ```kms_keyring_name``` with the name of the KMS keyring.<br />
+- ```kms_key_name``` with the name of the KMS key to be used within the KMS keyring.<br />
 
-```tfvars
-project_id = "[your-project_id]"
-```
-
-may become
-
-```tfvars
-project_id = "YOUR-PROJECT-ID-123"
-```
-
-The Location
-
- ```tfvars
-location = "us-east4"
-```
-
-
-Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at will.
-
-3. The usual terraform commands will do the work:
+4. Run the following Terraform commands and type "yes" when prompted
 
 ```bash
 terraform init
 terraform plan
 terraform apply
+terraform destroy
 ```
+
+## Verification of a successful deployment
+The apply will take about 10 seconds to deploy. The Google Cloud Stroage Bucket will be deployed in the main project. 
+To see the bucket, browse to [Cloud Storage Bucket](https://console.cloud.google.com/storage/browser) and open the bucket that matches your ```prefix-bucket_name```.
 <!-- BEGIN TFDOC -->
 ## Variables
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
 | [bucket-name](variables.tf#L24) | Bucket name suffix. | <code>string</code> | ✓ |  |
-| [email](variables.tf#L29) | Email address of the user. | <code>string</code> | ✓ |  |
-| [kms_keyring_name](variables.tf#L87) | Keyring attributes. | <code title="object&#40;&#123;&#10;  location &#61; string&#10;  name     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
-| [main_project_id](variables.tf#L95) | Project ID. | <code>string</code> | ✓ |  |
-| [retention_policy](variables.tf#L127) | Retention policy. | <code title="object&#40;&#123;&#10;  is_locked        &#61; bool&#10;  retention_period &#61; number&#10;&#125;&#41;&#10;&#10;&#10;default &#61; &#123;&#10;  is_locked        &#61; false &#35; Change to true if storing logs here for CIS Compliance Benchmark 2.3&#10;  retention_period &#61; 7776000&#10;&#125;">object&#40;&#123;&#8230;&#125;</code> | ✓ |  |
+| [core_project_id](variables.tf#L29) | Core Project ID. | <code>string</code> | ✓ |  |
+| [kms_key_name](variables.tf#L34) | The full self-link (projects/../locations/../cryptoKeys/..) of the existing KMS key to use for encryption. | <code>string</code> | ✓ |  |
+| [kms_keyring_name](variables.tf#L39) | Keyring attributes. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L44) | Project ID. | <code>string</code> | ✓ |  |
+| [retention_policy](variables.tf#L75) | Retention policy. | <code title="object&#40;&#123;&#10;  is_locked        &#61; bool&#10;  retention_period &#61; number&#10;&#125;&#41;&#10;&#10;&#10;default &#61; &#123;&#10;  is_locked        &#61; false &#35; Change to true if storing logs here for CIS Compliance Benchmark 2.3&#10;  retention_period &#61; 7776000&#10;&#125;">object&#40;&#123;&#8230;&#125;</code> | ✓ |  |
 | [autoclass](variables.tf#L18) | Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request. | <code>bool</code> |  | <code>true</code> |
-| [kms_key_names](variables.tf#L34) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string, &#34;7776000s&#34;&#41; &#35; CIS Compliance Benchmark 1.10&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;HSM&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code title="&#123;&#10;  &#34;default&#34; &#61; &#123;&#10;    destroy_scheduled_duration    &#61; null&#10;    rotation_period               &#61; null&#10;    labels                        &#61; null&#10;    purpose                       &#61; &#34;ENCRYPT_DECRYPT&#34;&#10;    skip_initial_version_creation &#61; false&#10;    version_template &#61; &#123;&#10;      algorithm        &#61; &#34;GOOGLE_SYMMETRIC_ENCRYPTION&#34;&#10;      protection_level &#61; &#34;HSM&#34;&#10;    &#125;&#10;&#10;&#10;    iam                   &#61; &#123;&#125;&#10;    iam_bindings          &#61; &#123;&#125;&#10;    iam_bindings_additive &#61; &#123;&#125;&#10;  &#125;&#10;&#125;">&#123;&#8230;&#125;</code> |
-| [prefix](variables.tf#L100) | Optional prefix used to generate the bucket name. | <code>string</code> |  | <code>&#34;string&#34;</code> |
-| [public_access_prevention](variables.tf#L110) | This provides the ability to toggle Public Access Prevention for the GCS Storage bucket. By settng this variable to enforced, the CIS Compliance Benchmark 5.1 control is satsified. | <code>string</code> |  | <code>&#34;enforced&#34;</code> |
-| [region](variables.tf#L120) | Bucket region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
-| [storage_class](variables.tf#L140) | Bucket storage class. | <code>string</code> |  | <code>&#34;STANDARD&#34;</code> |
-| [uniform_bucket_level_access](variables.tf#L150) | This provides the ability to toggle Uniform Bucket Level Acess for the GCS Storage bucket. By settng this variable to true, the CIS Compliance Benchmark 5.2 control is satsified. | <code>bool</code> |  | <code>true</code> |
+| [prefix](variables.tf#L49) | Optional prefix used to generate the bucket name. | <code>string</code> |  | <code>&#34;string&#34;</code> |
+| [public_access_prevention](variables.tf#L59) | This provides the ability to toggle Public Access Prevention for the GCS Storage bucket. By settng this variable to enforced, the CIS Compliance Benchmark 5.1 control is satsified. | <code>string</code> |  | <code>&#34;enforced&#34;</code> |
+| [region](variables.tf#L69) | Bucket region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [storage_class](variables.tf#L88) | Bucket storage class. | <code>string</code> |  | <code>&#34;STANDARD&#34;</code> |
+| [uniform_bucket_level_access](variables.tf#L98) | This provides the ability to toggle Uniform Bucket Level Acess for the GCS Storage bucket. By settng this variable to true, the CIS Compliance Benchmark 5.2 control is satsified. | <code>bool</code> |  | <code>true</code> |
 <!-- END TFDOC -->

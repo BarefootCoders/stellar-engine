@@ -14,24 +14,39 @@
  * limitations under the License.
  */
 
-# Work on the Current Project
-data "google_project" "current" {}
+data "google_project" "current" {
+  project_id = var.main_project_id
+}
 
-# Obtain the Cloud Storage Service Account
+data "google_kms_key_ring" "default" {
+  name     = var.kms_keyring_name
+  location = var.region
+  project  = var.core_project_id
+}
+
+data "google_kms_crypto_key" "default" {
+  name     = var.kms_key_name
+  key_ring = data.google_kms_key_ring.default.id
+}
+
 locals {
   cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
-# Google Cloud Storage Module
+resource "google_kms_crypto_key_iam_member" "gcs_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:${local.cloud_storage_service_account}"
+}
+
 module "gcs" {
   source         = "../../../modules/gcs"
   prefix         = var.prefix
   project_id     = var.main_project_id
   location       = var.region
   storage_class  = var.storage_class
-  encryption_key = module.kms.keys.default.id
+  encryption_key = data.google_kms_crypto_key.default.id
   name           = var.bucket-name
-  depends_on     = [module.kms]
 
   # CIS Compliance Benchmark 5.1
   public_access_prevention = var.public_access_prevention
@@ -39,20 +54,9 @@ module "gcs" {
   # CIS Compliance Benchmark 5.2
   uniform_bucket_level_access = var.uniform_bucket_level_access
 
-  iam = {
-    "roles/storage.admin" = ["user:${var.email}"]
-  }
-
   retention_policy = var.retention_policy
+  depends_on = [
+    google_kms_crypto_key_iam_member.gcs_sa_kms_access
+  ]
 }
 
-# Google KMS Module
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.main_project_id
-  keys       = var.kms_key_names
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${local.cloud_storage_service_account}"]
-  }
-  keyring = var.kms_keyring_name
-}
