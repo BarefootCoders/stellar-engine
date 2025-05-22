@@ -156,3 +156,39 @@ module "peering-envs" {
   }
 
 }
+
+# DNS
+# GCP-specific environment zone
+
+module "env-dns-priv-example" {
+  source   = "../../../modules/dns"
+  for_each = var.envs_folders
+
+  project_id = module.env-spoke-projects[each.key].project_id
+  name       = lower("${each.key}-org-domain")
+  zone_config = {
+    domain = lower("${each.key}.${var.organization.domain}.")
+    private = {
+      client_networks = [module.vdss-vpc.self_link]
+    }
+  }
+  recordsets = {
+    "A localhost" = { records = ["127.0.0.1"] }
+  }
+}
+
+# root zone peering to landing to centralize configuration; remove if unneeded
+
+module "env-dns-peer-landing-root" {
+  source     = "../../../modules/dns"
+  for_each   = var.envs_folders
+  project_id = module.env-spoke-projects[each.key].project_id
+  name       = lower("${each.key}-root-dns-peering")
+  zone_config = {
+    domain = "."
+    peering = {
+      client_networks = [module.env-spoke-vpc[each.key].self_link]
+      peer_network    = module.vdss-vpc.self_link
+    }
+  }
+}

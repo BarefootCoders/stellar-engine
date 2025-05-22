@@ -132,3 +132,33 @@ module "dmz-nat-primary" {
   router_name    = "prod-nat-${var.regions.primary}"
   router_network = module.dmz-vpc.name
 }
+
+#DNS
+module "landing-dns-priv-gcp" {
+  source     = "../../../modules/dns"
+  project_id = module.vdss-host-project.project_id
+  name       = "org-domain"
+  zone_config = {
+    domain = lower("${var.organization.domain}.")
+    private = {
+      client_networks = [module.vdss-vpc.self_link]
+    }
+  }
+  recordsets = {
+    "A localhost" = { records = ["127.0.0.1"] }
+  }
+}
+
+# Google APIs via response policies
+
+module "landing-dns-policy-googleapis" {
+  source     = "../../../modules/dns-response-policy"
+  project_id = module.vdss-host-project.project_id
+  name       = "googleapis"
+  factories_config = {
+    rules = var.factories_config.dns_policy_rules_file
+  }
+  networks = {
+    landing = module.vdss-vpc.self_link
+  }
+}
