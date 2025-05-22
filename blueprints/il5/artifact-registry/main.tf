@@ -7,33 +7,36 @@ locals {
   docker-registries = merge(google_artifact_registry_repository.docker-repos, { "docker-hub" = google_artifact_registry_repository.docker-hub })
 }
 
-data "google_project" "project" {}
+data "google_project" "project" {
+  project_id = var.main_project_id
+}
+
+data "google_kms_key_ring" "default" {
+  name     = var.kms_keyring_name
+  location = var.region
+  project  = var.core_project_id
+}
+
+data "google_kms_crypto_key" "default" {
+  name     = var.kms_key_name
+  key_ring = data.google_kms_key_ring.default.id
+}
+
+resource "google_project_service_identity" "artifact_registry_agent" {
+  provider = google-beta
+  project  = var.main_project_id
+  service  = "artifactregistry.googleapis.com"
+
+  depends_on = [
+    google_project_service.api
+  ]
+}
 
 resource "google_project_service" "api" {
   for_each           = toset(["artifactregistry.googleapis.com", "containerscanning.googleapis.com"])
   project            = data.google_project.project.id
   service            = each.value
   disable_on_destroy = false
-}
-
-module "kms" {
-  #checkov:skip=CKV_GCP_43: example of how to skip (in this case, a KMS deletion error) a check in checkov
-  source     = "../../../modules/kms"
-  project_id = var.main_project_id
-  keys       = var.kms_key_names
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.consumer.member,
-      "serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com",
-    ]
-  }
-  keyring = {
-    name     = var.kms_keyring_name
-    location = var.region
-  }
-  depends_on = [
-    google_project_service.api
-  ]
 }
 
 resource "google_artifact_registry_repository" "yum-repos" {
@@ -52,10 +55,10 @@ resource "google_artifact_registry_repository" "yum-repos" {
       }
     }
   }
-  kms_key_name = module.kms.keys.artifact-registry.id
+  kms_key_name = data.google_kms_crypto_key.default.id
   depends_on = [
-    module.kms,
-    google_project_service.api
+    google_project_service.api,
+    google_kms_crypto_key_iam_member.artifact_registry_crypto_key
   ]
 }
 
@@ -73,10 +76,10 @@ resource "google_artifact_registry_repository" "docker-hub" {
     }
   }
 
-  kms_key_name = module.kms.keys.artifact-registry.id
+  kms_key_name = data.google_kms_crypto_key.default.id
   depends_on = [
     google_project_service.api,
-    google_kms_crypto_key_iam_member.crypto_key
+    google_kms_crypto_key_iam_member.artifact_registry_crypto_key
   ]
 }
 
@@ -95,15 +98,18 @@ resource "google_artifact_registry_repository" "docker-repos" {
       }
     }
   }
-  kms_key_name = module.kms.keys.artifact-registry.id
+  kms_key_name = data.google_kms_crypto_key.default.id
   depends_on = [
-    module.kms,
-    google_project_service.api
+    google_project_service.api,
+    google_kms_crypto_key_iam_member.artifact_registry_crypto_key
   ]
 }
 
-resource "google_kms_crypto_key_iam_member" "crypto_key" {
-  crypto_key_id = module.kms.keys.artifact-registry.id
+resource "google_kms_crypto_key_iam_member" "artifact_registry_crypto_key" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-artifactregistry.iam.gserviceaccount.com"
+  member        = google_project_service_identity.artifact_registry_agent.member
+  depends_on = [
+    google_project_service_identity.artifact_registry_agent
+  ]
 }

@@ -1,5 +1,5 @@
 output "docker_registries" {
-  description = "Docker registries created from teh docker-registries.yaml file, with Docker Hub appended."
+  description = "Docker registries created from the docker-registries.yaml file, with Docker Hub appended."
   value       = local.docker-registries
 }
 

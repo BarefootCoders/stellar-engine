@@ -1,16 +1,24 @@
-# Sample VM that uses the registries from Artifact Registry to do nothing in particular
-
 resource "google_service_account" "consumer" {
   account_id   = "compute-service-account"
   display_name = "Customized service account for consumer"
 }
 
-# IAM role for the consumer service account
-# The Default Compute service account also has readonly access by default
 resource "google_project_iam_member" "consumer-readonly" {
   project = var.main_project_id
   role    = "roles/artifactregistry.reader"
   member  = google_service_account.consumer.member
+}
+
+resource "google_kms_crypto_key_iam_member" "consumer_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = google_service_account.consumer.member
+}
+
+resource "google_kms_crypto_key_iam_member" "compute_agent_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com"
 }
 
 data "google_compute_network" "network" {
@@ -29,7 +37,6 @@ data "google_compute_image" "centos" {
   project = "centos-cloud"
 }
 
-# Google Compute Engine VM Module
 module "compute-engine-vm" {
   source     = "../../../modules/compute-vm"
   project_id = var.main_project_id
@@ -41,10 +48,10 @@ module "compute-engine-vm" {
 
   network_interfaces = [{
     network    = data.google_compute_network.network.id
-    subnetwork = data.google_compute_network.network.subnetworks_self_links[0]
+    subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   }]
   encryption = {
-    kms_key_self_link = module.kms.keys.artifact-registry.id
+    kms_key_self_link = data.google_kms_crypto_key.default.id
   }
   metadata = {
     startup-script = templatefile("./templates/userdata.tftpl",
@@ -62,15 +69,13 @@ module "compute-engine-vm" {
     email = google_service_account.consumer.email
   }
 
-  # Persistent Disk Attached to the Compute Engine with KMS
   boot_disk = {
     initialize_params = {
       auto_delete       = true
       size              = 20
       type              = "pd-balanced"
       image             = data.google_compute_image.centos.self_link
-      kms_key_self_link = module.kms.keys.artifact-registry.id
+      kms_key_self_link = data.google_kms_crypto_key.default.id
     }
   }
-  depends_on = [module.kms]
 }
