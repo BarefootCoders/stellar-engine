@@ -1,30 +1,13 @@
 main_project_id = "xxxx-xxxx-xxxx-main-0"
+core_project_id = "xxxx-xxxx-xxxx-iac-core-0"
 
 pubsub_topic                = "topic-name-00"
 publisher_name              = "publisher-sa"
 publisher_account_id        = "publisher-account-id"
-subscriber_account_id       = "subscriber-account-od"
+subscriber_account_id       = "subscriber-account-id"
 subscriber_name             = "subscriber-sa"
 region                      = "us-east4"
 allowed_persistence_regions = ["us-east4"]
 
-kms_keyring_name = {
-  location = "us-east4"
-  name     = "xxxx-xxxx-keyring"
-
-}
-
-kms_key_names = {
-  "default" = {
-    destroy_scheduled_duration    = null
-    rotation_period               = "7776000s"    # CIS Compliance Benchmark 1.10
-    labels                        = {}
-    location                      = "us-east4"
-    purpose                       = "ENCRYPT_DECRYPT"
-    skip_initial_version_creation = false
-    version_template = {
-      algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-      protection_level = "HSM"
-    }
-  }
-}
+kms_keyring_name = "xxxx-xxxx-keyring"
+kms_key_name     = "default"

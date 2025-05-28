@@ -14,56 +14,59 @@
  * limitations under the License.
  */
 
-# Work on the Current Project
 data "google_project" "current" {}
 
-#Create publisher account
+data "google_kms_key_ring" "default" {
+  name     = var.kms_keyring_name
+  location = var.region
+  project  = var.core_project_id
+}
+data "google_kms_crypto_key" "default" {
+  name     = var.kms_key_name
+  key_ring = data.google_kms_key_ring.default.id
+}
 resource "google_service_account" "publisher" {
   account_id   = var.publisher_account_id
   display_name = var.publisher_name
 }
-
-#Create subscriber account
 resource "google_service_account" "subscriber" {
   account_id   = var.subscriber_account_id
   display_name = var.subscriber_name
 }
-
-#IAM role for the publisher service account
 resource "google_project_iam_member" "pubsub_publisher" {
   project = var.main_project_id
   role    = "roles/pubsub.publisher"
   member  = google_service_account.publisher.member
 }
-
-#IAM role for the subscriber service account
 resource "google_project_iam_member" "pubsub_subscriber" {
   project = var.main_project_id
   role    = "roles/pubsub.subscriber"
   member  = google_service_account.subscriber.member
 }
-
-#Google KMS Module
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.main_project_id
-  keys       = var.kms_key_names
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.publisher.member,
-      google_service_account.subscriber.member,
-      "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
-    ]
-  }
-  keyring = var.kms_keyring_name
-}
-
-# Pub/Sub Module
 module "pubsub" {
   source     = "../../../modules/pubsub"
   project_id = var.main_project_id
   name       = var.pubsub_topic
   regions    = var.allowed_persistence_regions
-  kms_key    = module.kms.keys.default.id
-  depends_on = [module.kms]
+  kms_key    = data.google_kms_crypto_key.default.id
+  depends_on = [
+    google_kms_crypto_key_iam_member.crypto_key,
+    google_kms_crypto_key_iam_member.subscriber_sa_kms_access,
+    google_kms_crypto_key_iam_member.publisher_sa_kms_access
+  ]
+}
+resource "google_kms_crypto_key_iam_member" "subscriber_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = google_service_account.subscriber.member
+}
+resource "google_kms_crypto_key_iam_member" "publisher_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = google_service_account.publisher.member
+}
+resource "google_kms_crypto_key_iam_member" "crypto_key" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
