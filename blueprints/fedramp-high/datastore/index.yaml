@@ -1,4 +1,5 @@
-indexes:
+indexes: 
+
 - kind: Task
   ancestor: no
   properties:
