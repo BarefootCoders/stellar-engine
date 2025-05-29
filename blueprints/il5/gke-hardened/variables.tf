@@ -1,7 +1,6 @@
-variable "bucket_name" {
-  description = "The bucket that holds the policy yaml files."
+variable "gatekeeper_sa" {
+  description = "The service account Gatekeeper uses to push metrics to GCP."
   type        = string
-  default     = "gke-yaml-files"
 }
 
 variable "gke_cluster_enable_private_endpoint" {
@@ -114,6 +113,16 @@ variable "master_authorized_ranges_ip_ranges" {
   type        = string
 }
 
+variable "nat_gateway_name" {
+  description = "The nat gateway for outboud routing from the cluster."
+  type        = string
+}
+
+variable "nat_router_name" {
+  description = "The nat router for outboud routing from the cluster."
+  type        = string
+}
+
 variable "network_name" {
   description = "The VPC Name."
   type        = string
@@ -163,6 +172,22 @@ variable "remove_default_node_pool" {
   description = "The Default NodePool remove it or not."
   type        = bool
   # default     = false
+}
+
+variable "source_branch" {
+  description = "The branch of the repository used for config sync gitops."
+  type        = string
+  default     = "main"
+}
+
+variable "source_dir" {
+  description = "The directory in the repository containing policies."
+  type        = string
+}
+
+variable "source_repo" {
+  description = "The repository used for config sync gitops."
+  type        = string
 }
 
 variable "subnetwork_ip_cidr_range_1" {

@@ -29,10 +29,29 @@ resource "google_service_account" "gke" {
   project    = var.main_project_id
 }
 
+resource "google_service_account" "gatekeeper_sa" {
+  project      = var.main_project_id
+  account_id   = var.gatekeeper_sa
+  display_name = "GSA for GKE Policy Controller/Gatekeeper"
+}
+
 resource "google_project_iam_member" "gke_cluster_admin" {
   project = data.google_project.current.project_id
   role    = "roles/container.developer"
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "gatekeeper_monitoring_writer" {
+  project = var.main_project_id
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${google_service_account.gatekeeper_sa.email}"
+}
+
+resource "google_service_account_iam_member" "gatekeeper_wi_binding" {
+  service_account_id = google_service_account.gatekeeper_sa.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.main_project_id}.svc.id.goog[gatekeeper-system/gatekeeper-admin]"
+  depends_on         = [google_service_account.gatekeeper_sa]
 }
 
 resource "google_project_service" "storagetransfer_api" {
@@ -40,34 +59,36 @@ resource "google_project_service" "storagetransfer_api" {
   service = "storagetransfer.googleapis.com"
 }
 
-resource "google_gke_hub_feature" "policycontroller" {
-  name     = "policycontroller"
+resource "google_gke_hub_feature" "configmanagement_feature" {
+  name     = "configmanagement"
   location = "global"
-  project  = var.main_project_id
+}
 
-  fleet_default_member_config {
-    policycontroller {
-      policy_controller_hub_config {
-        install_spec              = "INSTALL_SPEC_ENABLED"
-        referential_rules_enabled = true
-        audit_interval_seconds    = 60
-        policy_content {
-          bundles {
-            bundle              = "nist-sp-800-53-r5"
-            exempted_namespaces = var.policy_controller_exemptable_namespaces
-          }
-          bundles {
-            bundle              = "cis-k8s-v1.5.1"
-            exempted_namespaces = var.policy_controller_exemptable_namespaces
-          }
-          bundles {
-            bundle              = "nsa-cisa-k8s-v1.2"
-            exempted_namespaces = var.policy_controller_exemptable_namespaces
-          }
-          template_library {
-            installation = "ALL"
-          }
-        }
+resource "google_gke_hub_feature_membership" "configmanagement_feature_member" {
+  location = "global"
+
+  feature             = google_gke_hub_feature.configmanagement_feature.name
+  membership          = module.cluster.fleet[0].membership_id
+  membership_location = module.cluster.fleet[0].membership_location
+
+  configmanagement {
+    version = "1.20.3"
+
+    policy_controller {
+      enabled                    = true
+      referential_rules_enabled  = true
+      audit_interval_seconds     = "60"
+      template_library_installed = false
+      exemptable_namespaces      = var.policy_controller_exemptable_namespaces
+    }
+    config_sync {
+      source_format = "unstructured"
+      enabled       = true
+      git {
+        sync_repo   = var.source_repo
+        secret_type = "none"
+        sync_branch = var.source_branch
+        policy_dir  = var.source_dir
       }
     }
   }
@@ -133,7 +154,7 @@ module "cluster" {
   default_nodepool = {
     initial_node_count       = var.gke_initial_node_per_zone
     remove_pool              = false
-    remove_default_node_pool = false
+    remove_default_node_pool = true
   }
   node_config = {
     # CIS Compliance Benchmark 4.3
@@ -142,13 +163,12 @@ module "cluster" {
     }
     boot_disk_kms_key = module.kms.keys.default.id
 
-    # CIS Compliance Benchmark 4.1
-    # CIS Compliance Benchmark 4.2
+    # CIS Compliance Benchmark 4.1/ 4.2
     service_account = google_service_account.gke.email
 
     tags = var.node_config_tags
 
-    machine_type = "n2d-standard-2"
+    machine_type = var.node_machine_type
     confidential_nodes = {
       enabled = true # CIS Compliance Benchmark 4.11 - Must also choose compatible instance type
     }
@@ -173,8 +193,7 @@ module "cluster_nodepool" {
   name         = var.gke_nodepool_name
   node_count   = var.nodepool_node_count
 
-  # CIS Compliance Benchmark 4.1
-  # CIS Compliance Benchmark 4.2
+  # CIS Compliance Benchmark 4.1/4.2
   service_account = {
     email = google_service_account.gke.email
   }
@@ -190,47 +209,6 @@ module "cluster_nodepool" {
   depends_on = [module.cluster]
 }
 
-module "bucket" {
-  source         = "../../../modules/gcs"
-  project_id     = var.main_project_id
-  name           = var.bucket_name
-  location       = var.region
-  encryption_key = module.kms.keys.default.id
-  objects_to_upload = merge(
-    tomap({
-      for file in fileset("./policies/templates", "*.yaml") :
-      file => {
-        name         = "policies/templates/${file}"
-        source       = "./policies/templates/${file}"
-        content_type = "application/x-yaml"
-      }
-    }),
-    tomap({
-      for file in fileset("./policies/constraints", "*.yaml") :
-      file => {
-        name         = "policies/constraints/${file}"
-        source       = "./policies/constraints/${file}"
-        content_type = "application/x-yaml"
-      }
-    }),
-    tomap({
-      for file in fileset("./scripts", "*.sh") :
-      file => {
-        name         = "scripts/${file}"
-        source       = "./scripts/${file}"
-        content_type = "application/x-sh"
-      }
-  }))
-  iam = {
-    "roles/storage.objectUser" = [
-      google_service_account.gke.member,
-      "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
-      "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
-    ]
-  }
-}
-
 module "compute-vm" {
   source        = "../../../modules/compute-vm"
   name          = "bastion-vm"
@@ -242,8 +220,7 @@ module "compute-vm" {
   }
   boot_disk = {
     initialize_params = {
-      image_project = "debian-cloud"
-      image_family  = "debian-11"
+      image = "projects/cos-cloud/global/images/cos-105-17412-495-45"
     }
   }
   network_interfaces = [
@@ -253,64 +230,10 @@ module "compute-vm" {
     }
   ]
   tags = ["allow-iap", "allow-local-connect"]
-  metadata = {
-    startup-script = <<-EOT
-#!/bin/bash
-set -eou pipefail
-exec > >(tee -ia /tmp/bastion_script.log) 2>&1
-echo "Startup Script..."
-GCS_BUCKET=${var.bucket_name}
-LOCAL_SCRIPTS_DIR="/tmp/gcs-script-files"
-LOCAL_TEMPLATES_DIR="/tmp/gcs-policy-files/templates"
-LOCAL_CONSTRAINTS_DIR="/tmp/gcs-policy-files/constraints"
-mkdir -p "$LOCAL_SCRIPTS_DIR"
-mkdir -p "$LOCAL_TEMPLATES_DIR"
-mkdir -p "$LOCAL_CONSTRAINTS_DIR"
-
-# Install gcloud CLI and kubectl
-export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-sudo apt-get update -y
-sudo apt-get install google-cloud-sdk kubectl -y
-sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
-
-FILES=$(gsutil ls gs://$GCS_BUCKET/scripts/*.sh)
-echo $FILES
-
-for FILE in $FILES; do
-  FILENAME=$(basename $FILE)
-  LOCAL_PATH="$LOCAL_SCRIPTS_DIR/$FILENAME"
-  echo "Downloading $FILENAME..."
-  gsutil cp $FILE $LOCAL_PATH
-  chmod +x $LOCAL_PATH
-done
-
-TEMPLATES=$(gsutil ls gs://$GCS_BUCKET/policies/templates/*.yaml)
-echo $TEMPLATES
-
-for FILE in $TEMPLATES; do
-  FILENAME=$(basename $FILE)
-  LOCAL_PATH="$LOCAL_TEMPLATES_DIR/$FILENAME"
-  echo "Downloading $FILENAME..."
-  gsutil cp $FILE $LOCAL_PATH
-done
-
-CONSTRAINTS=$(gsutil ls gs://$GCS_BUCKET/policies/constraints/*.yaml)
-echo $CONSTRAINTS
-
-for FILE in $CONSTRAINTS; do
-  FILENAME=$(basename $FILE)
-  LOCAL_PATH="$LOCAL_CONSTRAINTS_DIR/$FILENAME"
-  echo "Downloading $FILENAME..."
-  gsutil cp $FILE $LOCAL_PATH
-done
-EOT
-  }
   encryption = {
     kms_key_self_link = module.kms.keys.default.id
   }
-  depends_on = [module.bucket, module.cluster]
+  depends_on = [module.cluster]
 }
 
 resource "google_compute_firewall" "allow-iap" {
@@ -328,7 +251,7 @@ resource "google_compute_firewall" "allow-iap" {
 }
 
 resource "google_compute_firewall" "allow-local-connect" {
-  count         = var.local_admin_external_ip != null ? 1 : 0
+  count         = 1
   name          = "${var.network_name}-allow-local-connect"
   description   = "Allow for connecting to bastion host from local system."
   network       = var.network_name
@@ -340,4 +263,26 @@ resource "google_compute_firewall" "allow-local-connect" {
   }
   target_tags = ["allow-local-connect"]
   depends_on  = [module.vpc]
+}
+
+resource "google_compute_router" "router" {
+  project    = var.main_project_id
+  name       = var.nat_router_name
+  network    = var.network_name
+  region     = var.region
+  depends_on = [module.vpc]
+}
+
+resource "google_compute_router_nat" "nat" {
+  name                               = var.nat_gateway_name
+  router                             = google_compute_router.router.name
+  region                             = var.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+
+  log_config {
+    enable = true
+    filter = "ERRORS_ONLY"
+  }
+  depends_on = [module.vpc]
 }

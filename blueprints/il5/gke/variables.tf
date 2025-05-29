@@ -170,3 +170,4 @@ variable "subnetwork_secondary_ip_range_services_1" {
   type        = string
   # default     = "10.0.32.0/20"
 }
+

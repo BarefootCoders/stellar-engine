@@ -18,16 +18,9 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 - The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRAMP-High or IL5 (Impact Level 5) environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
 - Assured Workloads in both environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
 
-## How to deploy the Terraform Code. The Deployment Steps
-You should see this README and some terraform files.
-1. Create an ```terraform.tfvars```. Copy the content from the  sample ```terraform.tfvars.sample```. Update the values in the ```terraform.tfvars```
-2. Although each use case is somehow built around the previous one they are self-contained so you can deploy any of them at your will. The usual terraform commands will do the work:
-
-```bash
-terraform init
-terraform plan
-terraform apply
-```
+## How to deploy the Terraform Code.
+The Deployment Steps are outlined in the Stellar Engine GKE Deployment Guide here:
+https://docs.google.com/document/d/1SHF_0pVF8Og-tbqBOpvRBp2ZPwH75Y7RR86HNN3SO9U/edit?tab=t.0
 <!-- BEGIN TFDOC -->
 ## Variables
 

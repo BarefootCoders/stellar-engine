@@ -38,6 +38,21 @@ output "keyrings_keys" {
   value       = module.kms.keys
 }
 
+output "nodepool_id" {
+  description = "Fully qualified nodepool id."
+  value       = module.cluster_nodepool.id
+}
+
+output "nodepool_name" {
+  description = "Nodepool name."
+  value       = module.cluster_nodepool.name
+}
+
+output "nodepool_service_account_email" {
+  description = "Service account email."
+  value       = module.cluster_nodepool.service_account_email
+}
+
 output "subnet_regions" {
   description = "Map of subnet regions keyed by name."
   value       = module.vpc.subnet_regions

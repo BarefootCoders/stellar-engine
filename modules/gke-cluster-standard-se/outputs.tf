@@ -31,6 +31,11 @@ output "endpoint" {
   value       = google_container_cluster.cluster.endpoint
 }
 
+output "fleet" {
+  description = "Fleet the cluster is registered with."
+  value       = google_container_cluster.cluster.fleet
+}
+
 output "id" {
   description = "FUlly qualified cluster id."
   value       = google_container_cluster.cluster.id
