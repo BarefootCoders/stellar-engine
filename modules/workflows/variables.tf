@@ -53,3 +53,10 @@ variable "service_account" {
   description = "Service account for Workflows."
   type        = string
 }
+
+# In ../../../modules/workflows/variables.tf
+
+variable "kms_key_self_link" {
+  description = "The full self-link (projects/../locations/../keyRings/../cryptoKeys/..) of the existing KMS key to use for Workflow encryption (CMEK)."
+  type        = string
+}
