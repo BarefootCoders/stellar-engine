@@ -5,10 +5,15 @@ terraform {
       source  = "hashicorp/google"
       version = ">= 6.21.0, < 7.0.0" # tftest
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = ">= 6.21.0, < 7.0.0" # tftest
+    }
   }
 }
 
 provider "google" {
   project = var.main_project_id
-  region  = var.region
+  region  = var.gcp_region
 }
+
