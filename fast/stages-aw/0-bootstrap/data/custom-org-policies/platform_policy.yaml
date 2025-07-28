@@ -14,20 +14,6 @@ resourcemanager.allowedImportSources:
       values:
         - under:organizations/${organization_id}
 
-# This list constraint defines the set of external Organizations to which resources
-# can be moved, and denies all moves to all other Organizations. By default,
-# resources cannot be moved between Organizations. If this constraint is applied
-# to a resource, the resource can be moved only to Organizations that are explicitly
-# allowed by this constraint. Moves within an Organization are not governed by this
-# constraint. The move operation will still require the same IAM permissions as normal
-# resource moves. Values specified in allow/deny lists must be in the form:
-#   under:organizations/ORGANIZATION_ID.
-# SHOULD HAVE
-resourcemanager.allowedExportDestinations:
-  rules:
-  - allow:
-      values:
-        - under:organizations/${organization_id}
 
 # This list constraint defines the set of domains that email addresses added to
 # Essential Contacts can have. By default, email addresses with any domain can
@@ -42,6 +28,21 @@ essentialcontacts.allowedContactDomains:
   - allow:
       values:
         - "@${domain_name}"
+
+# This list constraint defines the set of external Organizations to which resources
+# can be moved, and denies all moves to all other Organizations. By default,
+# resources cannot be moved between Organizations. If this constraint is applied
+# to a resource, the resource can be moved only to Organizations that are explicitly
+# allowed by this constraint. Moves within an Organization are not governed by this
+# constraint. The move operation will still require the same IAM permissions as normal
+# resource moves. Values specified in allow/deny lists must be in the form:
+#   under:organizations/ORGANIZATION_ID.
+# SHOULD HAVE
+resourcemanager.allowedExportDestinations:
+  rules:
+  - allow:
+      values:
+        - under:organizations/${organization_id}
 
 
 # This list constraint defines one or more Cloud Identity or Google Workspace
@@ -68,3 +69,45 @@ iam.allowedPolicyMemberDomains:
 %{ for domain in allowed_domains ~}
           - ${domain}
 %{ endfor ~}
+
+
+#Added due to ./import.sh issue
+
+# This list constraint defines the set of domains that email addresses added to
+# Essential Contacts can have. By default, email addresses with any domain can
+# be added to Essential Contacts. The allowed/denied list must specify one or
+# more domains of the form @dino-runner.darkwolfsolutions.com. If this constraint is active and
+# configured with allowed values, only email addresses with a suffix matching
+# one of the entries from the list of allowed domains can be added in Essential
+# Contacts.This constraint has no effect on updating or removing existing contacts.
+# MUST HAVE
+essentialcontacts.managed.allowedContactDomains:
+  rules:
+  - enforce: true
+
+
+# Policy: compute.managed.restrictProtocolForwardingCreationForTypes
+# Description: Restricts the creation of protocol forwarding.
+# You might need to adjust rules based on your exact requirements,
+# but 'enforce: true' typically means the default Google-managed behavior is enforced.
+compute.managed.restrictProtocolForwardingCreationForTypes:
+  rules:
+  - enforce: true
+
+# Policy: iam.managed.preventPrivilegedBasicRolesForDefaultServiceAccounts
+# Description: Prevents default service accounts from being granted privileged basic roles.
+iam.managed.preventPrivilegedBasicRolesForDefaultServiceAccounts:
+  rules:
+  - enforce: true
+
+# Policy: iam.managed.disableServiceAccountKeyCreation
+# Description: Disables the creation of service account keys.
+iam.managed.disableServiceAccountKeyCreation:
+  rules:
+  - enforce: true
+
+# Policy: iam.managed.disableServiceAccountKeyUpload
+# Description: Disables the upload of service account keys.
+iam.managed.disableServiceAccountKeyUpload:
+  rules:
+  - enforce: true
