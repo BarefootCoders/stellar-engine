@@ -150,14 +150,15 @@ import {
     ? toset([
       # source: https://cloud.google.com/resource-manager/docs/secure-by-default-organizations#organization_policies_enforced_on_organization_resources
       # listed in the order as on page
-      "iam.disableServiceAccountKeyCreation",
-      "iam.disableServiceAccountKeyUpload",
-      "iam.automaticIamGrantsForDefaultServiceAccounts",
+      "iam.managed.disableServiceAccountKeyCreation",
+      "iam.managed.disableServiceAccountKeyUpload",
+      "iam.managed.preventPrivilegedBasicRolesForDefaultServiceAccounts",
+      # "iam.automaticIamGrantsForDefaultServiceAccounts",
       "iam.allowedPolicyMemberDomains",
-      "essentialcontacts.allowedContactDomains",
+      "essentialcontacts.managed.allowedContactDomains",
       "storage.uniformBucketLevelAccess",
-      "compute.setNewProjectDefaultToZonalDNSOnly",
-      "compute.restrictProtocolForwardingCreationForTypes", # not confirmed that this is live, but listed on webpage
+      # "compute.setNewProjectDefaultToZonalDNSOnly",
+      "compute.managed.restrictProtocolForwardingCreationForTypes", # not confirmed that this is live, but listed on webpage
     ]) : toset([])
   )
   id = "organizations/${var.organization.id}/policies/${each.key}"
