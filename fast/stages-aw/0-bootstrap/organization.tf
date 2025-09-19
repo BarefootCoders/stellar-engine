@@ -295,6 +295,6 @@ module "organization" {
       type                 = attrs.type
     }
   }
-  org_policies = var.bootstrap_user != null ? {} : local.org_policies
+  org_policies = var.bootstrap_user != null ? null : local.org_policies
 
 }
