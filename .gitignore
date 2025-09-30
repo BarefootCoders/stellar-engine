@@ -67,4 +67,3 @@ blueprints/gke/patterns/batch/job-*.yaml
 setIAM.yaml
 config.env
 tmp_aw_policy.yaml
-agentic-workflow/.gemini/.env
