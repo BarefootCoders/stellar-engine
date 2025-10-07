@@ -1,3 +1,0 @@
-# terraform.tfvars
-project_id = "your-gcp-project-id"
-domain     = "your-workspace-domain.com"

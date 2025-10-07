@@ -1,0 +1,23 @@
+basic_rules: #Rules called basic_rules
+  xss:
+    expression: "xss-v33-stable" # Preconfigured rule name
+  lfi:
+    expression: "lfi-v33-stable" # Preconfigured rule name
+  rfi:
+    expression: "rfi-v33-stable" # Preconfigured rule name
+  rce:
+    expression: "rce-v33-stable" # Preconfigured rule name
+  methodenforcement:
+    expression: "methodenforcement-v33-stable" # Preconfigured rule name
+  scannerdetection:
+    expression: "scannerdetection-v33-stable" # Preconfigured rule name
+  protocolattack:
+    expression: "protocolattack-v33-stable" # Preconfigured rule name
+  php:
+    expression: "php-v33-stable" # Preconfigured rule name
+  sessionfixation:
+    expression: "sessionfixation-v33-stable" # Preconfigured rule name
+  java:
+    expression: "java-v33-stable" # Preconfigured rule name
+  nodejs:
+    expression: "nodejs-v33-stable" # Preconfigured rule name
