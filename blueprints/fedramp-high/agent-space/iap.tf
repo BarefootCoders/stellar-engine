@@ -9,7 +9,6 @@ resource "google_iap_client" "project_client" {
 }
 
 resource "google_iap_web_region_backend_service_iam_binding" "binding" {
-  for_each                   = local.apps
   project                    = var.main_project_id
   web_region_backend_service = module.cnap-0.backend_service_names[each.key]
   role                       = "roles/iap.httpsResourceAccessor"

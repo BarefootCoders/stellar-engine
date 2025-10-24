@@ -32,7 +32,7 @@ We recommend waiting about 10 minutes for this change to propogate within the sy
 
 Access policies are defined at the organization level, and there can only be one declared per organization. Each one can have multiple access levels within it. In order to correctly associate the access levels created in the blueprint with your organizions access policy, we need to populate that variable in the `.tfvars` file.
 
-To list the access policies in your org, run `gcloud access-context-manager policies list --organization <org-id>` and find the `NAME:` of the access policy associated with the org.
+To list the access policies in your org, run `gcloud access-context-manager policies list --organization <org-id>` and find the `NAME:` of the access policy associated with the org, then add it to your `.tfvars` file.
 
 If this is a completely new org and you need to create an access policy, you may use `gcloud access-context-manager policies create --organization <org-id> --title CNAP-policy`, and use the number returned after creation.
 
@@ -85,6 +85,21 @@ Such as:     expression: "\"accessPolicies/${ACCESSPOLICY}/accessLevels/strict_d
 Because deploying this blueprint may require updating your org policy to allow external load balancers, you must use a `-target` apply to make sure that change is made first, then the rest of the application will deploy.
 
 Run `terraform apply -target google_org_policy_policy.allow_external_lb` after configuring the `cloudrun.yaml` and `terraform.tfvars` files appropriately. This setting may take a few minutes to work after the `terraform apply` completes.
+## Discovery Engine Data Connector for Cloud Storage
+
+This Terraform configuration sets up a Google Cloud Vertex AI Search Data Connector to synchronize data from a specified Google Cloud Storage (GCS) bucket.
+
+**How it Works:**
+
+1.  **Connection:** The `google_discovery_engine_data_connector` resource establishes a link between Vertex AI Search and the GCS bucket defined in the `var.agent_space_gcs_bucket_name` variable.
+2.  **Managed Data Store:** Upon creation, the Data Connector automatically provisions and manages an underlying Data Store within Vertex AI Search. This Data Store is specifically for the data sourced from the connected GCS bucket.
+3.  **Periodic Synchronization:** The connector is configured to refresh data at a set interval (`refresh_interval`). It periodically checks the GCS bucket for any new, modified, or deleted objects.
+4.  **Data Ingestion:** Changes detected in the GCS bucket are automatically ingested into the managed Data Store, keeping the search index up-to-date with the bucket's contents.
+5.  **CMEK Encryption:** The managed Data Store and the data within it are encrypted using the Customer Managed Encryption Key (CMEK) specified by `kms_key_name`, ensuring data security and compliance.
+6.  **Indexing:** Vertex AI Search indexes the content from the Data Store, making it searchable via the Vertex AI Search API or applications built on top of it.
+
+This setup automates the data pipeline from GCS into Vertex AI Search, simplifying index management and ensuring data freshness.
+
 <!-- BEGIN TFDOC -->
 ## Variables
 

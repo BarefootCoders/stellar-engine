@@ -108,3 +108,14 @@ variable "subnetwork_name" {
   type        = string
   default     = "default-us-east4"
 }
+
+variable "agent_space_gcs_bucket_name" {
+  description = "The name of the GCS bucket to be used as the data source for the Discovery Engine Data Connector."
+  type        = string
+}
+
+variable "geolocation" {
+  description = "Location for Discovery Engine resources (us, eu, or global)."
+  type        = string
+  default     = "us"
+}
