@@ -81,7 +81,7 @@ fi
 promptUser "Would you like to set your default project to ${PREFIX}-prod-iac-core-0?" "gcloud config set project ${PREFIX}-prod-iac-core-0"
 
 # if promptUser "Would you to set your IAM permissions?"; then
-#   "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIam.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
+#   "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIAM.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
 # fi
 
 if promptUser "Would you like to disable org policies to allow for deletion?"; then
@@ -202,7 +202,7 @@ if promptUser "Stage 0 - Bootstrap"; then
   fi
 
   if promptUser "Would you to set your IAM permissions?"; then
-    "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIam.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
+    "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIAM.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
   fi
 
   if promptUser "Would you like to delete storage buckets?"; then
@@ -220,20 +220,20 @@ if promptUser "Stage 0 - Bootstrap"; then
   fi
 
   if promptUser "Did you receive any errors deleting projects or Assured Workloads resources?"; then
-    "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIam.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
+    "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIAM.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
     sleep 60
     terraform destroy
   fi
 
   ### Keeping the below in for reference
   # if promptUser "Did you receive any errors deleting projects"; then
-  #   "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIam.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
+  #   "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIAM.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
   #   gcloud projects delete "${PREFIX}"-prod-audit-logs-0
   #   gcloud projects delete "${PREFIX}"-prod-iac-core-0
   # fi
 
   # if promptUser "Did you receive any errors deleting Assured Workloads?"; then
-  #   "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIam.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
+  #   "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIAM.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
 
   #   aw_folder=$(gcloud resource-manager folders list --organization="${ORGANIZATION_ID}" | grep StellarEngine-"${PREFIX}" | awk '{print $3}')
   #   common_folder=$(gcloud resource-manager folders list --folder="${aw_folder}" --format='value(ID)')
