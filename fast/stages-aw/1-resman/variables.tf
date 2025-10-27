@@ -240,23 +240,12 @@ variable "groups" {
   default  = {}
 }
 
-variable "locations" {
+variable "regions" {
   # tfdoc:variable:source 0-bootstrap
-  description = "Optional locations for GCS, BigQuery, and logging buckets created here."
+  description = "Region definitions. Inherited from 0-bootstrap outputs. Must be specified in bootstrap terraform.tfvars."
   type = object({
-    bq      = string
-    gcs     = string
-    logging = string
-    pubsub  = list(string)
-    kms     = string
+    primary = string
   })
-  default = {
-    bq      = "US"
-    gcs     = "US"
-    kms     = "nam9"
-    logging = "us"
-    pubsub  = []
-  }
   nullable = false
 }
 

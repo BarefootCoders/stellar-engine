@@ -99,6 +99,7 @@ module "env-spoke-vpc" {
     private = true
   restricted = true }
   factories_config = {
+    context        = { regions = var.regions }
     subnets_folder = lower("${var.factories_config.data_dir}/subnets/${each.key}")
   }
   subnets_proxy_only = [{
@@ -207,7 +208,7 @@ resource "google_compute_subnetwork_iam_member" "allow-admin-principals" {
   for_each   = local.tenant_subnets_map_of_maps
   project    = each.value.project
   region     = each.value.region
-  subnetwork = module.env-spoke-vpc[each.value.env].subnet_ids["${each.value.region}/default-${each.value.region}"]
+  subnetwork = module.env-spoke-vpc[each.value.env].subnet_ids["${var.regions.primary}/default-primary-region"]
   role       = "roles/compute.networkUser"
   member     = each.value.admin_principal
 }

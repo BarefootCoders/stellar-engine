@@ -19,9 +19,9 @@ locals {
     folder        = v
     vpc           = module.env-spoke-vpc[name].id
     region        = var.regions.primary
-    shared_subnet = module.env-spoke-vpc[name].subnet_self_links[lower("${var.regions.primary}/default-${var.regions.primary}")]
+    shared_subnet = module.env-spoke-vpc[name].subnet_self_links["${var.regions.primary}/default-primary-region"]
     host_project  = module.env-spoke-projects[name].project_id
-    proxy_only    = module.env-spoke-vpc[name].subnets_proxy_only[lower("${var.regions.primary}/proxy-${var.regions.primary}")].self_link
+    proxy_only    = module.env-spoke-vpc[name].subnets_proxy_only["${var.regions.primary}/proxy-${var.regions.primary}"].self_link
   } }
   vdss = {
     landing_host = module.vdss-host-project.project_id

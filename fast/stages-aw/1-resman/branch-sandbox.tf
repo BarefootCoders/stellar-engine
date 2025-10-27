@@ -54,7 +54,7 @@ module "branch-sandbox-gcs" {
   project_id    = var.automation.project_id
   name          = "dev-resman-sbox-0"
   prefix        = var.prefix
-  location      = var.locations.gcs
+  location      = var.regions.primary
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {

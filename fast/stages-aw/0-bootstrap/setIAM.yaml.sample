@@ -65,6 +65,18 @@
             "user:{USER}"
         ],
         "role": "roles/billing.admin"
+    },
+    {
+        "members": [
+            "user:{USER}"
+        ],
+        "role": "roles/resourcemanager.projectDeleter"
+    },
+    {
+        "members": [
+            "user:{USER}"
+        ],
+        "role": "roles/iam.serviceAccountTokenCreator"
     }
 ]
 }

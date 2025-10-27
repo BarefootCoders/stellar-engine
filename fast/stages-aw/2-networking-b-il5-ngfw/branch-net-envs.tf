@@ -99,6 +99,7 @@ module "env-spoke-vpc" {
     private = true
   restricted = true }
   factories_config = {
+    context        = { regions = var.regions }
     subnets_folder = lower("${var.factories_config.data_dir}/subnets/${each.key}")
   }
   subnets_proxy_only = [{

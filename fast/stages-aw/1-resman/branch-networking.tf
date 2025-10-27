@@ -103,7 +103,7 @@ module "branch-network-gcs" {
   project_id    = var.automation.project_id
   name          = "prod-resman-net-0"
   prefix        = var.prefix
-  location      = var.locations.gcs
+  location      = var.regions.primary
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {
@@ -111,6 +111,6 @@ module "branch-network-gcs" {
     "roles/storage.objectViewer" = [module.branch-network-r-sa.iam_email]
   }
 
-  encryption_key = "projects/${var.automation.project_id}/locations/${var.locations.kms}/keyRings/gcs/cryptoKeys/gcs"
+  encryption_key = "projects/${var.automation.project_id}/locations/${var.regions.primary}/keyRings/gcs/cryptoKeys/gcs"
   depends_on     = [google_kms_crypto_key_iam_member.resman_bootstrap_kms]
 }

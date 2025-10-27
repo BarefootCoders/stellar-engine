@@ -1,9 +1,9 @@
 # skip boilerplate check
 ---
-name: default-us-east4
-region: us-east4
+name: default-primary-region
+region: primary  # Maps to primary region via factories_config.context.regions
 ip_cidr_range: 10.203.0.0/16
-description: Default us-east4 subnet for test environment
+description: Default subnet for test environment in primary region
 flow_logs_config:             # CIS Compliance Benchmark 3.8
   aggregation_interval: "INTERVAL_5_SEC"
   flow_sampling: 1

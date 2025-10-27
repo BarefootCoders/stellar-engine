@@ -292,6 +292,14 @@ variable "project_parent_ids" {
   nullable = false
 }
 
+variable "regions" {
+  description = "Region definitions. Must be specified in terraform.tfvars. Example: us-east4 for FedRAMP High compliance."
+  type = object({
+    primary = string
+  })
+  nullable = false
+}
+
 variable "regime_mapping" {
   description = "Mapping of compliance regime names to short codes."
   type        = map(string)

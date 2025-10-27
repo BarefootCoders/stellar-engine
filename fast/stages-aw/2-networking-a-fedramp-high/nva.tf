@@ -27,7 +27,7 @@ locals {
     },
     {
       name   = "landing"
-      routes = [for k, v in var.envs_folders : module.env-spoke-vpc[k].subnets[lower("${var.regions.primary}/default-${var.regions.primary}")].ip_cidr_range]
+      routes = [for k, v in var.envs_folders : module.env-spoke-vpc[k].subnets["${var.regions.primary}/default-primary-region"].ip_cidr_range]
     },
   ]
 }

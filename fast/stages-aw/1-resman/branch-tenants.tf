@@ -25,7 +25,7 @@ locals {
       module.tenant-self-iac-sa[k].iam_email
     ]
   }
-  gcs_locations = { for k, v in var.tenants : k => try(v.locations.gcs != "", false) ? v.locations.gcs : var.locations.gcs }
+  gcs_locations = { for k, v in var.tenants : k => try(v.locations.gcs != "", false) ? v.locations.gcs : var.regions.primary }
   tenant_envs = merge([for e, _ in var.envs_folders : {
     for t, v in var.tenants : "${e}-${t}" => {
       env         = e
@@ -280,8 +280,8 @@ module "tenant-self-main-projects" {
     ]
   }
   compute_metadata = {
-    google-compute-default-region = var.locations.gcs
-    google-compute-default-zone   = "${var.locations.gcs}-b" # There always seems to be a -b zone
+    google-compute-default-region = var.regions.primary
+    google-compute-default-zone   = "${var.regions.primary}-b" # There always seems to be a -b zone
   }
   services = [
     "accesscontextmanager.googleapis.com",

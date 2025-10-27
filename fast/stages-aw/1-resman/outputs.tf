@@ -385,11 +385,10 @@ locals {
     admin_principal = var.tenants[v.tenant].admin_principal
   } }
   tfvars = {
-    checklist_hierarchy = local.checklist.hierarchy
-    folder_ids          = local.folder_ids
-    envs_folders        = var.envs_folders
-    service_accounts    = local.service_accounts
-    tenant_accounts     = local.tenant_accounts
+    folder_ids       = local.folder_ids
+    envs_folders     = var.envs_folders
+    service_accounts = local.service_accounts
+    tenant_accounts  = local.tenant_accounts
   }
 }
 

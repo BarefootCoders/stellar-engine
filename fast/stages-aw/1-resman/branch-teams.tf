@@ -66,7 +66,7 @@ module "branch-teams-gcs" {
   project_id    = var.automation.project_id
   name          = "prod-resman-teams-0"
   prefix        = var.prefix
-  location      = var.locations.gcs
+  location      = var.regions.primary
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {
@@ -117,7 +117,7 @@ module "branch-teams-team-gcs" {
   project_id    = var.automation.project_id
   name          = "prod-teams-${each.key}-0"
   prefix        = var.prefix
-  location      = var.locations.gcs
+  location      = var.regions.primary
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {

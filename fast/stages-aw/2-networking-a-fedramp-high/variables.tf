@@ -160,13 +160,11 @@ variable "psa_ranges" {
 
 variable "regions" {
   # tfdoc:variable:source 0-bootstrap
-  description = "Region definitions."
+  description = "Region definitions. Inherited from 0-bootstrap outputs. Must be specified in bootstrap terraform.tfvars."
   type = object({
     primary = string
   })
-  default = {
-    primary = "us-east4"
-  }
+  nullable = false
 }
 
 variable "service_accounts" {

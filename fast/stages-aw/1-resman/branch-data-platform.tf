@@ -160,7 +160,7 @@ module "branch-dp-dev-gcs" {
   project_id    = var.automation.project_id
   name          = "dev-resman-dp-0"
   prefix        = var.prefix
-  location      = var.locations.gcs
+  location      = var.regions.primary
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {
@@ -175,7 +175,7 @@ module "branch-dp-prod-gcs" {
   project_id    = var.automation.project_id
   name          = "prod-resman-dp-0"
   prefix        = var.prefix
-  location      = var.locations.gcs
+  location      = var.regions.primary
   storage_class = local.gcs_storage_class
   versioning    = true
   iam = {

@@ -7,14 +7,13 @@ if [[ -z "${ORG}" ]]; then
   exit 1
 fi
 
-# Import Organization Policies Filtered by "SET" Constraints
+# Import Organization Policies - get all existing policies
 policies=$(gcloud resource-manager org-policies list \
   --organization="${ORG}" \
-  --filter='booleanPolicy.enforced=true OR listPolicy:*' \
-  --format='value(constraint)')
+  --format='value(constraint)' 2>/dev/null)
 
 if [[ -z "${policies}" ]]; then
-  echo "No organization policies found matching the filter."
+  echo "No existing organization policies found to import. This is normal for a fresh deployment."
 else
   echo -e "Importing policies...\n"
 

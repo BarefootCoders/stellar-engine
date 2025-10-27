@@ -103,14 +103,13 @@ locals {
     }
     assured_workloads      = merge(var.assured_workloads, { "folder" = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}" })
     common_services_folder = module.branch-common-services-folder.folder.name
-    regions                = { primary = var.assured_workloads.location }
+    regions                = var.regions
   }
 
   tfvars_globals = {
     billing_account = var.billing_account
     fast_features   = var.fast_features
     groups          = local.principals
-    locations       = local.locations
     organization    = var.organization
     prefix          = var.prefix
     regime_mapping  = var.regime_mapping

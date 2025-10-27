@@ -72,62 +72,12 @@ variable "kms_keys" {
   type = map(object({
     rotation_period = optional(string, "7776000s") # CIS Compliance Benchmark 1.10
     labels          = optional(map(string))
+    # Default locations for IL5/FedRAMP compliance - can be overridden per environment
+    # Uses primary US regions and zones commonly approved for government workloads
     locations = optional(list(string), [
-      "us",
-      "us-central2",
-      "us-east5-locations",
-      "us-central1-b",
-      "us-central2-d",
-      "us-west1-c",
-      "us-east4-a",
-      "us-west1",
-      "us-central2-b",
-      "us-south1-locations",
-      "us-south1-b",
-      "us-west2-c",
-      "us-west1-b",
-      "us-central2-locations",
-      "us-east4-d",
-      "us-east4-locations",
-      "us-east5-c",
-      "us-central2-a",
-      "us-west1-locations",
-      "us-west4",
-      "us-west3-b",
-      "us-west1-a",
-      "us-west4-a",
-      "us-west2",
-      "us-east4-c",
-      "us-west2-b",
-      "us-south1-a",
-      "us-east5-a",
-      "nam4",
-      "us-east4-a",
-      "us-west2-locations",
-      "us-central1-f",
-      "us-south1",
-      "us-west4-c",
-      "us-west2-a",
-      "us-west3",
-      "us-west4-b",
-      "us-central1",
-      "us-west3-c",
-      "us-central1-c",
-      "us-south1-c",
-      "us-east4-locations",
-      "us-east4",
-      "us-east4-b",
-      "us-central1-a",
-      "us-central2-c",
-      "us-east5-b",
-      "us-central1-locations",
-      "us-west4-locations",
-      "us-east5",
-      "us-west3-locations",
-      "us-west3-a",
-      "us-east4",
-      "us-east4-b",
-      "us-east4-c",
+      "us",           # Multi-region
+      "us-east4",     # Primary region
+      "us-central1",  # Secondary region
     ])
     purpose                       = optional(string, "ENCRYPT_DECRYPT")
     skip_initial_version_creation = optional(bool, false)

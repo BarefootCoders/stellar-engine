@@ -28,11 +28,11 @@ locals {
     )
   }
   locations = {
-    bq      = var.locations.bq
-    gcs     = var.locations.gcs
-    logging = coalesce(try(local.checklist.location, null), var.locations.logging)
-    pubsub  = var.locations.pubsub
-    kms     = var.locations.kms
+    bq      = var.regions.primary
+    gcs     = var.regions.primary
+    logging = coalesce(try(local.checklist.location, null), var.regions.primary)
+    pubsub  = [var.regions.primary]
+    kms     = var.regions.primary
   }
   # naming: environment used in most resource names
   prefix = join("-", compact([var.prefix, "prod"]))

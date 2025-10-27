@@ -67,7 +67,7 @@ In order to support full NGFW capabilities, including IDS/IPS and TLS break-and-
 
 ### Multi-regional deployment
 
-The stage can optionally deploy the the infrastructure into one or two regions. Due to current restrictions for the IL5 overlay, the two available regions are us-east4 and us-central1 (nam4). By default just us-east4. Regional resources include NVAs (templates, MIGs, LBs) and test VMs.
+The stage can optionally deploy the infrastructure into one or two regions. Due to current restrictions for the IL5 overlay, the two available regions are typically us-east4 and us-central1 (nam4). Regional resources include NVAs (templates, MIGs, LBs) and test VMs. The specific regions can be configured via the `regions` variable.
 As part of your design, you should weigh the additional maintenance cost of operating in two regions against your availability requirements to decide what is best for your deployment.
 
 ### VPC design
@@ -115,7 +115,7 @@ Minimizing the number of routes (and subnets) in the cloud environment is import
 
 This stage uses a dedicated `/11` block (`10.64.0.0/11`), which should be sized to the own needs. The subnets created in each VPC derive from this range.
 
-The `/11` block is evenly split in eight, smaller `/16` blocks, assigned to different areas of the Google Cloud network: *landing dmz us-east4*, *landing dmz us-central1*, *landing landing us-east4*, *landing dmz us-central1*, *development us-east4*, *development us-central1*, *production us-east4*, *production us-central1*.
+The `/11` block is evenly split in eight, smaller `/16` blocks, assigned to different areas of the Google Cloud network across the configured regions: *landing dmz primary-region*, *landing dmz secondary-region*, *landing landing primary-region*, *landing dmz secondary-region*, *development primary-region*, *development secondary-region*, *production primary-region*, *production secondary-region*.
 
 The first `/24` range in every area is allocated for a default subnet, which can be removed or modified as needed. The last three `/24` ranges can be used for [PSA (Private Service Access)](https://cloud.google.com/vpc/docs/private-services-access)via the `psa_ranges` variable, or for [Internal Application Load Balancers (L7 LBs)](https://cloud.google.com/load-balancing/docs/l7-internal) subnets via the factory.
 
@@ -133,9 +133,9 @@ This is a summary of the subnets allocated by default in this setup:
 
 | name | region | VPC network | description | CIDR |
 |---|---|---|---|---|
-| `mgmt-default` | `us-east4` | `prod-mgmt-0` | `10.64.128.0/24` |
-| `dmz-default`  | `us-east4` | `prod-dmz-0` | `10.64.128.0/24` |
-| `landing-default` | `us-east4` | `prod-landing-0` | `10.64.0.0/24` |
+| `mgmt-default` | `<primary-region>` | `prod-mgmt-0` | `10.64.128.0/24` |
+| `dmz-default`  | `<primary-region>` | `prod-dmz-0` | `10.64.128.0/24` |
+| `landing-default` | `<primary-region>` | `prod-landing-0` | `10.64.0.0/24` |
 
 Within each environment, there is a shared-subnet deployed and a proxy-only subnet deployed.
 
@@ -356,7 +356,9 @@ In order to access the Palo Alto managment console, you will need 3 things
   2. The terraform code should have automatically created a small VM on the mgmt network that will work as a bastion. You may have to start it, if it is not already running.
   3. Each NGFW instance will have at least 3 interfaces, but only the second one, connected to `prod-mgmt-0` is usable for administration.
 
-Use the following command to access the web portal `gcloud compute ssh management-bastion --zone us-east4-a --tunnel-through-iap -- -L 8443:<ip-of-ngfw>:443`. From here, you should be able to access the management interface at the url https://localhost:8443/ and log in with the username `admin` and the password you found using in the terraform output command. *Note*: You may need to change the zone in the above command if your management bastion host wasn't deployed in `us-east4-a`.
+Use the following command to access the web portal `gcloud compute ssh management-bastion --zone <ZONE> --tunnel-through-iap -- -L 8443:<ip-of-ngfw>:443`. From here, you should be able to access the management interface at the url https://localhost:8443/ and log in with the username `admin` and the password you found using in the terraform output command.
+
+*Note*: Replace `<ZONE>` with the zone where your management bastion host was deployed. You can find this in the Terraform outputs or by running `terraform show | grep zone`.
 
 If you wish to ssh into the NGFWs, you can copy the `id_rsa` and `id_rsa.pub` files that are output by the terraform process over to the `.ssh/` folder on the bastion host.
 

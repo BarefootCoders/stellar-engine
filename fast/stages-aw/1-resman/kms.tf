@@ -10,13 +10,13 @@ module "tenant-project-keys" {
   }
   keyring = {
     name     = "${each.key}-keyring"
-    location = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
+    location = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.regions.primary
   }
   keys = {
     gcs = {
       purpose         = "ENCRYPT_DECRYPT"
       labels          = { service = "gcs" }
-      locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
+      locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.regions.primary
       rotation_period = "7776000s" # CIS Compliance Benchmark 1.10
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
@@ -26,7 +26,7 @@ module "tenant-project-keys" {
     default = {
       purpose         = "ENCRYPT_DECRYPT"
       labels          = { service = "iac-core" }
-      locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
+      locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.regions.primary
       rotation_period = "7776000s"
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
@@ -38,7 +38,7 @@ module "tenant-project-keys" {
 
 resource "google_kms_crypto_key_iam_member" "resman_bootstrap_kms" {
   for_each      = local.tenant_envs
-  crypto_key_id = "projects/${var.automation.project_id}/locations/${var.locations.kms}/keyRings/gcs/cryptoKeys/gcs"
+  crypto_key_id = "projects/${var.automation.project_id}/locations/${var.regions.primary}/keyRings/gcs/cryptoKeys/gcs"
   member        = "serviceAccount:service-${module.tenant-self-iac-projects[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 }
