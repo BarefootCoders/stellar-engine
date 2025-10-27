@@ -19,7 +19,7 @@ This module sets up the backend components. Your application will interact with 
 
 ## Usage
 
-1.  Create a `terraform.tfvars` file in this directory to provide values for the variables defined in `variables.tf` (e.g., `main_project_id`, `region`, `geolocation`).
+1.  Create a `terraform.tfvars` file in this directory & provide values for the variables defined in `variables.tf` (e.g., `main_project_id`, `region`, `geolocation`).
 2.  Initialize Terraform: `terraform init`
 3.  Review the plan: `terraform plan`
 4.  Apply the configuration: `terraform apply`

@@ -1,3 +1,4 @@
+#TODO: This needs to be changed to a REGIONAL INTERNET NETWORK ENDPOINT Group backend, not VM / cloud run apps.
 locals {
   cr_backends = { for key, _ in try(local.cloud_runs, {}) : key =>
     {

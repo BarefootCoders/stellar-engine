@@ -9,6 +9,7 @@ variable "region" {
 }
 
 variable "geolocation" {
-  description = "The multi-region for Discovery Engine (e.g., us, eu, global)"
+  description = "Location for Discovery Engine resources (us, eu, or global)."
   type        = string
+  default     = "us"
 }
