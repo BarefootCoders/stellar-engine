@@ -49,7 +49,6 @@ if promptUser "Prerequisites -"; then
     read -r -p "Enter your organization ID: " ORGANIZATION_ID
     read -r -p "Enter your prefix (6 chars or less): " PREFIX
     read -r -p "Enter your region: " REGION
-    read -r -p "Enter your Assured Workload region: " AW_REGION
     read -r -p "Enter your tenant name (6 chars or less): "  TENANT_NAME
 
     echo "--- Configuration Summary ---"
@@ -63,7 +62,6 @@ if promptUser "Prerequisites -"; then
     echo "organization-id: $ORGANIZATION_ID"
     echo "prefix: $PREFIX"
     echo "region: $REGION"
-    echo "aw-region: $AW_REGION"
     echo "tenant-name: $TENANT_NAME"
 
     {
@@ -77,7 +75,6 @@ if promptUser "Prerequisites -"; then
       echo "ORGANIZATION_ID=$ORGANIZATION_ID"
       echo "PREFIX=$PREFIX"
       echo "REGION=$REGION"
-      echo "AW_REGION=$AW_REGION"
       echo "TENANT_NAME=$TENANT_NAME"
     } > "$SCRIPT_DIR"/config.env
   else
@@ -94,7 +91,7 @@ if promptUser "Prerequisites -"; then
   promptUser "Would you like to set the bootstrap project as the default project?" "gcloud config set project ${BOOTSTRAP_PROJECT_ID}"
 
   # setIAM
-  promptUser "Would you like to set your IAM permissions?" "${SCRIPT_DIR}/../fast/stages-aw/0-bootstrap/setIam.sh ${DEPLOYER_EMAIL_ADDRESS} ${ORGANIZATION_ID}"
+  promptUser "Would you like to set your IAM permissions?" "${SCRIPT_DIR}/../fast/stages-aw/0-bootstrap/setIAM.sh ${DEPLOYER_EMAIL_ADDRESS} ${ORGANIZATION_ID}"
 
   # enable Services
   promptUser "Would you like to enable all Google Cloud Services?" "${SCRIPT_DIR}/../fast/stages-aw/0-bootstrap/enableServices.sh ${DEPLOYER_EMAIL_ADDRESS} ${ORGANIZATION_ID}"
@@ -197,7 +194,7 @@ fast_features = {
 
 assured_workloads = {
   regime   = "${COMPLIANCE_REGIME}" # "IL4, IL5, FEDRAMP_HIGH, etc... if you wish to not use assured_workloads, set this value to COMPLIANCE_REGIME_UNSPECIFIED"
-  location = "${AW_REGION}"
+  location = "${REGION}" # Uses the same region as other resources for consistency
 }
 
 bootstrap_project = "${BOOTSTRAP_PROJECT_ID}"
@@ -420,5 +417,5 @@ if promptUser "Stage 3 - Security -"; then
     # promptUser "Would you like to delete the bootstrap project?" "./delete_gcp_project.sh --project-id=${BOOTSTRAP_PROJECT_ID}"
 
     echo "Congratulations, you have finished Stage 3! Please see the SBPG linked below for further hardening."
-    echo 'https://docs.google.com/document/d/1bkPg-Uj6cf6_w1IHPCTZ66SC0fVWz9pUfTZy9v6hcr0/'
+    echo 'https://docs.google.com/document/d/1uv62Fqg73r9oJNP-NPZebpzoBom8rOgLoHkiMZPutbo/edit?usp=drive_link'
 fi
