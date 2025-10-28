@@ -1,0 +1,12 @@
+domain = "your-domain.com"
+
+main_project_id    = "your-prefix-test-nate-main-0"
+network_project_id = "your-prefix-test-net-host"
+
+prefix               = "your-prefix"
+region               = "us-east4"
+oauth_brand_number   = 123456789
+access_policy_number = 123456789
+
+network_name = "test-spoke-0"
+geolocation = "us"
