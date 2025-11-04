@@ -16,7 +16,6 @@
 
 # # tfdoc:file:description Lightweight tenant resources.
 
-# # TODO(ludo): add support for CI/CD
 
 locals {
   tenant_iam = {

@@ -16,7 +16,6 @@
 
 # tfdoc:file:description Team stage resources.
 
-# TODO(ludo): add support for CI/CD
 locals {
   # FAST-specific IAM
   _envs_folder_fast_iam = !var.fast_features.envs ? {} : {

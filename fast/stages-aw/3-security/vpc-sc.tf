@@ -58,8 +58,6 @@ module "vpc-sc-discovery" {
   include_projects = var.vpc_sc.resource_discovery.include_projects
 }
 
-# TODO(ludomagno): allow passing in restricted services via variable and factory file
-# TODO(ludomagno): implement vpc accessible services via variable or factory file
 
 module "vpc-sc" {
   source = "../../../modules/vpc-sc"

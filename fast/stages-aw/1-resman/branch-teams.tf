@@ -16,7 +16,6 @@
 
 # tfdoc:file:description Team stage resources.
 
-# TODO(ludo): add support for CI/CD
 locals {
   # FAST-specific IAM
   _teams_folder_fast_iam = !var.fast_features.teams ? {} : {
@@ -90,7 +89,6 @@ module "branch-teams-team-folder" {
   iam_by_principals = each.value.iam_by_principals == null ? {} : each.value.iam_by_principals
 }
 
-# TODO: move into team's own IaC project
 
 module "branch-teams-team-sa" {
   source       = "../../../modules/iam-service-account"

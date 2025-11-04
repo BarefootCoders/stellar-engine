@@ -57,7 +57,6 @@ COUNT_TEST_RE = re.compile(
     r'(?: +files=(?P<files>[\w@,_-]+))?' +
     r'(?: +fixtures=(?P<fixtures>[\w@,_/.-]+))?' +
     r'(?: +inventory=(?P<inventory>[\w\-.]+))?')
-# TODO(ludomagno): decide if we want to support variables*.tf and outputs*.tf
 FILE_DESC_DEFAULTS = {
     'main.tf': 'Module-level locals and resources.',
     'outputs.tf': 'Module outputs.',
