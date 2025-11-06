@@ -145,3 +145,18 @@ variable "user_group_email" {
   description = "The email address of the AgentSpace users group."
   type        = string
 }
+
+variable "gcs_data_store_names" {
+  description = "A list of names to use for creating GCS buckets and associated Discovery Engine Data Stores."
+  type        = list(string)
+  default     = []
+}
+
+variable "bq_data_store_configs" {
+  description = "A list of objects defining BigQuery datasets and tables to create and connect to Discovery Engine. Each object should have 'dataset_id' and 'table_id'."
+  type        = list(object({
+    dataset_id = string
+    table_id   = string
+  }))
+  default     = []
+}

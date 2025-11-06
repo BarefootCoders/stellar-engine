@@ -529,42 +529,6 @@ resource "google_discovery_engine_acl_config" "agent_space_acl_config" {
 }
 
 # ---------------------------------------------------------------------------- #
-#  Networking Resources                                                        #
-# ---------------------------------------------------------------------------- #
-
-resource "google_compute_network" "gemini_enterprise_vpc" {
-  project                 = var.main_project_id
-  name                    = "gemini-enterprise-vpc"
-  auto_create_subnetworks = false
-}
-
-resource "google_compute_subnetwork" "gemini_enterprise_vpc_subnet" {
-  project                  = var.main_project_id
-  name                     = "gemini-enterprise-vpc-subnet"
-  ip_cidr_range            = "10.10.10.0/24"
-  region                   = var.region
-  network                  = google_compute_network.gemini_enterprise_vpc.id
-  private_ip_google_access = true
-}
-
-resource "google_compute_subnetwork" "gemini_enterprise_vpc_proxy_subnet" {
-  project                  = var.main_project_id
-  name                     = "gemini-enterprise-vpc-proxy-subnet"
-  ip_cidr_range            = "10.10.11.0/24"
-  region                   = var.region
-  network                  = google_compute_network.gemini_enterprise_vpc.id
-  purpose                  = "REGIONAL_MANAGED_PROXY"
-  role                     = "ACTIVE"
-}
-
-resource "google_compute_address" "gemini_enterprise_ip" {
-  project      = var.main_project_id
-  name         = "gemini-enterprise-ip"
-  region       = var.region
-  address_type = "EXTERNAL"
-}
-
-# ---------------------------------------------------------------------------- #
 #  Outputs                                                                     #
 # ---------------------------------------------------------------------------- #
 
