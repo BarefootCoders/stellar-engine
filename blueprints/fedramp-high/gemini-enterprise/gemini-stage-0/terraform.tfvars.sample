@@ -4,7 +4,10 @@ main_project_id    = "prefx-main-xxx-x"
 
 prefix               = "prefx"
 region               = "us-east4"
-oauth_brand_number   = 864620684991
+
+# gcloud access-context-manager policies list --organization ORGANIZATION_ID
+# get your organization ID via gcloud organizations list
+# It will be the NAME Value.
 access_policy_number = 250001080040
 
 geolocation = "us"
