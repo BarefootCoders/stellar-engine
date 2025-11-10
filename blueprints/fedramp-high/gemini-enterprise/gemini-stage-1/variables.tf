@@ -35,18 +35,8 @@ variable "access_policy_number" {
   type        = number
 }
 
-variable "default_backend" {
-  description = "The default backend for traffic at the load-balancer. Must match the key of one of the backends in the data/apps.yaml file."
-  type        = string
-}
-
 variable "domain" {
   description = "FQDN for the load-balancer hosted apps, where the subdomain will be prepended to."
-  type        = string
-}
-
-variable "google_workspace_customer_id" {
-  description = "The Google Workspace Customer ID."
   type        = string
 }
 
@@ -66,11 +56,6 @@ variable "network_name" {
   type        = string
 }
 
-variable "oauth_brand_number" {
-  description = "External Oauth2 consent screens can only be configured via the interactive console. After configuring it, use `gcloud alpha iap oauth-brands list` to lookup the brand id number."
-  type        = number
-}
-
 variable "prefix" {
   description = "Prefix for naming resources in this blueprint."
   type        = string
@@ -88,27 +73,18 @@ variable "severity" {
   default     = "MEDIUM"
 }
 
-variable "subnetwork_name" {
-  description = "Subnet for your VPC"
-  type        = string
-}
-
-variable "admin_user_email" {
-  description = "The email address of the admin user for IAM bindings."
-  type        = string
-}
-
-variable "company_name" {
-  description = "Company name for Discovery Engine configuration."
-  type        = string
-  default     = "Department of Technology"
-}
-
 variable "gcs_label_environment" {
   description = "Environment label for the GCS bucket."
   type        = string
   default     = "prod"
 }
+
+variable "gemini_enterprise_domain" {
+  description = "Environment label for the GCS bucket."
+  type        = string
+  default     = "prod"
+}
+
 
 variable "agent_space_gcs_bucket_name" {
   description = "The name of the GCS bucket to be used as the data source for the Discovery Engine Data Connector."
@@ -120,16 +96,6 @@ variable "geolocation" {
   description = "Location for Discovery Engine resources (us, eu, or global)."
   type        = string
   default     = "us"
-}
-
-variable "admin_group_email" {
-  description = "The email address of the AgentSpace administrators group."
-  type        = string
-}
-
-variable "user_group_email" {
-  description = "The email address of the AgentSpace users group."
-  type        = string
 }
 
 variable "gcs_data_store_names" {
@@ -157,3 +123,14 @@ variable "gemini_config_id" {
   description = "ID for your Gemini Enterprise instance after running Gem4Gov CLI"
   type        = string
 }
+
+variable "admin_group" {
+  description = "The email address of the admin user group for Gemini Enterprise."
+  type        = string
+}
+
+variable "user_group" {
+  description = "The email address of the AgentSpace users group."
+  type        = string
+}
+

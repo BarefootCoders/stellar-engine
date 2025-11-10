@@ -19,33 +19,53 @@ data "google_compute_region_ssl_certificate" "gemini_enterprise_cert" {
   region  = var.region
 }
 
+# Data source to get the backend service created in stage-0
+data "google_compute_region_backend_service" "gemini_enterprise_backend" {
+  project = var.main_project_id
+  name    = "gemini-enterprise-backend-service"
+  region  = var.region
+}
+
+# Data source to get the network created in stage-0
+data "google_compute_network" "gemini_enterprise_vpc" {
+  project = var.main_project_id
+  name    = "gemini-enterprise-vpc"
+}
+
+# Data source to get the IP address created in stage-0
+data "google_compute_address" "gemini_enterprise_ip" {
+  project = var.main_project_id
+  name    = "gemini-enterprise-ip"
+  region  = var.region
+}
+
 # This resource defines the URL map with the specified routing rules.
-resource "google_compute_region_url_map" "cnap_url_map" {
+resource "google_compute_region_url_map" "gemini_enterprise_load_balancer" {
   project               = var.main_project_id
-  name            = "${var.prefix}-cloud-native-access-point-url-map"
+  name            = "${var.prefix}-gemini-enterprise-url-map"
   region          = var.region
-  description     = "URL map for ${var.prefix}-cloud-native-access-point"
-  default_service = google_compute_region_backend_service.gemini_enterprise_backend.id
+  description     = "URL map for ${var.prefix}-gemini-enterprise"
+  default_service = data.google_compute_region_backend_service.gemini_enterprise_backend.id
 
   host_rule {
-    hosts        = ["gemini-enterprise.kat-agentplus-dev.com"]
+    hosts        = ["${var.gemini_enterprise_domain}"]
     path_matcher = "path-matcher-1"
   }
 
   path_matcher {
     name            = "path-matcher-1"
-    default_service = google_compute_region_backend_service.gemini_enterprise_backend.id
+    default_service = data.google_compute_region_backend_service.gemini_enterprise_backend.id
 
     route_rules {
       priority = 100
       match_rules {
         prefix_match = "/"
       }
-      service = google_compute_region_backend_service.gemini_enterprise_backend.id
+      service = data.google_compute_region_backend_service.gemini_enterprise_backend.id
       route_action {
         url_rewrite {
           host_rewrite        = "vertexaisearch.cloud.google.com"
-          path_prefix_rewrite = "/us/home/cid/e73074c1-afa0-47d7-86ac-5f29057d6f04?hl=en_US"
+          path_prefix_rewrite = "${var.gemini_config_id}"
         }
       }
     }
@@ -54,12 +74,12 @@ resource "google_compute_region_url_map" "cnap_url_map" {
 
 # This resource creates the target HTTPS proxy for the load balancer.
 # It now references the pre-existing SSL certificate via the data source.
-resource "google_compute_region_target_https_proxy" "cnap_https_proxy" {
-  project               = var.main_project_id
-  name             = "${var.prefix}-cloud-native-access-point-https-proxy"
+resource "google_compute_region_target_https_proxy" "gemini_enterprise_https_proxy" {
+  project          = var.main_project_id
+  name             = "${var.prefix}-gemini-enterprise-https-proxy"
   region           = var.region
-  url_map          = google_compute_region_url_map.cnap_url_map.id
-  ssl_certificates = [data.google_compute_region_ssl_certificate.cnap_certificate.self_link]
+  url_map          = google_compute_region_url_map.gemini_enterprise_load_balancer.id
+  ssl_certificates = [data.google_compute_region_ssl_certificate.gemini_enterprise_cert.self_link]
 }
 
 # This resource creates the forwarding rule for the load balancer.
@@ -70,42 +90,37 @@ resource "google_compute_forwarding_rule" "gemini_enterprise_forwarding_rule" {
   region                = var.region
   ip_protocol           = "TCP"
   port_range            = "443"
-  load_balancing_scheme = "EXTERNAL"
-  network               = data.google_compute_network.network.self_link
-  ip_address            = google_compute_address.gemini_enterprise_ip.address
+  load_balancing_scheme = "EXTERNAL_MANAGED"
+  network               = data.google_compute_network.gemini_enterprise_vpc.self_link
+  ip_address            = data.google_compute_address.gemini_enterprise_ip.address
   target                = google_compute_region_target_https_proxy.gemini_enterprise_https_proxy.id
 }
 
-# This is an optional but recommended companion to the HTTPS setup,
-# creating an HTTP load balancer to redirect HTTP traffic to HTTPS.
-resource "google_compute_region_url_map" "gemini_enterprise_http_redirect_url_map" {
-  project     = var.main_project_id
-  name        = "${var.prefix}-http-redirect-url-map"
-  region      = var.region
-  description = "URL map to redirect HTTP to HTTPS"
-
-  default_url_redirect {
-    https_redirect         = true
-    strip_query            = false
-    redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
+# --- IAP Access Roles ---
+# Grant a user or group access through IAP.
+# --- IAP Access Roles --- (CORRECT REGIONAL RESOURCE TYPE)
+resource "google_iap_web_region_backend_service_iam_member" "iap_admin" {
+  project                    = var.main_project_id
+  region                     = var.region
+  web_region_backend_service = data.google_compute_region_backend_service.gemini_enterprise_backend.name
+  role                       = "roles/iap.httpsResourceAccessor"
+  member                     = "group:${var.admin_group}@${var.domain}"
+  condition {
+    title       = "Admin Access"
+    description = "Access for Admins with Strict Device Policy"
+    expression  = format("\"accessPolicies/%s/accessLevels/strict_device\" in request.auth.access_levels", var.access_policy_number)
   }
 }
 
-resource "google_compute_region_target_http_proxy" "gemini_enterprise_http_proxy" {
-  project    = var.main_project_id
-  name       = "${var.prefix}-http-proxy"
-  region     = var.region
-  url_map    = google_compute_region_url_map.gemini_enterprise_http_redirect_url_map.id
-}
-
-resource "google_compute_forwarding_rule" "gemini_enterprise_forwarding_rule" {
-  project               = var.main_project_id
-  name                  = "${var.prefix}-http-forwarding-rule"
-  region                = var.region
-  ip_protocol           = "TCP"
-  port_range            = "443"
-  load_balancing_scheme = "EXTERNAL"
-  network               = data.google_compute_network.gemini_enterprise_vpc.self_link
-  ip_address            = google_compute_address.gemini_enterprise_ip.address
-  target                = google_compute_region_target_http_proxy.gemini_enterprise_http_proxy.id
+resource "google_iap_web_region_backend_service_iam_member" "iap_user" {
+  project                    = var.main_project_id
+  region                     = var.region
+  web_region_backend_service = data.google_compute_region_backend_service.gemini_enterprise_backend.name
+  role                       = "roles/iap.httpsResourceAccessor"
+  member                     = "group:${var.user_group}@${var.domain}"
+  condition {
+    title       = "User Access"
+    description = "Access for Users with Moderate Device Policy"
+    expression  = format("\"accessPolicies/%s/accessLevels/moderate_device\" in request.auth.access_levels", var.access_policy_number)
+  }
 }

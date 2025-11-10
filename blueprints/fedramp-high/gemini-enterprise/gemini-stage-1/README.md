@@ -62,6 +62,12 @@ Refer to `variables.tf` for all required input variables. Key inputs from manual
 
 Refer to `outputs.tf` for the outputs of this module, such as the load balancer's IP address.
 
+## Identity-Aware Proxy (IAP) Configuration
+
+**Important:** Identity-Aware Proxy (IAP) is configured in this stage to protect the application. IAP a component that works in conjunction with the Google Cloud Load Balancer. The Load Balancer must be fully provisioned *before* IAP can be enabled and its IAM policies applied. This is because IAP intercepts traffic handled by the Load Balancer to enforce access controls.
+
+The `google_iap_web_backend_service_iam_member` resources are included in `load_balancer.tf` to ensure they are applied after the load balancer and backend service are created.
+
 ---
 
 ## `gem4gov` CLI Tool Details
