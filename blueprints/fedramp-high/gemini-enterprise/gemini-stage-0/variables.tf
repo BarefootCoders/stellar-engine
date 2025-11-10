@@ -35,11 +35,6 @@ variable "main_project_id" {
   type        = string
 }
 
-variable "oauth_brand_number" {
-  description = "External Oauth2 consent screens can only be configured via the interactive console. After configuring it, use `gcloud alpha iap oauth-brands list` to lookup the brand id number."
-  type        = number
-}
-
 variable "prefix" {
   description = "Prefix for naming resources in this blueprint."
   type        = string
