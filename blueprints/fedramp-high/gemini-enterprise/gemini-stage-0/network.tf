@@ -53,7 +53,6 @@ resource "google_compute_address" "gemini_enterprise_ip" {
 # -----------------------------------------------------------------------------
 resource "google_compute_region_network_endpoint_group" "gemini_enterprise_neg" {
   name = "gemini-enterprise-internet-neg"
-
   project               = var.main_project_id
   network               = data.google_compute_network.network.id
   network_endpoint_type = "INTERNET_FQDN_PORT"

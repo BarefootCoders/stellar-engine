@@ -40,13 +40,13 @@ resource "google_access_context_manager_access_levels" "access-levels" {
     }
   }
 
-  # Access level for expiring access at midnight of 2024-12-31.
+  # Access level for expiring access at midnight of 2026-12-31.
   access_levels {
     name  = "accessPolicies/${var.access_policy_number}/accessLevels/expire"
-    title = "Expire Access 2024"
+    title = "Expire Access 2026"
     custom {
       expr {
-        expression = ("request.time < timestamp(\"2025-01-01T00:00:00Z\")")
+        expression = ("request.time < timestamp(\"2027-01-01T00:00:00Z\")")
       }
     }
   }

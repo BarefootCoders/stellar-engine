@@ -1,0 +1,29 @@
+domain = "customer-domain.com"
+
+main_project_id    = "prefx-main-xxx-x"
+
+prefix               = "prefx"
+region               = "us-east4"
+oauth_brand_number   = 864620684991
+access_policy_number = 250001080040
+
+geolocation = "us"
+
+# Example GCS Data Stores
+gcs_data_store_names = ["company-docs", "knowledge-base", "team-playbooks"]
+
+# Example BigQuery Data Stores
+bq_data_store_configs = [
+  {
+    dataset_id = "internal_wiki"
+    table_id   = "articles_v2"
+  },
+  {
+    dataset_id = "product_data"
+    table_id   = "specs_latest"
+  },
+  {
+    dataset_id = "support_tickets"
+    table_id   = "resolved_issues"
+  }
+]

@@ -22,25 +22,25 @@
 resource "google_project_iam_member" "admins_discoveryengine_admin" {
   project = var.main_project_id
   role    = "roles/discoveryengine.admin"
-  member  = "group:gcp-agentspace-admins@${var.domain}"
+  member  = "group:${var.admin_group_email}"
 }
 
 resource "google_project_iam_member" "admins_aiplatform_admin" {
   project = var.main_project_id
   role    = "roles/aiplatform.admin"
-  member  = "group:gcp-agentspace-admins@${var.domain}"
+  member  = "group:${var.admin_group_email}"
 }
 
 resource "google_project_iam_member" "admins_serviceusage_consumer" {
   project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:gcp-agentspace-admins@${var.domain}"
+  member  = "group:${var.admin_group_email}"
 }
 
 resource "google_project_iam_member" "admins_logging_viewer" {
   project = var.main_project_id
   role    = "roles/logging.viewer"
-  member  = "group:gcp-agentspace-admins@${var.domain}"
+  member  = "group:${var.admin_group_email}"
 }
 
 
@@ -48,11 +48,28 @@ resource "google_project_iam_member" "admins_logging_viewer" {
 resource "google_project_iam_member" "users_discoveryengine_user" {
   project = var.main_project_id
   role    = "roles/discoveryengine.user"
-  member  = "group:gcp-agentspace-users@${var.domain}"
+  member  = "group:${var.user_group_email}"
 }
 
 resource "google_project_iam_member" "users_serviceusage_consumer" {
   project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:gcp-agentspace-users@${var.domain}"
+  member  = "group:${var.user_group_email}"
+}
+
+# --- IAP Access Roles ---
+resource "google_iap_web_backend_service_iam_member" "iap_users" {
+  provider            = google-beta
+  project             = var.main_project_id
+  web_backend_service = google_compute_region_backend_service.gemini_enterprise_backend.name
+  role                = "roles/iap.httpsResourceAccessor"
+  member              = "group:${var.user_group_email}"
+}
+
+resource "google_iap_web_backend_service_iam_member" "iap_admins" {
+  provider            = google-beta
+  project             = var.main_project_id
+  web_backend_service = google_compute_region_backend_service.gemini_enterprise_backend.name
+  role                = "roles/iap.httpsResourceAccessor"
+  member              = "group:${var.admin_group_email}"
 }
