@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,14 +15,14 @@
  */
 
 variable "iam" {
-  description = "IAM bindings for topic in {ROLE => [MEMBERS]} format."
+  description = "Topic-level IAM bindings (non-authoritative) in {ROLE => [MEMBERS]} format."
   type        = map(list(string))
   default     = {}
   nullable    = false
 }
 
 variable "iam_bindings" {
-  description = "Authoritative IAM bindings in {KEY => {role = ROLE, members = [], condition = {}}}. Keys are arbitrary."
+  description = "Authoritative IAM bindings for the Pub/Sub topic in {KEY => {role = ROLE, members = [], condition = {}}}. Keys are arbitrary identifiers. Use this to explicitly define all roles/members for a topic."
   type = map(object({
     members = list(string)
     role    = string
@@ -37,7 +37,7 @@ variable "iam_bindings" {
 }
 
 variable "iam_bindings_additive" {
-  description = "Keyring individual additive IAM bindings. Keys are arbitrary."
+  description = "Additive (non-authoritative) IAM bindings for the Pub/Sub topic. Keys are arbitrary identifiers. Use this to add individual members to specific roles without managing all members for that role."
   type = map(object({
     member = string
     role   = string
@@ -52,43 +52,43 @@ variable "iam_bindings_additive" {
 }
 
 variable "kms_key" {
-  description = "KMS customer managed encryption key."
+  description = "The full resource path of the Cloud KMS CryptoKey to use for Customer-Managed Encryption Keys (CMEK) on the Pub/Sub topic. Set to `null` to use Google-managed encryption."
   type        = string
   default     = null
 }
 
 variable "labels" {
-  description = "Labels."
+  description = "Optional labels to apply to the Pub/Sub topic."
   type        = map(string)
   default     = {}
   nullable    = false
 }
 
 variable "message_retention_duration" {
-  description = "Minimum duration to retain a message after it is published to the topic."
+  description = "The minimum duration (e.g., '10s', '24h', '7d') to retain a message after it is published to the topic. Minimum is 10 minutes, maximum is 7 days. Set to `null` to use default."
   type        = string
   default     = null
 }
 
 variable "name" {
-  description = "PubSub topic name."
+  description = "The name of the Pub/Sub topic to be created."
   type        = string
 }
 
 variable "project_id" {
-  description = "Project used for resources."
+  description = "The Google Cloud Project ID where the Pub/Sub topic and subscriptions will be created."
   type        = string
 }
 
 variable "regions" {
-  description = "List of regions used to set persistence policy."
+  description = "A list of Google Cloud regions where messages published to the topic are allowed to be stored. If empty, the topic will use the default global storage policy."
   type        = list(string)
   default     = []
   nullable    = false
 }
 
 variable "schema" {
-  description = "Topic schema. If set, all messages in this topic should follow this schema."
+  description = "Optional topic schema configuration. If set, all messages in this topic should follow this schema."
   type = object({
     definition   = string
     msg_encoding = optional(string, "ENCODING_UNSPECIFIED")
@@ -98,14 +98,14 @@ variable "schema" {
 }
 
 variable "subscriptions" {
-  description = "Topic subscriptions. Also define push configs for push subscriptions. If options is set to null subscription defaults will be used. Labels default to topic labels if set to null."
+  description = "Map of subscriptions to create for the topic. Keys are subscription names. Each value is an object configuring subscription properties (e.g., push configs, dead-letter policies, BigQuery/Cloud Storage exports, retry policies, IAM)."
   type = map(object({
     ack_deadline_seconds         = optional(number)
     enable_exactly_once_delivery = optional(bool, false)
     enable_message_ordering      = optional(bool, false)
     expiration_policy_ttl        = optional(string)
     filter                       = optional(string)
-    iam                          = optional(map(list(string)), {})
+    iam                          = optional(map(list(string)), {}) # Non-authoritative IAM on subscription
     labels                       = optional(map(string))
     message_retention_duration   = optional(string)
     retain_acked_messages        = optional(bool, false)
@@ -139,7 +139,7 @@ variable "subscriptions" {
         title       = string
         description = optional(string)
       }))
-    })), {})
+    })), {}) # Authoritative IAM on subscription
     iam_bindings_additive = optional(map(object({
       member = string
       role   = string
@@ -148,7 +148,7 @@ variable "subscriptions" {
         title       = string
         description = optional(string)
       }))
-    })), {})
+    })), {}) # Additive IAM on subscription
     push = optional(object({
       endpoint   = string
       attributes = optional(map(string))
@@ -159,10 +159,11 @@ variable "subscriptions" {
       }))
     }))
     retry_policy = optional(object({
-      minimum_backoff = optional(number)
-      maximum_backoff = optional(number)
+      minimum_backoff = optional(string)
+      maximum_backoff = optional(string)
     }))
   }))
   default  = {}
   nullable = false
 }
+

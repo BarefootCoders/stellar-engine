@@ -12,89 +12,75 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-variable "create_topic" {
-  description = "Set the name of the topic to create a pubsub topic."
-  type = object({
-    name = string
-  })
-  default = null
-}
-
 variable "data" {
-  description = "Uneoncoded data to be sent."
+  description = "The base64-encoded data to be sent as the Pub/Sub message payload."
   type        = string
   default     = null
 }
 
 variable "description" {
-  description = "Description of job."
+  description = "Description of the Cloud Scheduler job."
   type        = string
 }
 
 variable "kms_key_name" {
-  description = "Full path to KMS key for pubsub."
+  description = "The full resource path of the existing Cloud KMS CryptoKey used for CMEK on the Pub/Sub topic. This key is assumed to be in the `core_project_id`."
   type        = string
   default     = null
 }
 
 variable "main_project_id" {
-  description = "Project id."
+  description = "The Google Cloud Project ID where the Cloud Scheduler job will be created."
   type        = string
 }
 
 variable "max_backoff_duration" {
-  description = "Max backoff duration."
+  description = "The maximum amount of time to wait before retrying a failed attempt, as a duration string (e.g., '5s', '2m', '1h')."
   type        = string
   default     = null
 }
 
 variable "max_doublings" {
-  description = "Max doublings."
+  description = "The maximum number of times to double the retry delay, up to `max_retry_duration`."
   type        = number
   default     = null
 }
 
 variable "max_retry_duration" {
-  description = "Maximum retry duration."
+  description = "The maximum cumulative time in which retries are attempted, as a duration string."
   type        = string
   default     = null
 }
 
 variable "min_backoff_duration" {
-  description = "Minimum backoff duration."
+  description = "The minimum amount of time to wait before retrying a failed attempt, as a duration string."
   type        = string
   default     = null
 }
 
 variable "name" {
-  description = "Name of the Cloud Scheduler job."
+  description = "The name of the Cloud Scheduler job."
   type        = string
 }
 
-variable "new_topic_name" {
-  description = "Name for new PubSub topic if creating one."
-  type        = string
-  default     = null
-}
-
-variable "region" {
-  description = "Location to deploy job."
+variable "gcp_region" {
+  description = "The Google Cloud region where the Cloud Scheduler job will be deployed."
   type        = string
 }
 
 variable "retry_count" {
-  description = "Number of retries."
+  description = "The number of attempts that the system will make to run the job if the first attempt fails. Retries are attempted over a longer period of time than the schedule."
   type        = number
   default     = null
 }
 
 variable "schedule" {
-  description = "Schedule to implement the job -- use cron-based syntax."
+  description = "The schedule in the [Crontab format](https://en.wikipedia.org/wiki/Cron#CRON_expression) (e.g., '*/2 * * * *' for every two minutes)."
   type        = string
 }
 
 variable "topic_id" {
-  description = "PubSub topic ID."
+  description = "The full resource path of the existing Pub/Sub topic (e.g., `projects/<PROJECT_ID>/topics/<TOPIC_NAME>`) to which messages will be published."
   type        = string
-  default     = null
 }
+
