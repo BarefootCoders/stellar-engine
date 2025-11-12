@@ -69,3 +69,7 @@ config.env
 tmp_aw_policy.yaml
 **/.gemini/.env
 GEMINI.md
+gemini_session_state.md
+@gemini_session_state.md
+*.plan
+*.swp
