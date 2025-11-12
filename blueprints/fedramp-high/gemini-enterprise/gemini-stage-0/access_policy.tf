@@ -34,7 +34,7 @@ resource "google_access_context_manager_access_levels" "access-levels" {
     title = "Business Hours East Coast"
     custom {
       expr {
-        expression = ("request.time.getHours(\"America/New_York\") >= 7 && request.time.getHours(\"America/New_York\") <= 21 && request.time.getDayOfWeek(\"America/New_York\") >= 1 && request.time.getDayOfWeek(\"America/New_York\") <= 5")
+        expression = ("request.time.getHours(\"America/New_York\") >= ${var.access_start_hour} && request.time.getHours(\"America/New_York\") <= ${var.access_end_hour} && request.time.getDayOfWeek(\"America/New_York\") >= ${var.access_start_day} && request.time.getDayOfWeek(\"America/New_York\") <= ${var.access_end_day}")
         title      = "TimeBasedControls"
       }
     }

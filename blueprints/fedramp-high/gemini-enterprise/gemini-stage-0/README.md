@@ -21,6 +21,46 @@ Before applying this Terraform module, ensure the following manual steps and con
 
 **IMPORTANT:** This blueprint is designed to be deployed in a **FedRAMP High GCP project**, to ensure a clean slate for meeting stringent FedRAMP High security and compliance requirements.
 
+## IAM Permissions for Deployment
+
+The user or service account applying this Terraform configuration needs the following IAM roles:
+
+**Organization Level:**
+
+*   `roles/accesscontextmanager.policyAdmin`: To manage Access Context Manager policies and levels.
+*   `roles/orgpolicy.policyAdmin`: To set organization policies.
+
+**Project Level:**
+
+*   `roles/compute.networkAdmin`: For all networking resources (VPC, subnets, firewalls, LBs, NEGs).
+*   `roles/compute.securityAdmin`: For Cloud Armor security policies.
+*   `roles/iap.admin`: To configure IAP on backend services.
+*   `roles/serviceusage.serviceUsageAdmin`: To enable required APIs.
+*   `roles/resourcemanager.projectIamAdmin`: To manage project IAM bindings and service identities.
+*   `roles/cloudkms.admin`: For KMS key rings, keys, and IAM permissions.
+*   `roles/storage.admin`: For GCS buckets.
+*   `roles/bigquery.admin`: For BigQuery datasets and tables.
+*   `roles/discoveryengine.admin`: For all Discovery Engine resources.
+
+### Achieving Stricter Least Privilege
+
+The roles listed above provide the necessary permissions using standard Google Cloud predefined roles. For an even stricter adherence to the principle of least privilege, you can create **Custom IAM Roles**.
+
+This involves identifying the minimum specific permissions required for each Terraform resource being deployed and creating custom roles containing only those permissions. For example, instead of `roles/compute.networkAdmin`, you would create a custom role with specific permissions like `compute.networks.create`, `compute.subnetworks.create`, etc.
+
+**Steps to Implement Custom Roles:**
+
+1.  **Analyze Permissions:** Carefully review the Terraform provider documentation for each resource used in this module to determine the exact IAM permissions needed for create, read, update, and delete operations.
+2.  **Create Custom Role(s):** Define custom roles at the project or organization level, including only the permissions identified in step 1.
+3.  **Grant Custom Role(s):** Assign the custom role(s) to the service account or user deploying the module.
+
+**Considerations:**
+
+*   Creating and maintaining custom roles requires significant effort and ongoing maintenance as the infrastructure evolves.
+*   Using a dedicated Service Account with the predefined roles listed earlier is a balanced approach that provides good security separation.
+
+Refer to the [Google Cloud IAM documentation on Custom Roles](https://cloud.google.com/iam/docs/creating-custom-roles) for more details.
+
 ## Overall Architecture
 
 The blueprint sets up the following key components:
@@ -51,6 +91,11 @@ The blueprint sets up the following key components:
     *   **Organization Policies:** Enforce security constraints.
     *   **IAM policies and Service Accounts:** Follow the principle of least privilege.
     *   **Access Context Manager:** Policies defined in `access_policy.tf` for geo-location, time, and device attributes are bound to IAP in `load_balancer.tf`.
+        *   **Customizable Business Hours:** The time-based access control (used in `moderate_device` and `strict_device` policies) can be customized using variables in your `terraform.tfvars` file:
+            *   `access_start_hour`: Start hour (0-23 ET, default: 9)
+            *   `access_end_hour`: End hour (0-23 ET, default: 17)
+            *   `access_start_day`: Start day (1=Mon, 7=Sun, default: 1)
+            *   `access_end_day`: End day (1=Mon, 7=Sun, default: 5)
 
 4.  **Data Stores:** CMEK-encrypted GCS buckets and BigQuery datasets for Vertex AI Search, managed by the `discovery-engine` module.
 

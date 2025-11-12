@@ -165,166 +165,6 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_gcs_ds" {
     time_sleep.wait_for_services,
   ]
 }
-# Search Engine is removed for the gemini-enterprise Terraform Blueprint, pending terraform functionality.
-# # Discovery Engine Search Engine for GCS
-# resource "google_discovery_engine_search_engine" "gemini_enterprise_gcs_se" {
-#   project        = var.main_project_id
-#   location       = var.geolocation # Must match the Data Store location
-#   collection_id  = "default_collection"
-#   engine_id      = "gemini-enterprise-gcs-search-engine"
-#   display_name   = "Gemini Enterprise GCS Search Engine"
-#   data_store_ids = [google_discovery_engine_data_store.gemini_enterprise_gcs_ds.data_store_id] # Initially no data stores
-#   app_type       = "APP_TYPE_INTRANET"
-#   # disable_analytics = true
-
-#   search_engine_config {
-#     search_tier    = "SEARCH_TIER_ENTERPRISE"
-#     search_add_ons = ["SEARCH_ADD_ON_LLM"]
-#   }
-
-#   common_config {
-#     company_name = "Department of Technology"
-#   }
-
-#  # Addition of features via IL5 compliant configuration states
-#   features = {
-#     agent-gallery             = "FEATURE_STATE_OFF"
-#     no-code-agent-builder     = "FEATURE_STATE_OFF"
-#     prompt-gallery            = "FEATURE_STATE_OFF"
-#     model-selector            = "FEATURE_STATE_ON"
-#     notebook-lm               = "FEATURE_STATE_OFF"
-#     people-search             = "FEATURE_STATE_OFF"
-#     people-search-org-chart   = "FEATURE_STATE_OFF"
-#     bi-directional-audio      = "FEATURE_STATE_OFF"
-#     feedback                  = "FEATURE_STATE_OFF"
-#     session-sharing           = "FEATURE_STATE_OFF"
-#     personalization-memory    = "FEATURE_STATE_OFF"
-#     disable-agent-sharing     = "FEATURE_STATE_ON"
-#     disable-image-generation  = "FEATURE_STATE_ON"
-#     disable-video-generation  = "FEATURE_STATE_ON"
-#     disable-onedrive-upload   = "FEATURE_STATE_ON"
-#     disable-talk-to-content   = "FEATURE_STATE_ON"
-#     disable-google-drive-upload = "FEATURE_STATE_ON"
-#   }
-
-#   industry_vertical = "GENERIC"
-#   provider = google-beta
-
-#   depends_on = [google_discovery_engine_data_store.gemini_enterprise_gcs_ds]
-# }
-
-#TODO for the search-engine resource above once supported for these attributes:
-#   # not supported as of 10/22
-#   # knowledge_graph_config {
-#   #   enable_private_knowledge_graph = false
-#   # }
-#   # not supported as of 10/29/2025
-# DisableAnalytics
-# public bool DisableAnalytics { get; set; }
-# Optional. Whether to disable analytics for searches performed on this engine.
-# This needs to be disabled for Gov customers.
-
-
-
-# To import data from the GCS bucket to the DataStore, run a command like this after terraform apply:
-# gcloud discovery-engine data-stores import ${google_discovery_engine_data_store.gemini_enterprise_gcs_ds.id} \
-#   --project=${var.main_project_id} \
-#   --location=${var.discovery_engine_location} \
-#   --gcs-source=gs://${google_storage_bucket.gemini_enterprise_data.name}/* \
-#   --data-schema=content
-
-# ---------------------------------------------------------------------------- #
-#  Sample BigQuery Setup for Connector                                         #
-# ---------------------------------------------------------------------------- #
-
-# resource "google_bigquery_dataset" "gemini_enterprise_sample_ds" {
-#   project     = var.main_project_id
-#   dataset_id  = "gemini_enterprise_sample_data"
-#   friendly_name = "Gemini Enterprise Sample Data"
-#   description = "Sample dataset for Discovery Engine connector"
-#   location    = "us" # Match KMS key location
-# }
-
-# resource "google_bigquery_table" "gemini_enterprise_sample_table" {
-#   project    = var.main_project_id
-#   dataset_id = google_bigquery_dataset.gemini_enterprise_sample_ds.dataset_id
-#   table_id   = "sample_documents"
-#   deletion_protection = false
-
-#   schema = <<EOF
-# [
-#   {
-#     "name": "doc_id",
-#     "type": "STRING",
-#     "mode": "REQUIRED",
-#     "description": "Unique document ID"
-#   },
-#   {
-#     "name": "title",
-#     "type": "STRING",
-#     "mode": "NULLABLE",
-#     "description": "Document title"
-#   },
-#   {
-#     "name": "description",
-#     "type": "STRING",
-#     "mode": "NULLABLE",
-#     "description": "Document description or body"
-#   },
-#   {
-#     "name": "url",
-#     "type": "STRING",
-#     "mode": "NULLABLE",
-#     "description": "Document URL"
-#   }
-# ]
-# EOF
-# }
-
-# ---------------------------------------------------------------------------- #
-#  Setup 2: Discovery Engine with BigQuery Connector                           #
-# ---------------------------------------------------------------------------- #
-
-# resource "google_discovery_engine_data_connector" "gemini_enterprise_bq_connector" {
-#   project     = var.main_project_id
-#   location      = var.geolocation # Ensure this is "us", "eu", or "global"
-#   collection_id = "gemini-enterprise-bq-collection"
-#   collection_display_name = "Gemini Enterprise BigQuery Collection"
-#   data_source = "bigquery"
-
-#   params = {
-#     instance_uri = "projects/${var.main_project_id}/datasets/${google_bigquery_dataset.gemini_enterprise_sample_ds.dataset_id}/tables/${google_bigquery_table.gemini_enterprise_sample_table.table_id}"
-#   }
-
-#   entities {
-#     entity_name = google_bigquery_table.gemini_enterprise_sample_table.table_id
-#     # Example key property mappings:
-#     # key_property_mappings = {
-#     #   "title" : "title",
-#     #   "description" : "description"
-#     # }
-
-#   }
-
-#   refresh_interval = "86400s" # Daily
-
-# To use this connector with your own BigQuery table:
-# 1. Ensure the BigQuery table exists in the var.main_project_id project.
-# 2. Update the 'params' block above:
-#    - Set 'dataset_id' to your BigQuery dataset ID.
-#    - Set 'table_id' to your BigQuery table ID.
-# 3. Update the 'entities' block above:
-#    - Set 'entity_name' to your BigQuery table ID.
-#    - Configure 'key_property_mappings' to map columns in your table to Discovery Engine schema fields (e.g., title, description).
-# 4. Remove the sample BigQuery resources (gemini_enterprise_sample_ds and gemini_enterprise_sample_table) from this file.
-# 5. Adjust the 'depends_on' for the connector if you removed the sample table resource.
-
-# Add a delay to allow the DataStore to be created by the connector, which happens behind the scenes for data connector creation automatically.
-# resource "time_sleep" "wait_for_bq_datastore" {
-#   create_duration = "120s"
-
-#   depends_on = [google_discovery_engine_data_connector.gemini_enterprise_bq_connector]
-# }
 
 # ---------------------------------------------------------------------------- #
 #  Dynamic BigQuery Setup for Connectors                                     #
@@ -436,57 +276,6 @@ resource "time_sleep" "wait_for_bq_datastore" {
   depends_on = [google_discovery_engine_data_connector.gemini_enterprise_bq_connector]
 }
 
-# Search Engine is removed for the gemini-enterprise Terraform Blueprint, pending terraform functionality.
-# # Discovery Engine Search Engine for BigQuery Connector
-# resource "google_discovery_engine_search_engine" "gemini_enterprise_bq_se" {
-#   project        = var.main_project_id
-#   location       = var.geolocation # Must be "us", "eu", or "global"
-#   collection_id  = "default_collection" # This must be default_collection, even if your collection_id for your created connector resource is different.
-#   engine_id      = "gemini-enterprise-bq-search-engine"
-#   display_name   = "Gemini Enterprise BigQuery Search Engine"
-#   # Dynamically get the DataStore ID created by the connector
-#   data_store_ids = [basename(google_discovery_engine_data_connector.gemini_enterprise_bq_connector.entities[0].data_store)]
-#   app_type = "APP_TYPE_INTRANET"
-
-#   search_engine_config {
-#     search_tier    = "SEARCH_TIER_ENTERPRISE"
-#     search_add_ons = ["SEARCH_ADD_ON_LLM"]
-#   }
-#   common_config {
-#     company_name = "Department of Technology" # As an example
-#     }
-
-#   features = {
-#     agent-gallery             = "FEATURE_STATE_OFF"
-#     # no_code_agent_builder     = "FEATURE_STATE_OFF"
-#     # prompt_gallery            = "FEATURE_STATE_OFF"
-#     # model_selector            = "FEATURE_STATE_ON"
-#     # notebook_lm               = "FEATURE_STATE_OFF"
-#     # people_search             = "FEATURE_STATE_OFF"
-#     # people_search_org_chart   = "FEATURE_STATE_OFF"
-#     # bi_directional_audio      = "FEATURE_STATE_OFF"
-#     # feedback                  = "FEATURE_STATE_OFF"
-#     # session_sharing           = "FEATURE_STATE_OFF"
-#     # personalization_memory    = "FEATURE_STATE_OFF"
-#     # disable_agent_sharing     = "FEATURE_STATE_ON"
-#     # disable_image_generation  = "FEATURE_STATE_ON"
-#     # disable_video_generation  = "FEATURE_STATE_ON"
-#     # disable_onedrive_upload   = "FEATURE_STATE_ON"
-#     # disable_talk_to_content   = "FEATURE_STATE_ON"
-#     # disable_google_drive_upload = "FEATURE_STATE_ON"
-#   }
-
-#   industry_vertical = "GENERIC"
-#   provider = google-beta
-#   # disable_analytics = true
-
-#   depends_on = [
-#     time_sleep.wait_for_bq_datastore,
-#     google_discovery_engine_data_connector.gemini_enterprise_bq_connector
-#   ]
-# }
-
-
 # ---------------------------------------------------------------------------- #
 #  Common ACL Config                                                           #
 # ---------------------------------------------------------------------------- #
@@ -515,11 +304,6 @@ output "gcs_gemini_enterprise_data_buckets" {
   value       = { for k, v in google_storage_bucket.gemini_enterprise_data : k => v.name }
 }
 
-# output "gcs_discovery_engine_search_engine_name" {
-#   description = "The name of the GCS Discovery Engine Search Engine."
-#   value       = google_discovery_engine_search_engine.gemini_enterprise_gcs_se.name
-# }
-
 output "bq_discovery_engine_connectors" {
   description = "A map of BigQuery Discovery Engine Connector IDs and their collection IDs."
   value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => v.collection_id }
@@ -529,8 +313,3 @@ output "bq_discovery_engine_data_store_ids" {
   description = "A map of BigQuery Discovery Engine Data Store IDs created by the connectors."
   value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => basename(v.entities[0].data_store) }
 }
-
-# output "bq_discovery_engine_search_engine_name" {
-#   description = "The name of the BigQuery Discovery Engine Search Engine."
-#   value       = google_discovery_engine_search_engine.gemini_enterprise_bq_se.name
-# }

@@ -79,6 +79,33 @@ variable "bq_data_store_configs" {
   type        = list(object({
     dataset_id = string
     table_id   = string
+  
   }))
   default     = []
 }
+
+variable "access_start_hour" {
+  description = "The hour (0-23) in America/New_York timezone when access starts."
+  type        = number
+  default     = 7
+}
+
+variable "access_end_hour" {
+  description = "The hour (0-23) in America/New_York timezone when access ends."
+  type        = number
+  default     = 21
+}
+
+variable "access_start_day" {
+  description = "The day of the week when access starts (1 for Monday, 7 for Sunday)."
+  type        = number
+  default     = 1
+}
+
+variable "access_end_day" {
+  description = "The day of the week when access ends (1 for Monday, 7 for Sunday)."
+  type        = number
+  default     = 5
+}
+
+

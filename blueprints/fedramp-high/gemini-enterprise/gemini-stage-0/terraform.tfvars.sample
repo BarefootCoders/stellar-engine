@@ -30,6 +30,11 @@ bq_data_store_configs = [
   },
   {
     dataset_id = "support_tickets"
-    table_id   = "resolved_issues"
-  }
-]
+\
+# Optional: Customize Access Context Manager Time Restrictions
+access_start_hour = 9  # e.g., 9 AM ET
+access_end_hour   = 17 # e.g., 5 PM ET
+access_start_day  = 1  # Monday
+access_end_day    = 5  # Friday
+
+
