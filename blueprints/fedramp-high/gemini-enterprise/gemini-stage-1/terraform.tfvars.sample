@@ -23,3 +23,8 @@ gemini_config_id   = "your_gemini_config_id"
 
 # SSL Cert Name (Pre-uploaded to Google Cloud Certificate Manager)
 ssl_certificate_name = "your-cert-name-here"
+
+# Optional: Override Network Discovery
+# Leave empty to automatically discover from Stage 0 state (recommended)
+# network_name = "override-network-name"
+# host_project_id = "override-host-project-id"

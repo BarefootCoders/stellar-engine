@@ -66,3 +66,28 @@ output "enable_chrome_enterprise_premium" {
   value       = var.enable_chrome_enterprise_premium
   description = "Whether Chrome Enterprise Premium (Zero Trust) is enabled."
 }
+
+output "use_shared_vpc" {
+  value       = var.use_shared_vpc
+  description = "Whether Shared VPC is used."
+}
+
+output "network_project_id" {
+  value       = var.network_project_id
+  description = "The Host Project ID."
+}
+
+output "shared_vpc_network_name" {
+  value       = var.shared_vpc_network_name
+  description = "The Shared VPC Network Name."
+}
+
+output "shared_vpc_subnet_name" {
+  value       = var.shared_vpc_subnet_name
+  description = "The Shared VPC Subnet Name."
+}
+
+output "shared_vpc_proxy_subnet_name" {
+  value       = var.shared_vpc_proxy_subnet_name
+  description = "The Shared VPC Proxy Subnet Name."
+}

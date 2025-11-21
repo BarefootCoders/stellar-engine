@@ -35,10 +35,14 @@ data "google_compute_region_backend_service" "gemini_enterprise_backend" {
   region  = data.terraform_remote_state.stage_0.outputs.region
 }
 
-# Data source to get the network created in stage-0
+# Data source to get the network created in stage-0 or Shared VPC
 data "google_compute_network" "gemini_enterprise_vpc" {
-  project = data.terraform_remote_state.stage_0.outputs.main_project_id
-  name    = "gemini-enterprise-vpc"
+  project = var.host_project_id != "" ? var.host_project_id : (
+    try(data.terraform_remote_state.stage_0.outputs.use_shared_vpc, false) ? data.terraform_remote_state.stage_0.outputs.network_project_id : data.terraform_remote_state.stage_0.outputs.main_project_id
+  )
+  name    = var.network_name != "" ? var.network_name : (
+    try(data.terraform_remote_state.stage_0.outputs.use_shared_vpc, false) ? data.terraform_remote_state.stage_0.outputs.shared_vpc_network_name : "gemini-enterprise-vpc"
+  )
 }
 
 # Data source to get the IP address created in stage-0

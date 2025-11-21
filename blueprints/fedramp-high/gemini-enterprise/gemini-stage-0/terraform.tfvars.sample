@@ -64,3 +64,12 @@ access_end_day    = 5  # Friday
 # Optional: Set a non-conflicting IP range for the internal load balancer subnet
 # Only used if deployment_type is "internal"
 internal_lb_subnet_range = "10.10.10.0/24"
+
+# Shared VPC Configuration (Optional)
+# Set use_shared_vpc to true to use an existing Shared VPC
+use_shared_vpc = false
+# Required if use_shared_vpc is true:
+# network_project_id = "host-project-id"
+# shared_vpc_network_name = "shared-vpc-network"
+# shared_vpc_subnet_name = "shared-vpc-subnet"
+# shared_vpc_proxy_subnet_name = "shared-vpc-proxy-subnet"

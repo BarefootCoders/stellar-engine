@@ -8,24 +8,6 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}============================================================${NC}"
-echo -e "${GREEN}   Welcome to the Gemini Enterprise FedRAMP High Blueprint  ${NC}"
-echo -e "${GREEN}============================================================${NC}"
-echo ""
-# --- Main Menu ---
-echo -e "${GREEN}Gemini Enterprise Deployment Helper${NC}"
-echo "-----------------------------------"
-echo "1. Deploy Stage 0 (Infrastructure & Prerequisites)"
-echo "2. Deploy Stage 1 (Load Balancer & Access)"
-echo "3. Exit"
-read -p "Select an option [1-3]: " OPTION
-
-if [[ "$OPTION" == "3" ]]; then
-    exit 0
-fi
-
-# --- Discovery & Configuration (Common to both stages) ---
-
 # Helper function to read values from terraform.tfvars
 get_tfvar_value() {
     local file="$1"
@@ -33,6 +15,23 @@ get_tfvar_value() {
     grep "^${key}\s*=" "$file" | head -n 1 | cut -d'=' -f2- | tr -d ' "'
 }
 
+echo -e "${GREEN}============================================================${NC}"
+echo -e "${GREEN}   Welcome to the Gemini Enterprise FedRAMP High Blueprint  ${NC}"
+echo -e "${GREEN}============================================================${NC}"
+echo ""
+# --- Deployment Type Selection ---
+echo -e "${GREEN}Select Deployment Type${NC}"
+echo "-----------------------------------"
+echo "1. Brownfield (Stellar Engine Integration)"
+echo "2. Greenfield (New GCP Project Deployment)"
+echo "3. Exit"
+read -p "Select an option [1-3]: " DEPLOYMENT_CHOICE
+
+if [[ "$DEPLOYMENT_CHOICE" == "3" ]]; then
+    exit 0
+fi
+
+# --- Authentication & Project Selection ---
 
 # 0. Google Account Check
 CURRENT_ACCOUNT=$(gcloud config get-value account 2>/dev/null)
@@ -48,12 +47,7 @@ fi
 # 0.5. ADC Check
 echo -e "2. Checking Application Default Credentials (ADC)..."
 if gcloud auth application-default print-access-token &>/dev/null; then
-    echo -e "${GREEN}ADC is configured.${NC}"
-    read -p "Do you want to keep using these credentials? (y/N): " CONFIRM_ADC
-    if [[ "$CONFIRM_ADC" != "y" && "$CONFIRM_ADC" != "Y" ]]; then
-        echo "Refreshing ADC..."
-        gcloud auth application-default login
-    fi
+    echo -e "${GREEN}ADC is configured. Proceeding automatically.${NC}"
 else
     echo -e "${YELLOW}Application Default Credentials not found.${NC}"
     read -p "Do you want to authenticate ADC now? (y/N): " DO_AUTH
@@ -64,14 +58,251 @@ else
     fi
 fi
 
-# 0.75 Reuse Configuration Check (Before Project ID)
-SKIP_PROMPTS=false
-if [[ "$OPTION" == "1" && -f "gemini-stage-0/terraform.tfvars" ]]; then
-    echo -e "${YELLOW}Found existing configuration in gemini-stage-0/terraform.tfvars.${NC}"
-    read -p "Reuse existing configuration? (Y/n): " REUSE_CONFIG
-    if [[ "$REUSE_CONFIG" != "n" && "$REUSE_CONFIG" != "N" ]]; then
-        echo "Reading configuration from gemini-stage-0/terraform.tfvars..."
-        SKIP_PROMPTS=true
+# 1. Project ID Selection
+CURRENT_PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
+if [[ -n "$CURRENT_PROJECT_ID" ]]; then
+    echo -e "3. Current Project ID: ${YELLOW}${CURRENT_PROJECT_ID}${NC}"
+    read -p "Is this the correct Project ID for Gemini Enterprise? (y/N): " CONFIRM_PROJECT
+    if [[ "$CONFIRM_PROJECT" == "y" || "$CONFIRM_PROJECT" == "Y" ]]; then
+        PROJECT_ID=$CURRENT_PROJECT_ID
+    fi
+fi
+
+if [[ -z "$PROJECT_ID" ]]; then
+    read -p "Enter the Google Cloud Project ID: " PROJECT_ID
+    gcloud config set project "${PROJECT_ID}"
+
+fi
+
+if [ -z "$PROJECT_ID" ]; then
+    echo "Project ID is required."
+    exit 1
+fi
+
+# --- Prefix Handling ---
+if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then # Brownfield
+    IS_BROWNFIELD="true"
+    PREFIX=$(echo "$PROJECT_ID" | cut -d'-' -f1 | cut -d'-' -f1-6)
+    echo -e "Derived Prefix: ${YELLOW}${PREFIX}${NC}"
+elif [[ "$DEPLOYMENT_CHOICE" == "2" ]]; then # Greenfield
+    IS_BROWNFIELD="false"
+    read -p "Enter a prefix for your resources: " PREFIX
+fi
+
+echo ""
+echo -e "Using Gemini Enterprise Project ID: ${YELLOW}${PROJECT_ID}${NC}"
+echo ""
+
+# --- Main Menu ---
+if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then
+    echo -e "${GREEN}Gemini Enterprise - Stellar Engine - Deployment Helper${NC}"
+else
+    echo -e "${GREEN}Gemini Enterprise - New GCP Project - Deployment Helper${NC}"
+fi
+echo "-----------------------------------"
+echo "1. Deploy Stage 0 (Foundation)"
+echo "2. Deploy Stage 1 (Load Balancer & Access)"
+echo "3. Exit"
+read -p "Select an option [1-3]: " OPTION
+
+if [[ "$OPTION" == "3" ]]; then
+    exit 0
+fi
+
+if [[ "$OPTION" == "1" ]]; then
+    # 0.75 Reuse Configuration Check (Before Project ID)
+    SKIP_PROMPTS=false
+    if [[ -f "gemini-stage-0/terraform.tfvars" ]]; then
+        echo -e "${YELLOW}Found existing configuration in gemini-stage-0/terraform.tfvars.${NC}"
+        read -p "Reuse existing configuration? (Y/n): " REUSE_CONFIG
+        if [[ "$AUTO_APPROVE_REUSE" == "true" ]]; then
+            REUSE_CONFIG="y"
+        fi
+        if [[ "$REUSE_CONFIG" != "n" && "$REUSE_CONFIG" != "N" ]]; then
+            echo "Reading configuration from gemini-stage-0/terraform.tfvars..."
+            SKIP_PROMPTS=true
+        fi
+    fi
+fi
+
+    if [[ "$IS_BROWNFIELD" == "true" ]]; then
+        echo -e "${BLUE}--- Starting Brownfield Discovery ---${NC}"
+
+        # 1. Derive iac-core-0 project
+        BASE_NAME=$(echo "$PROJECT_ID" | sed 's/-main-0$//')
+        TENANT_IAC_PROJECT="${BASE_NAME}-iac-core-0"
+        echo "Checking for IaC Core Project: ${TENANT_IAC_PROJECT}..."
+
+        if ! gcloud projects describe "${TENANT_IAC_PROJECT}" &>/dev/null; then
+            echo -e "${RED}Error: Tenant IaC Core Project '${TENANT_IAC_PROJECT}' not found. Cannot proceed.${NC}"
+            exit 1
+        fi
+        echo -e "Found Tenant IaC Project: ${YELLOW}${TENANT_IAC_PROJECT}${NC}"
+
+        # 2. Discover State Bucket
+        echo "Looking for state bucket in ${TENANT_IAC_PROJECT}..."
+        TENANT_BUCKETS=$(gcloud storage ls --project "${TENANT_IAC_PROJECT}" 2>/dev/null)
+        STATE_BUCKET=$(echo "$TENANT_BUCKETS" | grep "iac-0/$" | head -n 1)
+            
+        if [[ -z "$STATE_BUCKET" ]]; then
+            echo -e "${RED}Error: No Terraform state bucket found in ${TENANT_IAC_PROJECT}. Cannot proceed.${NC}"
+            exit 1
+        fi
+        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\///' | sed 's/\/$//')
+        echo -e "Using Tenant State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
+
+        # 3. Discover CMEK Key
+        echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT}..."
+        KEY_LOCATION="us-east4"
+        KEYRINGS=$(gcloud kms keyrings list --location "${KEY_LOCATION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)")
+        DEFAULT_CMEK_KEY=""
+        for keyring_path in $KEYRINGS; do
+            keyring_name=$(basename "$keyring_path")
+            KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${KEY_LOCATION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
+            if [[ -n "$KEY" ]]; then
+                DEFAULT_CMEK_KEY=$KEY
+                break
+            fi
+        done
+
+        if [[ -n "$DEFAULT_CMEK_KEY" ]]; then
+            echo -e "Found Default CMEK Key: ${YELLOW}${DEFAULT_CMEK_KEY}${NC}"
+            KMS_KEY_ID="${DEFAULT_CMEK_KEY}"
+        else
+            echo -e "${YELLOW}Warning: Could not find default CMEK key. A new one will be created during deployment.${NC}"
+        fi
+
+
+
+        # 4. Shared VPC Discovery/Prompt
+        USE_SHARED_VPC="false"
+        SHARED_VPC_HOST_PROJECT=""
+        SHARED_VPC_NETWORK=""
+        SHARED_VPC_SUBNET=""
+        SHARED_VPC_PROXY_SUBNET=""
+
+
+
+        if [[ "$SKIP_PROMPTS" == "false" ]]; then
+            echo ""
+            read -p "Do you want to use an existing Shared VPC? (y/n) [n]: " USE_SHARED_VPC_CHOICE
+        USE_SHARED_VPC_CHOICE=${USE_SHARED_VPC_CHOICE:-n}
+
+        if [[ "$USE_SHARED_VPC_CHOICE" == "y" || "$USE_SHARED_VPC_CHOICE" == "Y" ]]; then
+            USE_SHARED_VPC="true"
+            
+            # Try to discover Host Project using gcloud
+            if [[ -z "$SHARED_VPC_HOST_PROJECT" ]]; then
+                DISCOVERED_HOST_PROJECT=$(gcloud compute shared-vpc get-host-project "${PROJECT_ID}" --format="value(name)" 2>/dev/null || true)
+                
+                if [[ -z "$DISCOVERED_HOST_PROJECT" ]]; then
+                     # Fallback: Try to guess by stripping -main-0 and user parts
+                     POTENTIAL_HOST_PROJECT=$(echo "$PROJECT_ID" | cut -d'-' -f1-2 | sed 's/$/-net-host/')
+                     SHARED_VPC_HOST_PROJECT=${POTENTIAL_HOST_PROJECT}
+                else
+                     SHARED_VPC_HOST_PROJECT="$DISCOVERED_HOST_PROJECT"
+                fi
+            fi
+            
+            echo -e "Discovered Host Project: ${YELLOW}${SHARED_VPC_HOST_PROJECT}${NC}"
+
+            # Auto-discover Network and Subnets
+            if [[ -z "$SHARED_VPC_NETWORK" ]]; then
+                echo "Scanning for usable subnets in Host Project..."
+                
+                # Get all subnets from the Host Project directly in JSON format
+                # We use direct list instead of list-usable because list-usable often fails to show shared subnets in some environments
+                USABLE_SUBNETS_JSON=$(gcloud compute networks subnets list --project "${SHARED_VPC_HOST_PROJECT}" --format="json" 2>/dev/null)
+    
+                # 1. Discover Private Subnet & Network (Atomic operation to ensure consistency)
+                # We pick the first usable PRIVATE subnet in the Host Project AND in the correct Region (defaulting to us-east4 if not set)
+                DISCOVERY_REGION=$(gcloud config get-value compute/region 2>/dev/null)
+                DISCOVERY_REGION=${DISCOVERY_REGION:-"us-east4"}
+                
+                # We also normalize 'selfLink' to 'subnetwork' to handle both 'list-usable' and 'list' output formats
+                FIRST_USABLE_SUBNET_JSON=$(echo "$USABLE_SUBNETS_JSON" | jq -r ".[] | .subnetwork = (.subnetwork // .selfLink) | select(.network | contains(\"projects/${SHARED_VPC_HOST_PROJECT}/\")) | select(.subnetwork | contains(\"/${DISCOVERY_REGION}/\")) | select(.purpose == \"PRIVATE\" or .purpose == null) | {network: .network, subnetwork: .subnetwork} | tojson" | head -n 1)
+                
+                if [[ -n "$FIRST_USABLE_SUBNET_JSON" ]]; then
+                    SHARED_VPC_NETWORK_URL=$(echo "$FIRST_USABLE_SUBNET_JSON" | jq -r .network)
+                    SHARED_VPC_NETWORK=$(basename "$SHARED_VPC_NETWORK_URL")
+                    
+                    SHARED_VPC_SUBNET_URL=$(echo "$FIRST_USABLE_SUBNET_JSON" | jq -r .subnetwork)
+                    SHARED_VPC_SUBNET=$(basename "$SHARED_VPC_SUBNET_URL")
+                    
+                    # Extract Region from Subnet URL to ensure consistency
+                    # URL format: .../regions/REGION/subnetworks/SUBNET
+                    REGION=$(echo "$SHARED_VPC_SUBNET_URL" | sed -E 's/.*\/regions\/([^\/]+)\/.*/\1/')
+                fi
+    
+                # 2. Discover Proxy Subnet (purpose=REGIONAL_MANAGED_PROXY, in the SAME Network and Region)
+                if [[ -n "$SHARED_VPC_NETWORK_URL" ]]; then
+                    SHARED_VPC_PROXY_SUBNET_URL=$(echo "$USABLE_SUBNETS_JSON" | jq -r ".[] | .subnetwork = (.subnetwork // .selfLink) | select(.network == \"$SHARED_VPC_NETWORK_URL\") | select(.subnetwork | contains(\"/${REGION}/\")) | select(.purpose == \"REGIONAL_MANAGED_PROXY\") | .subnetwork" | head -n 1)
+                    SHARED_VPC_PROXY_SUBNET=$(basename "$SHARED_VPC_PROXY_SUBNET_URL")
+                fi
+            fi
+
+            # Fallbacks if discovery fails
+            # Fallbacks: If discovery fails, prompt the user
+            if [[ -z "$SHARED_VPC_NETWORK" ]]; then
+                read -p "Enter Shared VPC Network Name: " INPUT_NETWORK
+                SHARED_VPC_NETWORK=${INPUT_NETWORK}
+            fi
+            if [[ -z "$SHARED_VPC_SUBNET" ]]; then
+                read -p "Enter Shared VPC Subnet Name: " INPUT_SUBNET
+                SHARED_VPC_SUBNET=${INPUT_SUBNET}
+            fi
+            if [[ -z "$SHARED_VPC_PROXY_SUBNET" ]]; then
+                read -p "Enter Shared VPC Proxy Subnet Name: " INPUT_PROXY_SUBNET
+                SHARED_VPC_PROXY_SUBNET=${INPUT_PROXY_SUBNET}
+            fi
+            
+            echo -e "Using Shared VPC: ${GREEN}Yes${NC}"
+            echo -e "Host Project: ${YELLOW}${SHARED_VPC_HOST_PROJECT}${NC}"
+            echo -e "Network: ${YELLOW}${SHARED_VPC_NETWORK}${NC}"
+            echo -e "Subnet: ${YELLOW}${SHARED_VPC_SUBNET}${NC}"
+            echo -e "Proxy Subnet: ${YELLOW}${SHARED_VPC_PROXY_SUBNET}${NC}"
+        fi
+        fi
+
+        # 3. Region (Moved after Shared VPC to allow discovery to influence default)
+        if [[ -n "$REGION" ]]; then
+             echo -e "Region auto-detected from Shared VPC: ${YELLOW}${REGION}${NC}"
+        else
+             REGION=$(gcloud config get-value compute/region 2>/dev/null)
+             if [ -z "$REGION" ]; then
+                 REGION="us-east4"
+             fi
+             if [[ "$SKIP_PROMPTS" == "false" ]]; then
+                  read -p "Enter Region [${REGION}]: " INPUT_REGION
+                  REGION=${INPUT_REGION:-$REGION}
+             fi
+             echo -e "Using Region: ${YELLOW}${REGION}${NC}"
+        fi
+
+        # 4. Check for existing state file (for informational purposes)
+        if gsutil ls "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" &>/dev/null; then
+            echo -e "${GREEN}Found existing default.tfstate in bucket.${NC}"
+        else
+            echo -e "${YELLOW}No existing default.tfstate found. A new one will be created by Terraform.${NC}"
+        fi
+
+
+    fi
+
+    # # This block is now correctly placed within the OPTION==1 condition
+    # if [[ "$SKIP_PROMPTS" == "false" ]]; then
+    #     # ... existing prompts for greenfield ...
+    # fi
+
+    # Ensure directory exists
+    if [[ "$OPTION" == "1" ]]; then
+        mkdir -p gemini-stage-0
+    fi
+
+# --- Discovery & Configuration (Common to both stages) ---
+
+
+if [[ "$OPTION" == "1" && "$SKIP_PROMPTS" == "true" ]]; then
         TFVARS_FILE="gemini-stage-0/terraform.tfvars"
         
         PROJECT_ID=$(get_tfvar_value "$TFVARS_FILE" "main_project_id")
@@ -92,7 +323,8 @@ if [[ "$OPTION" == "1" && -f "gemini-stage-0/terraform.tfvars" ]]; then
         echo -e "Using Region: ${YELLOW}${REGION}${NC}"
         echo -e "Using Domain: ${YELLOW}${DOMAIN}${NC}"
     fi
-elif [[ "$OPTION" == "2" && -f "gemini-stage-1/terraform.tfvars" ]]; then
+if [[ "$OPTION" == "2" && -f "gemini-stage-1/terraform.tfvars" ]]; then
+    SKIP_PROMPTS=false
     echo -e "${YELLOW}Found existing configuration in gemini-stage-1/terraform.tfvars.${NC}"
     read -p "Reuse existing configuration? (Y/n): " REUSE_CONFIG
     if [[ "$REUSE_CONFIG" != "n" && "$REUSE_CONFIG" != "N" ]]; then
@@ -110,14 +342,14 @@ elif [[ "$OPTION" == "2" && -f "gemini-stage-1/terraform.tfvars" ]]; then
         echo -e "Using Gemini Domain: ${YELLOW}${GEMINI_DOMAIN}${NC}"
         
         if [[ -n "$STAGE_0_BUCKET" ]]; then
-            echo "Retrieving Project ID and Prefix from Stage 0 state in bucket: ${STAGE_0_BUCKET}..."
+            echo "Retrieving Prefix from Stage 0 state in bucket: ${STAGE_0_BUCKET}..."
             STATE_CONTENT=$(gcloud storage cat "gs://${STAGE_0_BUCKET}/terraform/state/stage-0/default.tfstate" 2>/dev/null)
             
             if [[ -n "$STATE_CONTENT" ]]; then
-                PROJECT_ID=$(echo "$STATE_CONTENT" | grep -A 5 '"main_project_id":' | grep '"value":' | head -n 1 | cut -d':' -f2 | tr -d ' ",')
+                # PROJECT_ID=$(echo "$STATE_CONTENT" | grep -A 5 '"main_project_id":' | grep '"value":' | head -n 1 | cut -d':' -f2 | tr -d ' ",')
                 PREFIX=$(echo "$STATE_CONTENT" | grep -A 5 '"prefix":' | grep '"value":' | head -n 1 | cut -d':' -f2 | tr -d ' ",')
                 
-                echo -e "Retrieved Project ID: ${YELLOW}${PROJECT_ID}${NC}"
+                # echo -e "Retrieved Project ID: ${YELLOW}${PROJECT_ID}${NC}"
                 echo -e "Retrieved Prefix: ${YELLOW}${PREFIX}${NC}"
             else
                 echo -e "${RED}Warning: Could not read Stage 0 state file. You may need to enter Project ID and Prefix manually.${NC}"
@@ -126,30 +358,9 @@ elif [[ "$OPTION" == "2" && -f "gemini-stage-1/terraform.tfvars" ]]; then
     fi
 fi
 
-# 1. Project ID Check
-if [[ -n "$PROJECT_ID" ]]; then
-    # Project ID was reused from tfvars
-    echo "Setting gcloud project to ${PROJECT_ID}..."
-    gcloud config set project "${PROJECT_ID}"
-else
-    CURRENT_PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
-    echo -e "3. Current Project ID: ${YELLOW}${CURRENT_PROJECT_ID}${NC}"
-    read -p "Is this the correct Project ID for Gemini Enterprise? (y/N): " CONFIRM_PROJECT
-    if [[ "$CONFIRM_PROJECT" != "y" && "$CONFIRM_PROJECT" != "Y" ]]; then
-        read -p "Enter the Google Cloud Project ID: " PROJECT_ID
-        echo "Setting gcloud project to ${PROJECT_ID}..."
-        gcloud config set project "${PROJECT_ID}"
-    else
-        PROJECT_ID=$CURRENT_PROJECT_ID
-    fi
-fi
 
-if [ -z "$PROJECT_ID" ]; then
-    echo "Project ID is required."
-    exit 1
-fi
 echo ""
-echo -e "Using Gemini Enterprise Project ID: ${YELLOW}${PROJECT_ID}${NC}"
+echo -e "${GREEN}Generating the TFVARS...${NC}"
 
 # Discover Org ID early for Domain discovery (Common)
 ORG_ID=$(gcloud projects get-ancestors "${PROJECT_ID}" --format="value(id)" | tail -n 1)
@@ -174,14 +385,7 @@ if [[ "$OPTION" == "1" ]]; then
 
 
     if [[ "$SKIP_PROMPTS" == "false" ]]; then
-        # 3. Region
-        REGION=$(gcloud config get-value compute/region 2>/dev/null)
-        if [ -z "$REGION" ]; then
-            REGION="us-east4"
-        fi
-        read -p "Enter Region [${REGION}]: " INPUT_REGION
-        REGION=${INPUT_REGION:-$REGION}
-        echo -e "Using Region: ${YELLOW}${REGION}${NC}"
+
 
         # 4. Domain
         ORG_DOMAIN=$(gcloud organizations list --filter="name:organizations/${ORG_ID}" --format="value(displayName)" --format="value(displayName)" 2>/dev/null)
@@ -334,26 +538,43 @@ if [[ "$OPTION" == "1" ]]; then
     fi
 fi
 
-# If Stage 1 is selected, we still need REGION and DOMAIN, but they are not prompted.
-# For Stage 1, these values are read from the state file.
-# So, we only need to echo them if they were set in Stage 0.
-if [[ "$OPTION" == "1" ]]; then
-    echo -e "Using Domain: ${YELLOW}${DOMAIN}${NC}"
-    echo -e "Using Region: ${YELLOW}${REGION}${NC}"
-fi
+# # If Stage 1 is selected, we still need REGION and DOMAIN, but they are not prompted.
+# # For Stage 1, these values are read from the state file.
+# # So, we only need to echo them if they were set in Stage 0.
+# if [[ "$OPTION" == "1" ]]; then
+#     echo -e "Using Domain: ${YELLOW}${DOMAIN}${NC}"
+#     echo -e "Using Region: ${YELLOW}${REGION}${NC}"
+# fi
 
 
 # --- Bucket Setup (Common) ---
 
-BUCKET_NAME="${PREFIX}-gemini-enterprise-tf-state-${PROJECT_ID}"
+# --- Bucket Setup (Common) ---
 
-echo -e "Checking for Terraform State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
+if [[ "$IS_BROWNFIELD" == "true" ]]; then
+    # In Brownfield, we use the discovered Tenant State Bucket
+    echo -e "Using existing Tenant State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
+else
+    # In Greenfield, we create a new bucket
+    BUCKET_NAME="${PREFIX}-gemini-enterprise-tf-state-${PROJECT_ID}"
+    echo -e "Checking for Terraform State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
+fi
 
 # --- CMEK Variables ---
 KEYRING_NAME="${PREFIX}-gemini-keyring"
 KEY_NAME="${PREFIX}-gemini-key"
 KEY_LOCATION="${GEOLOCATION}"
 KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${KEY_NAME}"
+
+# In Brownfield, we might have discovered a key already.
+if [[ "$IS_BROWNFIELD" == "true" && -n "$KMS_KEY_ID" ]]; then
+    KEY_ID="$KMS_KEY_ID"
+    # Extract components from the discovered key to avoid re-creation attempts using wrong names
+    KEY_LOCATION=$(echo "$KEY_ID" | cut -d'/' -f4)
+    KEYRING_NAME=$(echo "$KEY_ID" | cut -d'/' -f6)
+    KEY_NAME=$(echo "$KEY_ID" | cut -d'/' -f8)
+    echo -e "Using Discovered CMEK Key: ${YELLOW}${KEY_ID}${NC}"
+fi
 
 # --- Stage 0 ---
 
@@ -457,17 +678,27 @@ if [[ "$OPTION" == "1" ]]; then
     # BQ and Discovery Engine grants removed from here to reduce noise.
     # They are handled by Terraform in discovery-engine.tf.
 
-    if ! gcloud storage buckets describe "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" &>/dev/null; then
-        echo "Bucket does not exist. Creating..."
-        # Create Bucket with CMEK (using the key we just ensured exists)
-        # Bucket location must match the Key location (GEOLOCATION = us)
-        if ! gcloud storage buckets create "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" --location "${GEOLOCATION}" --uniform-bucket-level-access --default-encryption-key "${KEY_ID}"; then
-            echo -e "${RED}Error: Failed to create bucket.${NC}"
-            exit 1
+    if [[ "$IS_BROWNFIELD" == "true" ]]; then
+        echo "Skipping bucket creation for Brownfield deployment (using existing tenant bucket)."
+        # Verify we can read the bucket
+        echo ""
+        if ! gcloud storage ls "gs://${BUCKET_NAME}" &>/dev/null; then
+             echo -e "${RED}Error: Cannot access tenant state bucket gs://${BUCKET_NAME}.${NC}"
+             exit 1
         fi
-        echo -e "${GREEN}Bucket created.${NC}"
     else
-        echo -e "${GREEN}Bucket already exists.${NC}"
+        if ! gcloud storage buckets describe "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" &>/dev/null; then
+            echo "Bucket does not exist. Creating..."
+            # Create Bucket with CMEK (using the key we just ensured exists)
+            # Bucket location must match the Key location (GEOLOCATION = us)
+            if ! gcloud storage buckets create "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" --location "${GEOLOCATION}" --uniform-bucket-level-access --default-encryption-key "${KEY_ID}"; then
+                echo -e "${RED}Error: Failed to create bucket.${NC}"
+                exit 1
+            fi
+            echo -e "${GREEN}Bucket created.${NC}"
+        else
+            echo -e "${GREEN}Bucket already exists.${NC}"
+        fi
     fi
 
     # Automated Org Policy Check for External Deployment
@@ -536,13 +767,11 @@ if [[ "$OPTION" == "1" ]]; then
         echo -e "Create Data Stores: ${YELLOW}${CREATE_DS_BOOL}${NC}"
         echo ""
     fi
-    # ACL Identity Provider selection moved to Step 4
-
-    # Organization ID & Access Policy (Already discovered)
-    # ORG_ID already discovered above
-    # ACCESS_POLICY_NUMBER already discovered above
 
     cd gemini-stage-0
+
+    # Remove legacy backend.tf if it exists (Fix for duplicate backend error)
+    rm -f backend.tf
 
     # Generate terraform.tfvars
     if [[ "$SKIP_PROMPTS" == "false" ]]; then
@@ -561,6 +790,12 @@ acl_idp_type = "${ACL_IDP_TYPE}"
 acl_workforce_pool_name = "${ACL_POOL_NAME}"
 kms_key_id = "${KEY_ID}"
 enable_chrome_enterprise_premium = ${ENABLE_CEP_BOOL}
+terraform_state_bucket = "${BUCKET_NAME}"
+use_shared_vpc = ${USE_SHARED_VPC}
+network_project_id = "${SHARED_VPC_HOST_PROJECT}"
+shared_vpc_network_name = "${SHARED_VPC_NETWORK}"
+shared_vpc_subnet_name = "${SHARED_VPC_SUBNET}"
+shared_vpc_proxy_subnet_name = "${SHARED_VPC_PROXY_SUBNET}"
 
 # Example Data Stores
 gcs_data_store_names = ["company-docs", "knowledge-base", "team-playbooks"]
@@ -591,7 +826,13 @@ EOF
     # Apply Terraform
     echo ""
     echo "Applying Terraform (Stage 0)..."
-    terraform apply -auto-approve
+    terraform apply -auto-approve \
+        -var="terraform_state_bucket=${BUCKET_NAME}" \
+        -var="use_shared_vpc=${USE_SHARED_VPC}" \
+        -var="network_project_id=${SHARED_VPC_HOST_PROJECT}" \
+        -var="shared_vpc_network_name=${SHARED_VPC_NETWORK}" \
+        -var="shared_vpc_subnet_name=${SHARED_VPC_SUBNET}" \
+        -var="shared_vpc_proxy_subnet_name=${SHARED_VPC_PROXY_SUBNET}"
 
     echo -e "${GREEN}Stage 0 Complete!${NC}"
     echo ""
@@ -631,8 +872,18 @@ if [[ "$OPTION" == "2" ]]; then
     fi
 
     if [[ "$SKIP_PROMPTS" == "false" ]]; then
-        # Prompt for SSL Certificate Name (Default to gemini-enterprise-cert)
-        DEFAULT_SSL_CERT="gemini-enterprise-cert"
+        # Auto-discover SSL Certificates
+        echo "Checking for existing SSL Certificates in ${PROJECT_ID}..."
+        DISCOVERED_CERTS=$(gcloud compute ssl-certificates list --project "${PROJECT_ID}" --filter="region:(${REGION})" --format="value(name)" 2>/dev/null || true)
+        
+        if [[ -n "$DISCOVERED_CERTS" ]]; then
+            # Take the first one as default
+            DEFAULT_SSL_CERT=$(echo "$DISCOVERED_CERTS" | head -n 1)
+            echo -e "Found SSL Certificate: ${YELLOW}${DEFAULT_SSL_CERT}${NC}"
+        else
+            DEFAULT_SSL_CERT="gemini-enterprise-cert"
+        fi
+
         read -p "Enter the name of your pre-uploaded SSL Certificate in Google Cloud [${DEFAULT_SSL_CERT}]: " SSL_CERT_NAME
         SSL_CERT_NAME=${SSL_CERT_NAME:-$DEFAULT_SSL_CERT}
 
@@ -666,6 +917,12 @@ gemini_enterprise_domain = "${GEMINI_DOMAIN}"
 ssl_certificate_name = "${SSL_CERT_NAME}"
 gemini_config_id = "${GEMINI_CONFIG_ID}"
 EOF
+        if [[ -n "$SHARED_VPC_NETWORK" ]]; then
+            echo "network_name = \"${SHARED_VPC_NETWORK}\"" >> gemini-stage-1/terraform.tfvars
+        fi
+        if [[ -n "$SHARED_VPC_HOST_PROJECT" ]]; then
+            echo "host_project_id = \"${SHARED_VPC_HOST_PROJECT}\"" >> gemini-stage-1/terraform.tfvars
+        fi
         echo "Generated gemini-stage-1/terraform.tfvars"
     else
         echo "Using existing gemini-stage-1/terraform.tfvars"
@@ -679,8 +936,10 @@ EOF
     echo ""
     echo "Applying Terraform (Stage 1)..."
     terraform apply -var-file="terraform.tfvars" -auto-approve
-
+    
     echo -e "${GREEN}Stage 1 Complete!${NC}"
+    echo ""
+    echo -e "Welcome to your ${BLUE}G${RED}o${YELLOW}o${BLUE}g${GREEN}l${RED}e${NC} Cloud Gemini Enterprise App! Access your app at https://${GEMINI_DOMAIN}"
     exit 0
 fi
 

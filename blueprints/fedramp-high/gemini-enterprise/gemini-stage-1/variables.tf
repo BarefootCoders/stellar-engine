@@ -39,6 +39,18 @@ variable "gemini_config_id" {
   type        = string
 }
 
+variable "network_name" {
+  description = "The name of the VPC network."
+  type        = string
+  default     = ""
+}
+
+variable "host_project_id" {
+  description = "The ID of the host project where the VPC network resides."
+  type        = string
+  default     = ""
+}
+
 
 
 

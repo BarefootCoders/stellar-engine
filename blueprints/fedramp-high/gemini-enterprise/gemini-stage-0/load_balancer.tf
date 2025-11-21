@@ -73,8 +73,8 @@ resource "google_compute_forwarding_rule" "gemini_enterprise_http_forwarding_rul
   ip_protocol           = "TCP"
   port_range            = "80" # HTTP port
   load_balancing_scheme = local.load_balancing_scheme
-  network               = var.deployment_type == "internal" ? google_compute_network.gemini_enterprise_vpc.id : google_compute_network.gemini_enterprise_vpc.id
-  subnetwork            = var.deployment_type == "internal" ? google_compute_subnetwork.gemini_enterprise_vpc_subnet.self_link : null
+  network               = local.vpc_network_id
+  subnetwork            = var.deployment_type == "internal" ? local.vpc_subnet_id : null
   ip_address            = local.ip_address
   target                = google_compute_region_target_http_proxy.gemini_enterprise_http_proxy.id
 

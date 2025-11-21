@@ -157,3 +157,39 @@ variable "enable_chrome_enterprise_premium" {
   type        = bool
   default     = false
 }
+
+variable "terraform_state_bucket" {
+  description = "The name of the Terraform state bucket. If not provided, it will be constructed from prefix and project ID."
+  type        = string
+  default     = null
+}
+
+variable "use_shared_vpc" {
+  description = "Whether to use an existing Shared VPC instead of creating a new one."
+  type        = bool
+  default     = false
+}
+
+variable "network_project_id" {
+  description = "The Project ID where the Shared VPC resides (Host Project). Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
+
+variable "shared_vpc_network_name" {
+  description = "The name of the existing Shared VPC network. Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
+
+variable "shared_vpc_subnet_name" {
+  description = "The name of the existing subnetwork to use. Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
+
+variable "shared_vpc_proxy_subnet_name" {
+  description = "The name of the existing proxy-only subnetwork to use. Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
