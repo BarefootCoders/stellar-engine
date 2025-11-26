@@ -73,21 +73,21 @@ output "use_shared_vpc" {
 }
 
 output "network_project_id" {
-  value       = var.network_project_id
+  value       = var.use_shared_vpc ? var.network_project_id : null
   description = "The Host Project ID."
 }
 
 output "shared_vpc_network_name" {
-  value       = var.shared_vpc_network_name
+  value       = var.use_shared_vpc ? var.shared_vpc_network_name : null
   description = "The Shared VPC Network Name."
 }
 
 output "shared_vpc_subnet_name" {
-  value       = var.shared_vpc_subnet_name
+  value       = var.use_shared_vpc ? var.shared_vpc_subnet_name : null
   description = "The Shared VPC Subnet Name."
 }
 
 output "shared_vpc_proxy_subnet_name" {
-  value       = var.shared_vpc_proxy_subnet_name
+  value       = var.use_shared_vpc ? var.shared_vpc_proxy_subnet_name : null
   description = "The Shared VPC Proxy Subnet Name."
 }

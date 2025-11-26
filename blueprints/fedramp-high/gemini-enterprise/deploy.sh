@@ -24,10 +24,11 @@ echo -e "${GREEN}Select Deployment Type${NC}"
 echo "-----------------------------------"
 echo "1. Brownfield (Stellar Engine Integration)"
 echo "2. Greenfield (New GCP Project Deployment)"
-echo "3. Exit"
-read -p "Select an option [1-3]: " DEPLOYMENT_CHOICE
+echo "3. Custom Brownfield (Manual Configuration)"
+echo "4. Exit"
+read -p "Select an option [1-4]: " DEPLOYMENT_CHOICE
 
-if [[ "$DEPLOYMENT_CHOICE" == "3" ]]; then
+if [[ "$DEPLOYMENT_CHOICE" == "4" ]]; then
     exit 0
 fi
 
@@ -82,11 +83,18 @@ fi
 # --- Prefix Handling ---
 if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then # Brownfield
     IS_BROWNFIELD="true"
+    IS_CUSTOM="false"
     PREFIX=$(echo "$PROJECT_ID" | cut -d'-' -f1 | cut -d'-' -f1-6)
     echo -e "Derived Prefix: ${YELLOW}${PREFIX}${NC}"
 elif [[ "$DEPLOYMENT_CHOICE" == "2" ]]; then # Greenfield
     IS_BROWNFIELD="false"
+    IS_CUSTOM="false"
     read -p "Enter a prefix for your resources: " PREFIX
+elif [[ "$DEPLOYMENT_CHOICE" == "3" ]]; then # Custom Brownfield
+    IS_BROWNFIELD="false"
+    IS_CUSTOM="true"
+    read -p "Enter a prefix for your resources (default: sedev): " INPUT_PREFIX
+    PREFIX=${INPUT_PREFIX:-"sedev"}
 fi
 
 echo ""
@@ -96,18 +104,15 @@ echo ""
 # --- Main Menu ---
 if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then
     echo -e "${GREEN}Gemini Enterprise - Stellar Engine - Deployment Helper${NC}"
+elif [[ "$DEPLOYMENT_CHOICE" == "3" ]]; then
+    echo -e "${GREEN}Gemini Enterprise - Custom Brownfield - Deployment Helper${NC}"
 else
     echo -e "${GREEN}Gemini Enterprise - New GCP Project - Deployment Helper${NC}"
 fi
 echo "-----------------------------------"
 echo "1. Deploy Stage 0 (Foundation)"
 echo "2. Deploy Stage 1 (Load Balancer & Access)"
-echo "3. Exit"
-read -p "Select an option [1-3]: " OPTION
-
-if [[ "$OPTION" == "3" ]]; then
-    exit 0
-fi
+read -p "Select an option [1-2]: " OPTION
 
 if [[ "$OPTION" == "1" ]]; then
     # 0.75 Reuse Configuration Check (Before Project ID)
@@ -125,6 +130,68 @@ if [[ "$OPTION" == "1" ]]; then
     fi
 fi
 
+    # Initialize Shared VPC variables
+    USE_SHARED_VPC="false"
+    SHARED_VPC_HOST_PROJECT=""
+    SHARED_VPC_NETWORK=""
+    SHARED_VPC_SUBNET=""
+    SHARED_VPC_PROXY_SUBNET=""
+
+    if [[ "$IS_CUSTOM" == "true" ]]; then
+        echo -e "${BLUE}--- Starting Custom Brownfield Configuration ---${NC}"
+        
+        # 1. State Bucket (From tfvars or Prompt)
+        # We try to read it from tfvars first
+        TFVARS_FILE="gemini-stage-0/terraform.tfvars"
+        if [[ -f "$TFVARS_FILE" ]]; then
+            STATE_BUCKET=$(get_tfvar_value "$TFVARS_FILE" "bucket")
+        fi
+        
+        if [[ -z "$STATE_BUCKET" ]]; then
+            read -p "Enter your Terraform State Bucket Name (e.g., my-state-bucket): " STATE_BUCKET
+        fi
+        
+        # Clean up bucket name (remove gs:// and trailing /)
+        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\///' | sed 's/\/$//')
+        
+        if [[ -z "$BUCKET_NAME" ]]; then
+             echo -e "${RED}Error: State Bucket is required. Cannot proceed.${NC}"
+             exit 1
+        fi
+        
+        echo -e "Using State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
+        
+        # 2. Validate CMEK on State Bucket
+        echo "Validating CMEK encryption on State Bucket..."
+        BUCKET_JSON=$(gcloud storage buckets describe "gs://${BUCKET_NAME}" --format="json" 2>/dev/null || true)
+        BUCKET_KEY=$(echo "$BUCKET_JSON" | jq -r '.default_kms_key // .encryption.defaultKmsKeyName // empty')
+        
+        if [[ -n "$BUCKET_KEY" ]]; then
+             echo -e "Verified State Bucket is encrypted with: ${YELLOW}${BUCKET_KEY}${NC}"
+             # We use this key as the default for resources unless overridden
+             DEFAULT_CMEK_KEY="$BUCKET_KEY"
+        else
+             echo -e "${RED}ERROR: State Bucket gs://${BUCKET_NAME} is NOT encrypted with a CMEK key.${NC}"
+             echo -e "${YELLOW}Custom Brownfield deployments require a CMEK-encrypted state bucket for security compliance.${NC}"
+             echo -e "Please encrypt this bucket or provide a different one."
+             exit 1
+        fi
+        
+        # 3. Resource Keys (From tfvars or Default)
+        # We check if the user provided a specific key for resources
+        if [[ -f "$TFVARS_FILE" ]]; then
+             KMS_KEY_ID=$(get_tfvar_value "$TFVARS_FILE" "kms_key_id")
+        fi
+        
+        if [[ -n "$KMS_KEY_ID" ]]; then
+             echo -e "Using dedicated Resource CMEK Key from tfvars: ${YELLOW}${KMS_KEY_ID}${NC}"
+             DEFAULT_CMEK_KEY="$KMS_KEY_ID"
+        else
+             echo -e "Using State Bucket Key for Encryption of Resources (Default): ${YELLOW}${DEFAULT_CMEK_KEY}${NC}"
+             KMS_KEY_ID="$DEFAULT_CMEK_KEY"
+        fi
+    fi
+
     if [[ "$IS_BROWNFIELD" == "true" ]]; then
         echo -e "${BLUE}--- Starting Brownfield Discovery ---${NC}"
 
@@ -134,55 +201,69 @@ fi
         echo "Checking for IaC Core Project: ${TENANT_IAC_PROJECT}..."
 
         if ! gcloud projects describe "${TENANT_IAC_PROJECT}" &>/dev/null; then
-            echo -e "${RED}Error: Tenant IaC Core Project '${TENANT_IAC_PROJECT}' not found. Cannot proceed.${NC}"
-            exit 1
+            echo -e "${YELLOW}Warning: Tenant IaC Core Project '${TENANT_IAC_PROJECT}' not found.${NC}"
+            read -p "Please enter the Tenant IaC Core Project ID: " INPUT_IAC_PROJECT
+            TENANT_IAC_PROJECT="${INPUT_IAC_PROJECT}"
+            
+            if [[ -z "$TENANT_IAC_PROJECT" ]]; then
+                 echo -e "${RED}Error: Tenant IaC Core Project ID is required. Cannot proceed.${NC}"
+                 exit 1
+            fi
         fi
         echo -e "Found Tenant IaC Project: ${YELLOW}${TENANT_IAC_PROJECT}${NC}"
 
         # 2. Discover State Bucket
+        # For Custom Brownfield Deployments:
+        # Set this as your bucket for the tfstate and then manually fill out the tfvars and run deploy.sh
         echo "Looking for state bucket in ${TENANT_IAC_PROJECT}..."
         TENANT_BUCKETS=$(gcloud storage ls --project "${TENANT_IAC_PROJECT}" 2>/dev/null)
         STATE_BUCKET=$(echo "$TENANT_BUCKETS" | grep "iac-0/$" | head -n 1)
             
         if [[ -z "$STATE_BUCKET" ]]; then
-            echo -e "${RED}Error: No Terraform state bucket found in ${TENANT_IAC_PROJECT}. Cannot proceed.${NC}"
-            exit 1
+            echo -e "${YELLOW}Warning: No Terraform state bucket found in ${TENANT_IAC_PROJECT}.${NC}"
+            read -p "Please enter the State Bucket Name (e.g., gs://my-bucket): " INPUT_BUCKET
+            STATE_BUCKET="${INPUT_BUCKET}"
+            
+            if [[ -z "$STATE_BUCKET" ]]; then
+                echo -e "${RED}Error: State Bucket is required. Cannot proceed.${NC}"
+                exit 1
+            fi
         fi
         BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\///' | sed 's/\/$//')
         echo -e "Using Tenant State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
 
-        # 3. Discover CMEK Key
-        echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT}..."
-        KEY_LOCATION="us-east4"
-        KEYRINGS=$(gcloud kms keyrings list --location "${KEY_LOCATION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)")
-        DEFAULT_CMEK_KEY=""
-        for keyring_path in $KEYRINGS; do
-            keyring_name=$(basename "$keyring_path")
-            KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${KEY_LOCATION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
-            if [[ -n "$KEY" ]]; then
-                DEFAULT_CMEK_KEY=$KEY
-                break
-            fi
-        done
-
-        if [[ -n "$DEFAULT_CMEK_KEY" ]]; then
-            echo -e "Found Default CMEK Key: ${YELLOW}${DEFAULT_CMEK_KEY}${NC}"
-            KMS_KEY_ID="${DEFAULT_CMEK_KEY}"
+        # Check State Bucket Encryption (Informational/Warning)
+        # We do this immediately to warn the user if their state bucket is insecure
+        # We use JSON format to be robust and capture the full configuration for debugging
+        BUCKET_JSON=$(gcloud storage buckets describe "gs://${BUCKET_NAME}" --project "${TENANT_IAC_PROJECT}" --format="json" 2>/dev/null || true)
+        # Check both 'default_kms_key' (gcloud storage) and 'encryption.defaultKmsKeyName' (legacy/other)
+        BUCKET_KEY=$(echo "$BUCKET_JSON" | jq -r '.default_kms_key // .encryption.defaultKmsKeyName // empty')
+        
+        if [[ -n "$BUCKET_KEY" ]]; then
+             echo -e "Verified Tenant State Bucket is encrypted with: ${YELLOW}${BUCKET_KEY}${NC}"
+             DEFAULT_CMEK_KEY="$BUCKET_KEY"
         else
-            echo -e "${YELLOW}Warning: Could not find default CMEK key. A new one will be created during deployment.${NC}"
+             echo -e "${RED}WARNING: Tenant State Bucket gs://${BUCKET_NAME} does NOT have a default CMEK key configured.${NC}"
+             echo -e "Debug: Bucket Configuration (JSON):"
+             echo "$BUCKET_JSON"
+             echo -e "${RED}You should encrypt this bucket for proper protection.${NC}"
+             DEFAULT_CMEK_KEY=""
+        fi
+
+        # 4. Check for existing state file (for informational purposes)
+        if gsutil ls "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" &>/dev/null; then
+            echo -e "${GREEN}Successfully identified default.tfstate in bucket.${NC}"
+        elif gsutil ls "gs://${BUCKET_NAME}/terraform/state/stage-0/terraform.tfstate" &>/dev/null; then
+             echo -e "${GREEN}Successfully identified terraform.tfstate in bucket.${NC}"
+        else
+            echo -e "${YELLOW}No existing default.tfstate or terraform.tfstate identified in bucket ${BUCKET_NAME}. A new one will be created by Terraform.${NC}"
         fi
 
 
 
-        # 4. Shared VPC Discovery/Prompt
-        USE_SHARED_VPC="false"
-        SHARED_VPC_HOST_PROJECT=""
-        SHARED_VPC_NETWORK=""
-        SHARED_VPC_SUBNET=""
-        SHARED_VPC_PROXY_SUBNET=""
 
 
-
+        # 5. Shared VPC Discovery/Prompt
         if [[ "$SKIP_PROMPTS" == "false" ]]; then
             echo ""
             read -p "Do you want to use an existing Shared VPC? (y/n) [n]: " USE_SHARED_VPC_CHOICE
@@ -191,28 +272,42 @@ fi
         if [[ "$USE_SHARED_VPC_CHOICE" == "y" || "$USE_SHARED_VPC_CHOICE" == "Y" ]]; then
             USE_SHARED_VPC="true"
             
-            # Try to discover Host Project using gcloud
+            # 1. Determine Host Project & Verify Attachment
+            # The Current Host Project IS the Shared VPC Host Project.
+            SHARED_VPC_HOST_PROJECT=$(gcloud compute shared-vpc get-host-project "${PROJECT_ID}" --format="value(name)" 2>/dev/null || true)
+
+
+            # If not attached, fail and advise user
             if [[ -z "$SHARED_VPC_HOST_PROJECT" ]]; then
-                DISCOVERED_HOST_PROJECT=$(gcloud compute shared-vpc get-host-project "${PROJECT_ID}" --format="value(name)" 2>/dev/null || true)
+                POTENTIAL_HOST_PROJECT=$(echo "$PROJECT_ID" | cut -d'-' -f1-2 | sed 's/$/-net-host/')
                 
-                if [[ -z "$DISCOVERED_HOST_PROJECT" ]]; then
-                     # Fallback: Try to guess by stripping -main-0 and user parts
-                     POTENTIAL_HOST_PROJECT=$(echo "$PROJECT_ID" | cut -d'-' -f1-2 | sed 's/$/-net-host/')
-                     SHARED_VPC_HOST_PROJECT=${POTENTIAL_HOST_PROJECT}
-                else
-                     SHARED_VPC_HOST_PROJECT="$DISCOVERED_HOST_PROJECT"
-                fi
+                echo -e "${RED}ERROR: Project '${PROJECT_ID}' is not attached to a Shared VPC Host.${NC}"
+                echo -e "${YELLOW}To proceed, you must:${NC}"
+                echo -e "1. Attach this project to the Shared VPC Host Project."
+                echo -e "   (Command: gcloud compute shared-vpc associated-projects add ${PROJECT_ID} --host-project ${POTENTIAL_HOST_PROJECT})"
+                echo -e "2. Share the VPC Host Project subnets with this Service Project."
+                echo -e "${YELLOW}Please configure this and rerun deploy.sh.${NC}"
+                exit 1
             fi
             
-            echo -e "Discovered Host Project: ${YELLOW}${SHARED_VPC_HOST_PROJECT}${NC}"
+            echo -e "Using Shared VPC: ${GREEN}Yes${NC}"
+            echo -e "Using Network Host Project: ${YELLOW}${SHARED_VPC_HOST_PROJECT}${NC}"
 
-            # Auto-discover Network and Subnets
+            # 2. Auto-discover Network and Subnets
             if [[ -z "$SHARED_VPC_NETWORK" ]]; then
-                echo "Scanning for usable subnets in Host Project..."
+                echo "Scanning for subnets shared from ${SHARED_VPC_HOST_PROJECT} to ${PROJECT_ID}..."
                 
                 # Get all subnets from the Host Project directly in JSON format
-                # We use direct list instead of list-usable because list-usable often fails to show shared subnets in some environments
                 USABLE_SUBNETS_JSON=$(gcloud compute networks subnets list --project "${SHARED_VPC_HOST_PROJECT}" --format="json" 2>/dev/null)
+                
+                if [[ -z "$USABLE_SUBNETS_JSON" || "$USABLE_SUBNETS_JSON" == "[]" ]]; then
+                     echo -e "${RED}ERROR: No subnets found in Host Project '${SHARED_VPC_HOST_PROJECT}' or permission denied.${NC}"
+                     echo -e "${YELLOW}Please ensure that:${NC}"
+                     echo -e "1. The Host Project exists and you have permissions to list subnets."
+                     echo -e "2. You have shared the necessary subnets with this Service Project."
+                     echo -e "3. You are authenticated correctly."
+                     exit 1
+                fi
     
                 # 1. Discover Private Subnet & Network (Atomic operation to ensure consistency)
                 # We pick the first usable PRIVATE subnet in the Host Project AND in the correct Region (defaulting to us-east4 if not set)
@@ -256,37 +351,63 @@ fi
                 SHARED_VPC_PROXY_SUBNET=${INPUT_PROXY_SUBNET}
             fi
             
-            echo -e "Using Shared VPC: ${GREEN}Yes${NC}"
-            echo -e "Host Project: ${YELLOW}${SHARED_VPC_HOST_PROJECT}${NC}"
             echo -e "Network: ${YELLOW}${SHARED_VPC_NETWORK}${NC}"
             echo -e "Subnet: ${YELLOW}${SHARED_VPC_SUBNET}${NC}"
             echo -e "Proxy Subnet: ${YELLOW}${SHARED_VPC_PROXY_SUBNET}${NC}"
         fi
         fi
+    fi
 
-        # 3. Region (Moved after Shared VPC to allow discovery to influence default)
-        if [[ -n "$REGION" ]]; then
-             echo -e "Region auto-detected from Shared VPC: ${YELLOW}${REGION}${NC}"
+    # 3. Region (Moved after Shared VPC to allow discovery to influence default)
+    if [[ -n "$REGION" ]]; then
+            echo -e "Region auto-detected from Shared VPC: ${YELLOW}${REGION}${NC}"
+    else
+            REGION=$(gcloud config get-value compute/region 2>/dev/null)
+            if [ -z "$REGION" ]; then
+                REGION="us-east4"
+            fi
+            if [[ "$SKIP_PROMPTS" == "false" ]]; then
+                read -p "Enter Region [${REGION}]: " INPUT_REGION
+                REGION=${INPUT_REGION:-$REGION}
+            fi
+            echo -e "Using Region: ${YELLOW}${REGION}${NC}"
+    fi
+
+    # 4. Discover CMEK Key (Moved after Region to use discovered Region)
+    if [[ "$IS_BROWNFIELD" == "true" ]]; then
+        echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT}..."
+        # Use the discovered REGION for key search
+        KEY_LOCATION="${REGION}"
+        
+        # Check if we should use 'us' for multi-region if REGION is us-east4? 
+        # For now, we stick to the Region as that's where the resources will be.
+        # But if the key is in 'us' (multi-region), we might miss it if we only look in REGION.
+        # Let's try REGION first.
+        
+        KEYRINGS=$(gcloud kms keyrings list --location "${KEY_LOCATION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
+        DEFAULT_CMEK_KEY=""
+
+
+        # 2. Discover HSM CMEK for Resources
+        # We always look for the 'default' key for resources, regardless of the state bucket key
+        for keyring_path in $KEYRINGS; do
+            keyring_name=$(basename "$keyring_path")
+            
+            # Check for 'default' key (Standard for Resources)
+            KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${KEY_LOCATION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
+            
+            if [[ -n "$KEY" ]]; then
+                DEFAULT_CMEK_KEY=$KEY
+                break
+            fi
+        done
+
+        if [[ -n "$DEFAULT_CMEK_KEY" ]]; then
+            echo -e "Found Default CMEK Key: ${YELLOW}${DEFAULT_CMEK_KEY}${NC}"
+            KMS_KEY_ID="${DEFAULT_CMEK_KEY}"
         else
-             REGION=$(gcloud config get-value compute/region 2>/dev/null)
-             if [ -z "$REGION" ]; then
-                 REGION="us-east4"
-             fi
-             if [[ "$SKIP_PROMPTS" == "false" ]]; then
-                  read -p "Enter Region [${REGION}]: " INPUT_REGION
-                  REGION=${INPUT_REGION:-$REGION}
-             fi
-             echo -e "Using Region: ${YELLOW}${REGION}${NC}"
+            echo -e "${YELLOW}Warning: Could not find default CMEK key in ${KEY_LOCATION}. A new one will be created during deployment.${NC}"
         fi
-
-        # 4. Check for existing state file (for informational purposes)
-        if gsutil ls "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" &>/dev/null; then
-            echo -e "${GREEN}Found existing default.tfstate in bucket.${NC}"
-        else
-            echo -e "${YELLOW}No existing default.tfstate found. A new one will be created by Terraform.${NC}"
-        fi
-
-
     fi
 
     # # This block is now correctly placed within the OPTION==1 condition
@@ -562,18 +683,18 @@ fi
 
 # --- CMEK Variables ---
 KEYRING_NAME="${PREFIX}-gemini-keyring"
-KEY_NAME="${PREFIX}-gemini-key"
+STATE_KEY_NAME="${PREFIX}-state-key"
 KEY_LOCATION="${GEOLOCATION}"
-KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${KEY_NAME}"
+KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${STATE_KEY_NAME}"
 
-# In Brownfield, we might have discovered a key already.
-if [[ "$IS_BROWNFIELD" == "true" && -n "$KMS_KEY_ID" ]]; then
+# In Brownfield or Custom, we might have discovered/provided a key already.
+if [[ ("$IS_BROWNFIELD" == "true" || "$IS_CUSTOM" == "true") && -n "$KMS_KEY_ID" ]]; then
     KEY_ID="$KMS_KEY_ID"
     # Extract components from the discovered key to avoid re-creation attempts using wrong names
     KEY_LOCATION=$(echo "$KEY_ID" | cut -d'/' -f4)
     KEYRING_NAME=$(echo "$KEY_ID" | cut -d'/' -f6)
-    KEY_NAME=$(echo "$KEY_ID" | cut -d'/' -f8)
-    echo -e "Using Discovered CMEK Key: ${YELLOW}${KEY_ID}${NC}"
+    STATE_KEY_NAME=$(echo "$KEY_ID" | cut -d'/' -f8)
+    echo -e "Using Discovered/Provided CMEK Key: ${YELLOW}${KEY_ID}${NC}"
 fi
 
 # --- Stage 0 ---
@@ -597,7 +718,8 @@ if [[ "$OPTION" == "1" ]]; then
 
     echo -e "Checking for CMEK Key in ${GEOLOCATION}..."
     KEY_LOCATION="${GEOLOCATION}"
-    KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${KEY_NAME}"
+    KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${STATE_KEY_NAME}"
+    KEY_PROJECT_ID="${PROJECT_ID}"
 
     # Check if the bucket already exists and has a default KMS key
     EXISTING_BUCKET_KEY=$(gcloud storage buckets describe "gs://${BUCKET_NAME}" --format="value(encryption.defaultKmsKeyName)" 2>/dev/null || true)
@@ -605,74 +727,74 @@ if [[ "$OPTION" == "1" ]]; then
     if [[ -n "$EXISTING_BUCKET_KEY" ]]; then
         echo -e "${YELLOW}Detected existing CMEK key on bucket: ${EXISTING_BUCKET_KEY}${NC}"
         KEY_ID="${EXISTING_BUCKET_KEY}"
-        
-        # Parse components from the existing key ID
-        # Format: projects/PROJECT/locations/LOCATION/keyRings/KEYRING/cryptoKeys/KEY
-        KEY_LOCATION=$(echo "$KEY_ID" | cut -d'/' -f4)
-        KEYRING_NAME=$(echo "$KEY_ID" | cut -d'/' -f6)
-        KEY_NAME=$(echo "$KEY_ID" | cut -d'/' -f8)
-        
-        echo -e "Using detected Key Location: ${YELLOW}${KEY_LOCATION}${NC}"
-        echo -e "Using detected Key Ring: ${YELLOW}${KEYRING_NAME}${NC}"
-        echo -e "Using detected Key Name: ${YELLOW}${KEY_NAME}${NC}"
     fi
 
-    # 1. Ensure KeyRing exists in GEOLOCATION
-    if ! gcloud kms keyrings describe "${KEYRING_NAME}" --location "${GEOLOCATION}" --project "${PROJECT_ID}" &>/dev/null; then
-        echo "Creating Key Ring: ${KEYRING_NAME} in ${GEOLOCATION}..."
-        if ! gcloud kms keyrings create "${KEYRING_NAME}" \
-            --location "${GEOLOCATION}" \
-            --project "${PROJECT_ID}"; then
-            echo -e "${RED}Error: Failed to create Key Ring.${NC}"
-            exit 1
-        fi
-    else
-        # echo "Key Ring ${KEYRING_NAME} in ${GEOLOCATION} already exists."
-        true
-    fi
+    # Parse components from the final KEY_ID (whether discovered, existing, or default)
+    KEY_PROJECT_ID=$(echo "$KEY_ID" | cut -d'/' -f2)
+    KEY_LOCATION=$(echo "$KEY_ID" | cut -d'/' -f4)
+    KEYRING_NAME=$(echo "$KEY_ID" | cut -d'/' -f6)
+    STATE_KEY_NAME=$(echo "$KEY_ID" | cut -d'/' -f8)
+    
+    echo -e "Using Key Location: ${YELLOW}${KEY_LOCATION}${NC}"
+    echo -e "Using Key Ring: ${YELLOW}${KEYRING_NAME}${NC}"
+    echo -e "Using Key Name: ${YELLOW}${STATE_KEY_NAME}${NC}"
 
-    # 2. Ensure Key exists in GEOLOCATION
-    if ! gcloud kms keys describe "${KEY_NAME}" --keyring "${KEYRING_NAME}" --location "${KEY_LOCATION}" --project "${PROJECT_ID}" &>/dev/null; then
-        echo "Creating Key ${KEY_NAME} in ${GEOLOCATION}..."
-        if ! gcloud kms keys create "${KEY_NAME}" \
-            --keyring "${KEYRING_NAME}" \
-            --location "${KEY_LOCATION}" \
-            --purpose "encryption" \
-            --protection-level "hsm" \
-            --project "${PROJECT_ID}" \
-            --rotation-period "7776000s" \
-            --next-rotation-time "$(date -u -d '+90 days' +%Y-%m-%dT%H:%M:%SZ)"; then
-            echo -e "${RED}Error: Failed to create KMS Key.${NC}"
-            exit 1
+    # 1. Ensure KeyRing and Key Exist (Greenfield Only)
+    # For Brownfield, we use the discovered key and assume it exists (validated during discovery).
+    if [[ "$IS_BROWNFIELD" == "false" ]]; then
+        # 1. Ensure KeyRing exists in GEOLOCATION
+        if ! gcloud kms keyrings describe "${KEYRING_NAME}" --location "${GEOLOCATION}" --project "${KEY_PROJECT_ID}" &>/dev/null; then
+            echo "Creating Key Ring: ${KEYRING_NAME} in ${GEOLOCATION}..."
+            if ! gcloud kms keyrings create "${KEYRING_NAME}" \
+                --location "${GEOLOCATION}" \
+                --project "${KEY_PROJECT_ID}"; then
+                echo -e "${RED}Error: Failed to create Key Ring.${NC}"
+                exit 1
+            fi
+        fi
+
+        # 2. Ensure Key exists in GEOLOCATION
+        if ! gcloud kms keys describe "${STATE_KEY_NAME}" --keyring "${KEYRING_NAME}" --location "${KEY_LOCATION}" --project "${KEY_PROJECT_ID}" &>/dev/null; then
+            echo "Creating Key ${STATE_KEY_NAME} in ${GEOLOCATION}..."
+            if ! gcloud kms keys create "${STATE_KEY_NAME}" \
+                --keyring "${KEYRING_NAME}" \
+                --location "${KEY_LOCATION}" \
+                --purpose "encryption" \
+                --protection-level "hsm" \
+                --project "${KEY_PROJECT_ID}" \
+                --rotation-period "7776000s" \
+                --next-rotation-time "$(date -u -d '+90 days' +%Y-%m-%dT%H:%M:%SZ)"; then
+                echo -e "${RED}Error: Failed to create KMS Key.${NC}"
+                exit 1
+            fi
         fi
     else
-        # echo "Key ${KEY_NAME} in ${GEOLOCATION} already exists."
-        true
+        echo -e "Using existing CMEK Key: ${YELLOW}${KEY_ID}${NC}"
     fi
 
     # 3. Grant IAM permissions (Idempotent)
-    STORAGE_SERVICE_AGENT=$(gcloud storage service-agent --project="${PROJECT_ID}")
-    # 3. Grant Current User Encrypter/Decrypter role on the key (Required for GCS access)
-    CURRENT_USER=$(gcloud config get-value account 2>/dev/null)
-    echo "Granting KMS Encrypter/Decrypter role to ${CURRENT_USER}..."
-    if ! gcloud kms keys add-iam-policy-binding "${KEY_NAME}" \
-        --keyring "${KEYRING_NAME}" \
-        --location "${KEY_LOCATION}" \
-        --project "${PROJECT_ID}" \
-        --member "user:${CURRENT_USER}" \
-        --role "roles/cloudkms.cryptoKeyEncrypterDecrypter" >/dev/null; then
-        echo -e "${RED}Error: Failed to grant IAM role to current user.${NC}"
-        exit 1
-    fi
+        STORAGE_SERVICE_AGENT=$(gcloud storage service-agent --project="${PROJECT_ID}")
+        # 3. Grant Current User Encrypter/Decrypter role on the key (Required for GCS access)
+        CURRENT_USER=$(gcloud config get-value account 2>/dev/null)
+        echo "Granting KMS Encrypter/Decrypter role to ${CURRENT_USER}..."
+        if ! gcloud kms keys add-iam-policy-binding "${STATE_KEY_NAME}" \
+            --keyring "${KEYRING_NAME}" \
+            --location "${KEY_LOCATION}" \
+            --project "${KEY_PROJECT_ID}" \
+            --member "user:${CURRENT_USER}" \
+            --role "roles/cloudkms.cryptoKeyEncrypterDecrypter" >/dev/null; then
+            echo -e "${RED}Error: Failed to grant IAM role to current user.${NC}"
+            exit 1
+        fi
 
-    # 4. Grant Storage Service Agent Encrypter/Decrypter role (Bootstrapping)
-    # Using authorize-cmek is the recommended way to ensure the service agent has access.
-    echo "Authorizing Storage Service Agent for CMEK..."
-    if ! gcloud storage service-agent \
-        --project="${PROJECT_ID}" \
-        --authorize-cmek="${KEY_ID}" >/dev/null; then
-        echo -e "${RED}Error: Failed to authorize Storage Service Agent.${NC}"
-        exit 1
+        # 4. Grant Storage Service Agent Encrypter/Decrypter role (Bootstrapping)
+        # Using authorize-cmek is the recommended way to ensure the service agent has access.
+        echo "Authorizing Storage Service Agent for CMEK..."
+        if ! gcloud storage service-agent \
+            --project="${PROJECT_ID}" \
+            --authorize-cmek="${KEY_ID}" >/dev/null; then
+            echo -e "${RED}Error: Failed to authorize Storage Service Agent.${NC}"
+            exit 1
     fi
 
     # BQ and Discovery Engine grants removed from here to reduce noise.
@@ -774,6 +896,24 @@ if [[ "$OPTION" == "1" ]]; then
     rm -f backend.tf
 
     # Generate terraform.tfvars
+    if [[ "$IS_BROWNFIELD" == "true" ]]; then
+        CREATE_RESOURCE_KEYS="false"
+    else
+        # For Greenfield or Custom, default to true unless overridden in tfvars
+        # Check if user already set create_resource_keys in tfvars (for Custom)
+        if [[ -f "terraform.tfvars" ]]; then
+             USER_SET_KEYS=$(get_tfvar_value "terraform.tfvars" "create_resource_keys")
+             if [[ -n "$USER_SET_KEYS" ]]; then
+                 CREATE_RESOURCE_KEYS="$USER_SET_KEYS"
+                 echo -e "Using user-defined create_resource_keys: ${YELLOW}${CREATE_RESOURCE_KEYS}${NC}"
+             else
+                 CREATE_RESOURCE_KEYS="true"
+             fi
+        else
+             CREATE_RESOURCE_KEYS="true"
+        fi
+    fi
+
     if [[ "$SKIP_PROMPTS" == "false" ]]; then
         cat > terraform.tfvars <<EOF
 deployment_type = "${DEPLOYMENT_TYPE}"
@@ -792,10 +932,19 @@ kms_key_id = "${KEY_ID}"
 enable_chrome_enterprise_premium = ${ENABLE_CEP_BOOL}
 terraform_state_bucket = "${BUCKET_NAME}"
 use_shared_vpc = ${USE_SHARED_VPC}
+create_resource_keys = ${CREATE_RESOURCE_KEYS}
+EOF
+
+        if [[ "$USE_SHARED_VPC" == "true" ]]; then
+            cat >> terraform.tfvars <<EOF
 network_project_id = "${SHARED_VPC_HOST_PROJECT}"
 shared_vpc_network_name = "${SHARED_VPC_NETWORK}"
 shared_vpc_subnet_name = "${SHARED_VPC_SUBNET}"
 shared_vpc_proxy_subnet_name = "${SHARED_VPC_PROXY_SUBNET}"
+EOF
+        fi
+
+        cat >> terraform.tfvars <<EOF
 
 # Example Data Stores
 gcs_data_store_names = ["company-docs", "knowledge-base", "team-playbooks"]
@@ -826,20 +975,17 @@ EOF
     # Apply Terraform
     echo ""
     echo "Applying Terraform (Stage 0)..."
-    terraform apply -auto-approve \
-        -var="terraform_state_bucket=${BUCKET_NAME}" \
-        -var="use_shared_vpc=${USE_SHARED_VPC}" \
-        -var="network_project_id=${SHARED_VPC_HOST_PROJECT}" \
-        -var="shared_vpc_network_name=${SHARED_VPC_NETWORK}" \
-        -var="shared_vpc_subnet_name=${SHARED_VPC_SUBNET}" \
-        -var="shared_vpc_proxy_subnet_name=${SHARED_VPC_PROXY_SUBNET}"
+    terraform apply -auto-approve
 
     echo -e "${GREEN}Stage 0 Complete!${NC}"
+    
+    GEMINI_IP=$(terraform output -raw gemini_enterprise_ip)
+
     echo ""
     echo -e "${YELLOW}IMPORTANT NEXT STEPS:${NC}"
     echo -e "1. Run the ${BLUE}Gem4Gov CLI${NC} to configure your Gemini Enterprise instance."
     echo "   - This will provide you with the 'Gemini Config ID'."
-    echo -e "2. Point the ${BLUE}gemini_enterprise_ip${NC} to the DNS A record on the subdomain you would like to host the app on."
+    echo -e "2. Point the ${BLUE}gemini_enterprise_ip${NC} (${GEMINI_IP}) to the DNS A record on the subdomain you would like to host the app on."
     echo -e "3. Provision an SSL Certificate and upload it to Google Cloud into Certificate Manager."
     echo -e "4. Update ${BLUE}gemini-stage-1/terraform.tfvars${NC} with these values."
     echo -e "5. Run this script again and select ${BLUE}Option 2 (Deploy Stage 1)${NC}."

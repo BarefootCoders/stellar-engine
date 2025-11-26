@@ -17,8 +17,8 @@ locals {
   gcs_lifecycle_age   = 30
   bq_connector_refresh_interval = "86400s" # Daily
   wait_for_bq_datastore_duration = "120s"
-  # Use provided key
-  cmek_key_id = var.kms_key_id
+  # Use provided key or the newly created resource key
+  cmek_key_id = var.create_resource_keys ? google_kms_crypto_key.resources[0].id : var.kms_key_id
 }
 
 # Data source to validate/read the provided key
@@ -27,11 +27,6 @@ data "google_kms_crypto_key" "cmek_crypto_key" {
   key_ring = join("/", slice(split("/", var.kms_key_id), 0, 6))
 }
 
-data "google_kms_key_ring" "cmek_key_ring" {
-  name     = element(split("/", var.kms_key_id), 5)
-  location = element(split("/", var.kms_key_id), 3)
-  project  = element(split("/", var.kms_key_id), 1)
-}
 
 
 
@@ -80,9 +75,11 @@ resource "google_kms_crypto_key_iam_member" "bq_sa_kms_access" {
 resource "google_discovery_engine_cmek_config" "default" {
   count = var.create_data_stores ? 1 : 0
 
-  project      = var.main_project_id
-  location     = var.geolocation
-  kms_key      = local.cmek_key_id
+  project        = var.main_project_id
+  location       = var.geolocation # should be "US"
+  cmek_config_id = "default_cmek_config"
+  kms_key        = local.cmek_key_id
+  provider       = google-beta
 
   depends_on = [
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,

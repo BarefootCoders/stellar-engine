@@ -71,5 +71,8 @@ use_shared_vpc = false
 # Required if use_shared_vpc is true:
 # network_project_id = "host-project-id"
 # shared_vpc_network_name = "shared-vpc-network"
-# shared_vpc_subnet_name = "shared-vpc-subnet"
-# shared_vpc_proxy_subnet_name = "shared-vpc-proxy-subnet"
+# shared_vpc_subnet_name = "landing-default"
+shared_vpc_proxy_subnet_name = "landing-proxy"
+
+# KMS Configuration
+create_resource_keys = false # Set to true to create a separate key for resources in Greenfield

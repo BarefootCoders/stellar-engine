@@ -193,3 +193,9 @@ variable "shared_vpc_proxy_subnet_name" {
   type        = string
   default     = ""
 }
+
+variable "create_resource_keys" {
+  description = "Whether to create a separate CMEK key for resources (Discovery Engine, GCS, BigQuery). Set to true for Greenfield deployments."
+  type        = bool
+  default     = false
+}
