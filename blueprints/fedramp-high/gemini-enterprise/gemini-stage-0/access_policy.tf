@@ -46,12 +46,12 @@ resource "google_access_context_manager_access_levels" "access-levels" {
     title = "Expire Access 2026"
     custom {
       expr {
-        expression = ("request.time < timestamp(\"2027-01-01T00:00:00Z\")")
+        expression = ("request.time < timestamp(\"2028-01-01T00:00:00Z\")")
       }
     }
   }
 
-  # Access level for "easy" service, including US Region devices.
+  # Access level for "Lenient" policies, limiting access to only the US Region.
   access_levels {
     name  = "accessPolicies/${var.access_policy_number}/accessLevels/lenient_device"
     title = "Lenient Device Policy"
@@ -62,7 +62,7 @@ resource "google_access_context_manager_access_levels" "access-levels" {
     }
   }
 
-  # Access level for "moderate" service, including US Region, Time (7AM-9PM Monday-Friday) & Expiring Access by end of 2024.
+  # Access level for "Moderate" policies, limiting access to only the US Region, Time (7AM-9PM Monday-Friday) & Expiring Access after a date (example: by end of 2027).
   access_levels {
     name  = "accessPolicies/${var.access_policy_number}/accessLevels/moderate_device"
     title = "Moderate Device Policy"

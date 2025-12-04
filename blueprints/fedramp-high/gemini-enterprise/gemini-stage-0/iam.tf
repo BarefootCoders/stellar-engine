@@ -22,25 +22,25 @@
 resource "google_project_iam_member" "admins_discoveryengine_admin" {
   project = var.main_project_id
   role    = "roles/discoveryengine.admin"
-  member  = "group:${var.admin_group}@${var.domain}"
+  member  = var.admin_group
 }
 
 resource "google_project_iam_member" "admins_aiplatform_admin" {
   project = var.main_project_id
   role    = "roles/aiplatform.admin"
-  member  = "group:${var.admin_group}@${var.domain}"
+  member  = var.admin_group
 }
 
 resource "google_project_iam_member" "admins_serviceusage_consumer" {
   project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:${var.admin_group}@${var.domain}"
+  member  = var.admin_group
 }
 
 resource "google_project_iam_member" "admins_logging_viewer" {
   project = var.main_project_id
   role    = "roles/logging.viewer"
-  member  = "group:${var.admin_group}@${var.domain}"
+  member  = var.admin_group
 }
 
 
@@ -48,11 +48,11 @@ resource "google_project_iam_member" "admins_logging_viewer" {
 resource "google_project_iam_member" "users_discoveryengine_user" {
   project = var.main_project_id
   role    = "roles/discoveryengine.user"
-  member  = "group:${var.user_group}@${var.domain}"
+  member  = var.user_group
 }
 
 resource "google_project_iam_member" "users_serviceusage_consumer" {
   project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:${var.user_group}@${var.domain}"
+  member  = var.user_group
 }

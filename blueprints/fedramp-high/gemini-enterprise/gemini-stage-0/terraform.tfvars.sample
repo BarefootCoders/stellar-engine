@@ -1,9 +1,14 @@
-domain = "customer-domain.com"
+# SET THIS TO DEPLOY INTERNAL vs. EXTERNAL INGRESS
+# Originally follows the CNAP, which supports external ingress
+deployment_type = "external"
 
-main_project_id    = "prefx-main-xxx-x"
+# Your Google Cloud Org's Domain
+domain = "yourdomain.gov"
 
-prefix               = "prefx"
-region               = "us-east4"
+main_project_id = "prefx-main-xxx-x"
+
+prefix = "prefx"
+region = "us-east4"
 
 # gcloud access-context-manager policies list --organization ORGANIZATION_ID
 # get your organization ID via gcloud organizations list
@@ -12,8 +17,24 @@ access_policy_number = 250001080040
 
 geolocation = "us"
 
-admin_group = gcp-gemini-enterprise-users
-user_group = gcp-gemini-enterprise-admins
+# Groups
+admin_group = "group:gcp-gemini-enterprise-admins@yourdomain.gov"
+user_group = "group:gcp-gemini-enterprise-users@yourdomain.gov"
+
+# Access Control
+# Options: "GSUITE" or "THIRD_PARTY"
+acl_idp_type = "GSUITE"
+# Required if acl_idp_type is "THIRD_PARTY"
+acl_workforce_pool_name = "" 
+
+# Security
+# Enable Chrome Enterprise Premium (Zero Trust) features
+enable_chrome_enterprise_premium = false
+# KMS Key ID for CMEK encryption (must be in the same location as geolocation)
+kms_key_id = "projects/prefx-main-xxx-x/locations/us/keyRings/prefx-gemini-keyring/cryptoKeys/prefx-gemini-key"
+
+# Data Stores
+create_data_stores = true
 
 # Example GCS Data Stores
 gcs_data_store_names = ["company-docs", "knowledge-base", "team-playbooks"]
@@ -30,11 +51,28 @@ bq_data_store_configs = [
   },
   {
     dataset_id = "support_tickets"
-\
+    table_id   = "tickets_archive"
+  },
+]
+
 # Optional: Customize Access Context Manager Time Restrictions
 access_start_hour = 9  # e.g., 9 AM ET
 access_end_hour   = 17 # e.g., 5 PM ET
 access_start_day  = 1  # Monday
 access_end_day    = 5  # Friday
 
+# Optional: Set a non-conflicting IP range for the internal load balancer subnet
+# Only used if deployment_type is "internal"
+internal_lb_subnet_range = "10.10.10.0/24"
 
+# Shared VPC Configuration (Optional)
+# Set use_shared_vpc to true to use an existing Shared VPC
+use_shared_vpc = false
+# Required if use_shared_vpc is true:
+# network_project_id = "host-project-id"
+# shared_vpc_network_name = "shared-vpc-network"
+# shared_vpc_subnet_name = "landing-default"
+shared_vpc_proxy_subnet_name = "landing-proxy"
+
+# KMS Configuration
+create_resource_keys = false # Set to true to create a separate key for resources in Greenfield

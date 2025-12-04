@@ -62,6 +62,16 @@ variable "gemini_enterprise_gcs_bucket_name" {
   default     = "your-bucket-name-placeholder"
 }
 
+variable "deployment_type" {
+  description = "Type of deployment: 'internal' or 'external'"
+  type        = string
+  default     = "external" # Default to external as per original design
+  validation {
+    condition     = contains(["internal", "external"], var.deployment_type)
+    error_message = "Allowed values for deployment_type are 'internal' or 'external'."
+  }
+}
+
 variable "geolocation" {
   description = "Location for Discovery Engine resources (us, eu, or global)."
   type        = string
@@ -108,4 +118,84 @@ variable "access_end_day" {
   default     = 5
 }
 
+variable "internal_lb_subnet_range" {
+  description = "The IP CIDR range for the internal load balancer subnet."
+  type        = string
+  default     = "10.10.10.0/24"
+}
 
+variable "kms_key_id" {
+  description = "The full resource name of the Cloud KMS key to use for CMEK (e.g. projects/p/locations/l/keyRings/r/cryptoKeys/k). If not provided, a new key will be created."
+  type        = string
+  default     = null
+}
+
+variable "create_data_stores" {
+  description = "Whether to create example Data Stores (BigQuery, GCS) and associated CMEK config."
+  type        = bool
+  default     = true
+}
+
+variable "acl_idp_type" {
+  description = "The Identity Provider type for Discovery Engine ACLs. Options: 'GSUITE', 'THIRD_PARTY'."
+  type        = string
+  default     = "GSUITE"
+  validation {
+    condition     = contains(["GSUITE", "THIRD_PARTY"], var.acl_idp_type)
+    error_message = "The acl_idp_type value must be either 'GSUITE' or 'THIRD_PARTY'."
+  }
+}
+
+variable "acl_workforce_pool_name" {
+  description = "The resource name of the Workforce Identity Pool (required if acl_idp_type is 'THIRD_PARTY'). Format: locations/global/workforcePools/<pool_id>"
+  type        = string
+  default     = ""
+}
+
+variable "enable_chrome_enterprise_premium" {
+  description = "Enable Chrome Enterprise Premium features (e.g., Zero Trust)."
+  type        = bool
+  default     = false
+}
+
+variable "terraform_state_bucket" {
+  description = "The name of the Terraform state bucket. If not provided, it will be constructed from prefix and project ID."
+  type        = string
+  default     = null
+}
+
+variable "use_shared_vpc" {
+  description = "Whether to use an existing Shared VPC instead of creating a new one."
+  type        = bool
+  default     = false
+}
+
+variable "network_project_id" {
+  description = "The Project ID where the Shared VPC resides (Host Project). Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
+
+variable "shared_vpc_network_name" {
+  description = "The name of the existing Shared VPC network. Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
+
+variable "shared_vpc_subnet_name" {
+  description = "The name of the existing subnetwork to use. Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
+
+variable "shared_vpc_proxy_subnet_name" {
+  description = "The name of the existing proxy-only subnetwork to use. Required if use_shared_vpc is true."
+  type        = string
+  default     = ""
+}
+
+variable "create_resource_keys" {
+  description = "Whether to create a separate CMEK key for resources (Discovery Engine, GCS, BigQuery). Set to true for Greenfield deployments."
+  type        = bool
+  default     = false
+}

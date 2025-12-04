@@ -11,28 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
+# Stage 0 State Bucket (Required for remote state access)
+stage_0_state_bucket = "sedev-gemini-enterprise-tf-state-sedev-test-mike-iac-core-0"
+
 # Domain you want to use to host your Gemini Enterprise Web App
-gemini_enterprise_domain = gemini.yourdomain.com
+gemini_enterprise_domain = "gemini.yourdomain.gov"
 
-# Gemini Enterprise ID (Change this for stage-1)
-gemini_config_id   = "/us/home/cid/xxx-xxx-xxx-xxx=en_US"
+# Gemini Enterprise ID (Output from Gem4Gov CLI)
+gemini_config_id   = "your_gemini_config_id"
 
-# SSL Cert Name (Change this for stage-1)
+# SSL Cert Name (Pre-uploaded to Google Cloud Certificate Manager)
 ssl_certificate_name = "your-cert-name-here"
-
-# Your Google Cloud Org's Domain
-domain = "customer-domain.com"
-
-main_project_id    = "prefx-main-xxx-x"
-prefix               = "prefx"
-region               = "us-east4"
-
-# gcloud access-context-manager policies list --organization ORGANIZATION_ID
-# get your organization ID via gcloud organizations list
-# It will be the NAME Value.
-access_policy_number = 250001080040
-
-# Google IDP Groups
-admin_group = gcp-gemini-enterprise-users
-user_group = gcp-gemini-enterprise-admins

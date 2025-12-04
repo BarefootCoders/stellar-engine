@@ -25,6 +25,7 @@ resource "google_project_service" "services" {
     "discoveryengine.googleapis.com",
     "cloudkms.googleapis.com",
     "bigquery.googleapis.com",
+    "aiplatform.googleapis.com",
     "storage.googleapis.com",
     "accesscontextmanager.googleapis.com",
     "beyondcorp.googleapis.com",
@@ -84,7 +85,7 @@ resource "google_project_service_identity" "iap_sa" {
 # service-projectid@gcp-sa-discoveryengine.iam.gserviceaccount.com
 # This wait time is needed to give time to the API enablement, and the service-agents to create the google service-agents above, which are required to utilize the cloud KMS key.
 resource "time_sleep" "wait_for_services" {
-  create_duration = "180s"
+  create_duration = "450s" #Wait for APIs, particularly to avoid the "Discovery Engine API has not been used in project" error.
 
   depends_on = [
     google_project_service.services
