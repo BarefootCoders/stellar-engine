@@ -94,7 +94,7 @@ The document emphasizes best practices in identity and access management, securi
 
 Accompanied by the SBPG, the document incorporates recommendations from penetration testing conducted by Mandiant, aimed at hardening the system against real-world cyber threats. The guide advocates for enforcing multi-factor authentication (MFA), segmenting security monitoring tools, and integrating Security Information Event Management (SIEM) solutions for proactive threat detection. Together, these resources enable secure, scalable, and compliant cloud operations for high-security use cases.
 
-For more information, please look at the [Security Best Practices Guide](https://docs.google.com/document/d/1bkPg-Uj6cf6_w1IHPCTZ66SC0fVWz9pUfTZy9v6hcr0/edit?tab=t.0#heading=h.gjdgxs). NOTE: you will need to request permissions for it.
+For more information, please look at the [Security Best Practices Guide](https://docs.google.com/document/d/1uv62Fqg73r9oJNP-NPZebpzoBom8rOgLoHkiMZPutbo/edit?usp=sharing). NOTE: you will need to request permissions for it.
 
 ## How to Contribute
 This GitLab repository is for contributing, for view access to the Stellar Engine [GitHub](https://github.com/gcp-stellar-engine/stellar-engine/issues) please fill out this [form](https://docs.google.com/forms/d/e/1FAIpQLScetWXBErWaopYrGa8qKz6vFZOz1-_O0o_HAU4tr4vdhMzWpQ/viewform).
