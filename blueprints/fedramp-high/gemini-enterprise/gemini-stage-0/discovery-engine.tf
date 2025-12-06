@@ -75,7 +75,8 @@ resource "google_storage_bucket" "gemini_enterprise_gcs_bucket" {
   }
 
   depends_on = [
-    google_kms_crypto_key_iam_member.gcs_sa_kms_access
+    google_kms_crypto_key_iam_member.gcs_sa_kms_access,
+    google_kms_crypto_key_iam_member.gcs_sa_us_kms_access
   ]
 }
 
@@ -102,7 +103,9 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_gcs_data_store"
   depends_on = [
     google_discovery_engine_cmek_config.default,
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
+    google_kms_crypto_key_iam_member.discoveryengine_sa_us_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
+    google_kms_crypto_key_iam_member.gcs_sa_us_kms_access,
     data.google_kms_crypto_key.cmek_crypto_key,
     google_project_service.services,
     time_sleep.wait_for_services,
@@ -129,6 +132,13 @@ resource "google_bigquery_dataset" "gemini_enterprise_bq_dataset" {
   default_encryption_configuration {
     kms_key_name = local.cmek_key_id
   }
+
+  depends_on = [
+    google_project_service.services,
+    time_sleep.wait_for_services,
+    google_kms_crypto_key_iam_member.bq_sa_kms_access,
+    google_kms_crypto_key_iam_member.bq_sa_us_kms_access
+  ]
 }
 
 resource "google_bigquery_table" "gemini_enterprise_bq_table" {
@@ -165,7 +175,8 @@ EOF
 
   depends_on = [
     google_bigquery_dataset.gemini_enterprise_bq_dataset,
-    google_kms_crypto_key_iam_member.bq_sa_kms_access
+    google_kms_crypto_key_iam_member.bq_sa_kms_access,
+    google_kms_crypto_key_iam_member.bq_sa_us_kms_access
   ]
 }
 
@@ -189,8 +200,11 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_bq_data_store" 
   depends_on = [
     google_discovery_engine_cmek_config.default,
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
+    google_kms_crypto_key_iam_member.discoveryengine_sa_us_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
+    google_kms_crypto_key_iam_member.gcs_sa_us_kms_access,
     google_kms_crypto_key_iam_member.bq_sa_kms_access,
+    google_kms_crypto_key_iam_member.bq_sa_us_kms_access,
     data.google_kms_crypto_key.cmek_crypto_key,
     google_project_service.services,
     time_sleep.wait_for_services,
@@ -222,4 +236,8 @@ resource "google_discovery_engine_acl_config" "gemini_enterprise_acl_config" {
     }
   }
   provider = google-beta
+
+  depends_on = [
+    time_sleep.wait_for_services
+  ]
 }

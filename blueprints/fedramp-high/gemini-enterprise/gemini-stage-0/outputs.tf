@@ -124,3 +124,8 @@ output "bq_data_store_to_dataset_table" {
     table_id   = google_bigquery_table.gemini_enterprise_bq_table[k].table_id
   }}
 }
+
+output "cmek_key_id" {
+  description = "The CMEK Key ID used for encryption."
+  value       = local.cmek_key_id
+}

@@ -663,9 +663,38 @@ configure_stage_0() {
     fi
 
     # 7. Access Policy
-    ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1 | xargs basename)
-    if [[ -z "$ACCESS_POLICY_NUMBER" ]]; then
+    echo "Discovering Access Policy..."
+    ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1)
+    if [ -z "$ACCESS_POLICY_NUMBER" ]; then
+        echo -e "${YELLOW}Warning: Could not auto-discover Access Policy Number.${NC}"
         read -p "Enter Access Policy Number: " ACCESS_POLICY_NUMBER
+        echo "An Access Policy is required for Access Context Manager."
+        read -p "Do you want to create a new Access Policy? (y/N): " CREATE_POLICY
+        if [[ "$CREATE_POLICY" == "y" || "$CREATE_POLICY" == "Y" ]]; then
+            read -p "Enter a title for the new Access Policy [Gemini-Enterprise-Policy]: " POLICY_TITLE
+            POLICY_TITLE=${POLICY_TITLE:-"Gemini-Enterprise-Policy"}
+            
+            echo "Creating Access Policy '${POLICY_TITLE}' in Organization ${ORG_ID}..."
+            if gcloud access-context-manager policies create --organization "${ORG_ID}" --title "${POLICY_TITLE}" --quiet; then
+                echo -e "${GREEN}Access Policy created successfully.${NC}"
+                # Retrieve the new policy number
+                ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1)
+            else
+                echo -e "${RED}Error: Failed to create Access Policy.${NC}"
+                echo "Please ensure you have the 'Access Context Manager Admin' role at the Organization level."
+                read -p "Enter Access Policy Number manually: " ACCESS_POLICY_NUMBER
+            fi
+        else
+            read -p "Enter Access Policy Number: " ACCESS_POLICY_NUMBER
+        fi
+    else
+        ACCESS_POLICY_NUMBER=$(basename "${ACCESS_POLICY_NUMBER}")
+        echo -e "Found Access Policy Number: ${YELLOW}${ACCESS_POLICY_NUMBER}${NC}"
+    fi
+
+    if [[ -z "$ACCESS_POLICY_NUMBER" ]]; then
+        echo -e "${RED}Error: Access Policy Number is required.${NC}"
+        return 1
     fi
 
     # 8. Deployment Type (LB)
