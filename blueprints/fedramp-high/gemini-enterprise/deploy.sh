@@ -238,21 +238,43 @@ discover_brownfield_resources() {
         REGION=$(gcloud config get-value compute/region 2>/dev/null)
         REGION=${REGION:-"us-east4"}
         
-        echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT} (Location: ${REGION})..."
-        KEYRINGS=$(gcloud kms keyrings list --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
-        
-        for keyring_path in $KEYRINGS; do
-            keyring_name=$(basename "$keyring_path")
-            KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
-            if [[ -n "$KEY" ]]; then
-                DEFAULT_CMEK_KEY=$KEY
-                break
-            fi
-        done
+        echo "Looking for default CMEK key..."
+
+        # 3a. Check for existing US Multi-Region Key (Gemini Enterprise specific)
+        # This key is created by Stage 0 if Geolocation is "us". We prioritize it for Discovery Engine compatibility.
+        US_KEY_NAME="gemini-enterprise-us-key"
+        US_KEYRING_NAME="gemini-enterprise-us-keyring"
+        echo "Checking for existing US multi-region key in ${PROJECT_ID}..."
+        US_KEY_ID=$(gcloud kms keys describe "${US_KEY_NAME}" --keyring "${US_KEYRING_NAME}" --location "us" --project "${PROJECT_ID}" --format="value(name)" 2>/dev/null)
+
+        if [[ -n "$US_KEY_ID" ]]; then
+             echo -e "Found US Multi-Region Key: ${YELLOW}${US_KEY_ID}${NC}"
+             DEFAULT_CMEK_KEY="${US_KEY_ID}"
+        else
+             # 3b. Fallback: Look for default CMEK key in Tenant IaC Project (Regional)
+             echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT} (Location: ${REGION})..."
+             KEYRINGS=$(gcloud kms keyrings list --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
+             
+             for keyring_path in $KEYRINGS; do
+                 keyring_name=$(basename "$keyring_path")
+                 KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
+                 if [[ -n "$KEY" ]]; then
+                     DEFAULT_CMEK_KEY=$KEY
+                     break
+                 fi
+             done
+        fi
         
         if [[ -n "$DEFAULT_CMEK_KEY" ]]; then
             echo -e "Found Default CMEK Key: ${YELLOW}${DEFAULT_CMEK_KEY}${NC}"
             KMS_KEY_ID="${DEFAULT_CMEK_KEY}"
+            
+            if [[ "$KMS_KEY_ID" == *"/locations/us/"* ]]; then
+                echo -e "${GREEN}Success: Using US Multi-Region Key.${NC}"
+            else
+                echo -e "${YELLOW}Note: Using Regional Key (not US multi-region).${NC}"
+            fi
+            read -p "Press Enter to confirm key selection and continue..."
         else
             echo -e "${YELLOW}Warning: Could not find default CMEK key.${NC}"
         fi
