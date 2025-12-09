@@ -19,7 +19,7 @@ locals {
   vpc_network_id      = var.use_shared_vpc ? data.google_compute_network.shared_vpc[0].id : google_compute_network.gemini_enterprise_vpc[0].id
   vpc_subnet_id       = var.use_shared_vpc ? data.google_compute_subnetwork.shared_subnet[0].id : google_compute_subnetwork.gemini_enterprise_vpc_subnet[0].id
   vpc_proxy_subnet_id = var.use_shared_vpc ? data.google_compute_subnetwork.shared_proxy_subnet[0].id : google_compute_subnetwork.gemini_enterprise_vpc_proxy_subnet[0].id
-  ip_address_type = var.deployment_type == "internal" ? "INTERNAL" : "EXTERNAL"
+  ip_address_type     = var.deployment_type == "internal" ? "INTERNAL" : "EXTERNAL"
 }
 
 resource "google_compute_network" "gemini_enterprise_vpc" {

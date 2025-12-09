@@ -49,8 +49,8 @@ resource "google_project_service" "services" {
 # Create all project-level discoveryengine.googleapis.com service agents
 resource "google_project_service_identity" "discoveryengine" {
   provider = google-beta
-  project = data.google_project.project.project_id
-  service = "discoveryengine.googleapis.com"
+  project  = data.google_project.project.project_id
+  service  = "discoveryengine.googleapis.com"
 
   depends_on = [
     google_project_service.services,
@@ -61,8 +61,8 @@ resource "google_project_service_identity" "discoveryengine" {
 # Create all project-level storage.googleapis.com service agents
 resource "google_project_service_identity" "storage" {
   provider = google-beta
-  project = data.google_project.project.project_id
-  service = "storage.googleapis.com"
+  project  = data.google_project.project.project_id
+  service  = "storage.googleapis.com"
 
   depends_on = [
     google_project_service.services,
@@ -73,8 +73,8 @@ resource "google_project_service_identity" "storage" {
 # Create all project-level bigquery.googleapis.com service agents
 resource "google_project_service_identity" "bigquery" {
   provider = google-beta
-  project = var.main_project_id
-  service = "bigquery.googleapis.com"
+  project  = var.main_project_id
+  service  = "bigquery.googleapis.com"
 
   depends_on = [
     google_project_service.services,
@@ -85,8 +85,8 @@ resource "google_project_service_identity" "bigquery" {
 # Create all project-level iap.googleapis.com service agents
 resource "google_project_service_identity" "iap" {
   provider = google-beta
-  project = var.main_project_id
-  service = "iap.googleapis.com"
+  project  = var.main_project_id
+  service  = "iap.googleapis.com"
 
   depends_on = [
     google_project_service.services,

@@ -58,7 +58,7 @@ output "region" {
 }
 
 output "acl_idp_type" {
-  value = var.acl_idp_type
+  value       = var.acl_idp_type
   description = "The Identity Provider type for Discovery Engine ACLs. Options: 'GSUITE', 'THIRD_PARTY'."
 }
 
@@ -68,8 +68,8 @@ output "acl_workforce_pool_name" {
 }
 
 output "acl_workforce_provider_id" {
-  value        = var.acl_workforce_provider_id
-  description  = "The ID of the Workforce Identity Pool Provider (required if acl_idp_type is 'THIRD_PARTY'). Format: <provider_id> (without acl_workforce_pool_name prefix)"
+  value       = var.acl_workforce_provider_id
+  description = "The ID of the Workforce Identity Pool Provider (required if acl_idp_type is 'THIRD_PARTY'). Format: <provider_id> (without acl_workforce_pool_name prefix)"
 }
 
 output "enable_chrome_enterprise_premium" {
@@ -119,10 +119,10 @@ output "bq_data_store_ids" {
 
 output "bq_data_store_to_dataset_table" {
   description = "A mapping of BigQuery Data Store IDs to their corresponding Dataset and Table."
-  value       = { for k, v in google_discovery_engine_data_store.gemini_enterprise_bq_data_store : v.data_store_id => {
+  value = { for k, v in google_discovery_engine_data_store.gemini_enterprise_bq_data_store : v.data_store_id => {
     dataset_id = google_bigquery_dataset.gemini_enterprise_bq_dataset[k].dataset_id
     table_id   = google_bigquery_table.gemini_enterprise_bq_table[k].table_id
-  }}
+  } }
 }
 
 output "cmek_key_id" {

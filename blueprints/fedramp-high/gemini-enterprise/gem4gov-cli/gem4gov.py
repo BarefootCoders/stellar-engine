@@ -569,6 +569,22 @@ def update_compliance(project_id, engine_id, compliance_regime):
 
     click.echo(click.style("Compliance configuration complete!", fg='green'))
 
+    # Get Widget Config ID to display
+    config_id = get_widget_config_id(credentials, project_id, engine_id)
+    click.echo(click.style(f"Gemini Enterprise Application ID: {engine_id}", fg='green'))
+    click.echo(click.style(f"Gemini Enterprise Widget Config ID: {config_id}", fg='green'))
+
+
+@app.command("update-idp")
+@click.option('--project-id', required=True, help='GCP Project ID')
+@click.option('--engine-id', required=True, help='Gemini Enterprise Engine ID')
+@click.option('--workforce-pool-id', required=True, help='Workforce Identity Pool ID')
+@click.option('--workforce-provider-id', required=True, help='Workforce Identity Provider ID')
+def update_idp(project_id, engine_id, workforce_pool_id, workforce_provider_id):
+    """Configures the Identity Provider for a Gemini Enterprise application widget."""
+    credentials = get_credentials()
+    configure_idp_for_widget(credentials, project_id, engine_id, workforce_pool_id, workforce_provider_id)
+
 
 def create_application_logic(credentials, project_id, data_store_list, workforce_pool_id, workforce_provider_id, compliance_regime=None):
     """Shared logic for creating a Gemini Enterprise application."""
@@ -1087,8 +1103,6 @@ def disable_user_event_collection(credentials, project_id, engine_id):
 
                 break
             
-
-            
             if attempt < max_retries - 1:
                 click.echo("Waiting for widget config to be ready...", nl=False)
                 time.sleep(5)
@@ -1122,12 +1136,9 @@ def configure_gemini_enterprise_for_fedramp_high(credentials, project_id, engine
     engine_name = f"projects/{project_id}/locations/us/collections/default_collection/engines/{engine_id}"
     engine_patch_body = {
         "features": engine_features.get('features'),
-        "disableAnalytics": True,
-        "knowledgeGraphConfig": {
-            "enablePrivateKnowledgeGraph": False
-        }
+        "disableAnalytics": True
     }
-    engine_update_mask = "features,knowledgeGraphConfig.enablePrivateKnowledgeGraph"
+    engine_update_mask = "features"
 
     engine_request = service.projects().locations().collections().engines().patch(
         name=engine_name,
@@ -1194,6 +1205,7 @@ def configure_gemini_enterprise_for_fedramp_high(credentials, project_id, engine
         click.echo(f"An error occurred while disabling Implicit Model Caching: {e}")
         # Do not exit, as this may not be a critical failure.
 
+
 def configure_gemini_enterprise_for_il4(credentials, project_id, engine_id):
     """Configures the Gemini Enterprise engine and default assistant for IL4."""
     client_options = ClientOptions(api_endpoint="https://us-discoveryengine.googleapis.com")
@@ -1212,12 +1224,9 @@ def configure_gemini_enterprise_for_il4(credentials, project_id, engine_id):
     engine_name = f"projects/{project_id}/locations/us/collections/default_collection/engines/{engine_id}"
     engine_patch_body = {
         "features": engine_features.get('features'),
-        "disableAnalytics": True,
-        "knowledgeGraphConfig": {
-            "enablePrivateKnowledgeGraph": False
-        }
+        "disableAnalytics": True
     }
-    engine_update_mask = "features,knowledgeGraphConfig.enablePrivateKnowledgeGraph"
+    engine_update_mask = "features"
 
     engine_request = service.projects().locations().collections().engines().patch(
         name=engine_name,
@@ -1301,7 +1310,6 @@ def get_widget_config_id(credentials, project_id, engine_id):
     except Exception as e:
         click.echo(f"An error occurred while getting the widget config ID: {e}")
         return None
-    
 
 if __name__ == '__main__':
     cli()

@@ -40,7 +40,7 @@ data "google_compute_network" "gemini_enterprise_vpc" {
   project = var.host_project_id != "" ? var.host_project_id : (
     try(data.terraform_remote_state.stage_0.outputs.use_shared_vpc, false) ? data.terraform_remote_state.stage_0.outputs.network_project_id : data.terraform_remote_state.stage_0.outputs.main_project_id
   )
-  name    = var.network_name != "" ? var.network_name : (
+  name = var.network_name != "" ? var.network_name : (
     try(data.terraform_remote_state.stage_0.outputs.use_shared_vpc, false) ? data.terraform_remote_state.stage_0.outputs.shared_vpc_network_name : "${data.terraform_remote_state.stage_0.outputs.prefix}-vpc"
   )
 }

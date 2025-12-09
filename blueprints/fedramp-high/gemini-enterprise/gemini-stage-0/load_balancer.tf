@@ -42,7 +42,7 @@ resource "google_compute_region_backend_service" "gemini_enterprise_backend" {
   security_policy = google_compute_region_security_policy.gemini_enterprise_policy.self_link
 
   lifecycle {
-    ignore_changes = [ 
+    ignore_changes = [
       iap
     ]
   }

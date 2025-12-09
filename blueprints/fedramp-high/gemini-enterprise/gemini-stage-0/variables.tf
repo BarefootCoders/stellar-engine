@@ -198,21 +198,16 @@ variable "gcs_data_store_names" {
 
 variable "bq_data_store_configs" {
   description = "A list of objects defining BigQuery datasets and tables to create and connect to Discovery Engine. Each object should have 'dataset_id' and 'table_id'."
-  type        = list(object({
+  type = list(object({
     dataset_id = string
     table_id   = string
-  
+
   }))
-  default     = []
+  default = []
 }
 
 variable "internal_lb_subnet_range" {
   description = "The IP CIDR range for the internal load balancer subnet."
   type        = string
   default     = "10.10.10.0/24"
-}
-
-variable "company_name" {
-  description = "The name of the company, business or entity that is associated with the Gemini Enterprise application. Setting this may help improve LLM related features."
-  type        = string
 }

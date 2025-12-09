@@ -45,10 +45,10 @@ create_resource_keys = false # Set to true to create a separate key for resource
 # Data Stores
 create_data_stores = true
 
-# Example GCS Data Stores (leave list empty [] if no GCS Data Stores are required)
+# GCS Data Stores (leave list empty [] if no GCS Data Stores are required)
 gcs_data_store_names = ["company-docs", "knowledge-base", "team-playbooks"]
 
-# Example BigQuery Data Stores (leave list empty [] if no BigQuery Data Stores are required)
+# BigQuery Data Stores (leave list empty [] if no BigQuery Data Stores are required)
 bq_data_store_configs = [
   {
     dataset_id = "internal_wiki"
@@ -63,10 +63,6 @@ bq_data_store_configs = [
     table_id   = "tickets_archive"
   },
 ]
-
-# The full name of the department or agency (no abbreviations). 
-# This will be used to provide additional context to the Gemini model.
-company_name = "Department of Technology"
 
 # Gemini Enterprise Application Load Balancer type ("internal" or "external")
 # By default, "external" follows the CNAP architecture, which utilizes external ingress

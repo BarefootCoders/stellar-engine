@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure gem4gov can be found in the python path
+export PYTHONPATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gem4gov-cli:$PYTHONPATH"
+
 # --- Global Configuration ---
 # These variables are used across multiple functions
 PROJECT_ID=""
@@ -58,6 +61,46 @@ check_dependencies() {
         echo "Please install missing dependencies and try again."
         exit 1
     fi
+}
+
+configure_data_stores() {
+    # Expects GCS_LIST and BQ_LIST to be defined arrays in the calling scope
+    while true; do
+        echo ""
+        echo -e "${BLUE}--- Data Store Configuration ---${NC}"
+        echo "1. Add Google Cloud Storage (GCS) Data Store"
+        echo "2. Add BigQuery (BQ) Data Store"
+        echo "3. Done"
+        read -p "Select an option [1-3]: " DS_MENU_SEL
+        
+        case $DS_MENU_SEL in
+            1)
+                read -p "Enter Bucket Name (e.g., company-docs): " GCS_NAME
+                if [[ -n "$GCS_NAME" ]]; then
+                    GCS_LIST+=("\"$GCS_NAME\"")
+                    echo -e "${GREEN}Added GCS Bucket: ${GCS_NAME}${NC}"
+                else
+                    echo -e "${RED}Invalid Bucket Name.${NC}"
+                fi
+                ;;
+            2)
+                read -p "Enter Dataset ID (must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_)): " BQ_DATASET
+                read -p "Enter Table ID: " BQ_TABLE
+                if [[ -n "$BQ_DATASET" && -n "$BQ_TABLE" ]]; then
+                    BQ_LIST+=("{dataset_id = \"$BQ_DATASET\", table_id = \"$BQ_TABLE\"}")
+                    echo -e "${GREEN}Added BigQuery Table: ${BQ_DATASET}.${BQ_TABLE}${NC}"
+                else
+                    echo -e "${RED}Invalid Dataset or Table ID.${NC}"
+                fi
+                ;;
+            3)
+                break
+                ;;
+            *)
+                echo "Invalid option."
+                ;;
+        esac
+    done
 }
 
 # --- Authentication & Setup ---
@@ -751,42 +794,7 @@ configure_stage_0() {
         GCS_LIST=()
         BQ_LIST=()
         
-        while true; do
-            echo ""
-            echo -e "${BLUE}--- Data Store Configuration ---${NC}"
-            echo "1. Add Google Cloud Storage (GCS) Data Store"
-            echo "2. Add BigQuery (BQ) Data Store"
-            echo "3. Done"
-            read -p "Select an option [1-3]: " DS_MENU_SEL
-            
-            case $DS_MENU_SEL in
-                1)
-                    read -p "Enter Bucket Name (e.g., company-docs): " GCS_NAME
-                    if [[ -n "$GCS_NAME" ]]; then
-                        GCS_LIST+=("\"$GCS_NAME\"")
-                        echo -e "${GREEN}Added GCS Bucket: ${GCS_NAME}${NC}"
-                    else
-                        echo -e "${RED}Invalid Bucket Name.${NC}"
-                    fi
-                    ;;
-                2)
-                    read -p "Enter Dataset ID (must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_)): " BQ_DATASET
-                    read -p "Enter Table ID: " BQ_TABLE
-                    if [[ -n "$BQ_DATASET" && -n "$BQ_TABLE" ]]; then
-                        BQ_LIST+=("{dataset_id = \"$BQ_DATASET\", table_id = \"$BQ_TABLE\"}")
-                        echo -e "${GREEN}Added BigQuery Table: ${BQ_DATASET}.${BQ_TABLE}${NC}"
-                    else
-                        echo -e "${RED}Invalid Dataset or Table ID.${NC}"
-                    fi
-                    ;;
-                3)
-                    break
-                    ;;
-                *)
-                    echo "Invalid option."
-                    ;;
-            esac
-        done
+        configure_data_stores
         
         if [[ ${#GCS_LIST[@]} -gt 0 ]]; then
             GCS_DATA_STORES="[$(IFS=,; echo "${GCS_LIST[*]}")]"
@@ -908,7 +916,6 @@ terraform_state_bucket = "${BUCKET_NAME}"
 use_shared_vpc = ${USE_SHARED_VPC}
 create_resource_keys = ${CREATE_RESOURCE_KEYS_BOOL}
 allowed_ip_ranges = ${ALLOWED_IPS}
-company_name = "${COMPANY_NAME}"
 EOF
 
     if [[ "$USE_SHARED_VPC" == "true" ]]; then
@@ -1064,7 +1071,7 @@ configure_gem4gov() {
 
     echo ""
     echo -e "${YELLOW}IMPORTANT NEXT STEPS:${NC}"
-    echo -e "1. Take note of the 'Gemini Enterprise Widget Config ID' from the output above for the configuration of the Load Balancer.${NC}"
+    echo -e "1. Take note of the ${GREEN}Gemini Enterprise Widget Config ID${NC} from the output above for the configuration of the Load Balancer.${NC}"
     echo -e "2. Setup DNS A Record that points the desired Gemini Enterprise subdomain (i.e. gemini.yourdomain.com) to the provisioned Load Balancer IP address (${GEMINI_IP})."
     echo -e "3. Provision an SSL Certificate and upload it to Google Cloud Certificate Manager (${YELLOW}Helper Functions > Upload SSL Certificate${NC})."
     echo -e "4. From the Main Menu select ${BLUE}Step 3 - Configure & Deploy Load Balancer / Access Policies (gemini-stage-1)${NC}."
@@ -1151,7 +1158,7 @@ upload_ssl_certificate() {
         # Expand tilde if present
         CERT_PATH="${CERT_PATH/#\~/$HOME}"
         if [[ -f "$CERT_PATH" ]]; then
-            if grep -q "-----BEGIN CERTIFICATE-----" "$CERT_PATH"; then
+            if grep -qE -e "-----BEGIN CERTIFICATE-----" "$CERT_PATH"; then
                 break
             else
                 echo -e "${RED}Error: File does not appear to be a PEM-formatted certificate (missing '-----BEGIN CERTIFICATE-----').${NC}"
@@ -1166,7 +1173,7 @@ upload_ssl_certificate() {
         # Expand tilde if present
         KEY_PATH="${KEY_PATH/#\~/$HOME}"
         if [[ -f "$KEY_PATH" ]]; then
-            if grep -qE "-----BEGIN .*PRIVATE KEY-----" "$KEY_PATH"; then
+            if grep -qE -e "-----BEGIN .*PRIVATE KEY-----" "$KEY_PATH"; then
                 break
             else
                 echo -e "${RED}Error: File does not appear to be a PEM-formatted private key (missing '-----BEGIN ... PRIVATE KEY-----').${NC}"
