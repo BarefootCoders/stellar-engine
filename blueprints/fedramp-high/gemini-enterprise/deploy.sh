@@ -163,6 +163,8 @@ auth_and_project_setup() {
     # Set billing quota project
     echo "Setting billing quota project..."
     gcloud config set billing/quota_project "${PROJECT_ID}"
+    echo "Setting application default quota project..."
+    gcloud auth application-default set-quota-project "${PROJECT_ID}"
 
     # Discover Org ID
     echo "Discovering Organization ID..."
@@ -232,7 +234,7 @@ select_deployment_type() {
         DEPLOYMENT_TYPE_TEXT="Custom Brownfield (Manual Configuration)"
         IS_BROWNFIELD="false"
         IS_CUSTOM="true"
-        read -p "Enter a prefix for your resources (default: sedev): " INPUT_PREFIX
+        read -p "Enter a prefix for your resources: " INPUT_PREFIX
         PREFIX=${INPUT_PREFIX:-"sedev"}
     fi
     
@@ -240,131 +242,284 @@ select_deployment_type() {
     return 0
 }
 
-discover_brownfield_resources() {
+discover_infrastructure() {
+    # Initialize variables
+    ENVIRONMENT=""
+    TENANT="g4g"
+    TENANT_IAC_PROJECT=""
+    CMEK_PROJECT_ID=""
+    CMEK_US_KEYRING=""
+    CMEK_STATE_KEY=""
+    CMEK_US_RESOURCES_KEY=""
+
+    echo -e "${BLUE}--- Infrastructure Discovery ---${NC}"
+
     if [[ "$IS_BROWNFIELD" == "true" ]]; then
-        echo -e "${BLUE}--- Brownfield Discovery ---${NC}"
+        # 1. Extract Environment and Tenant
+        # Format: prefix-env-tenant-main-0
+        ENVIRONMENT=$(echo "$PROJECT_ID" | cut -d'-' -f2)
+        TENANT_VAL=$(echo "$PROJECT_ID" | cut -d'-' -f3)
         
-        # 1. Derive iac-core-0 project
-        BASE_NAME=$(echo "$PROJECT_ID" | sed 's/-main-0$//')
-        TENANT_IAC_PROJECT="${BASE_NAME}-iac-core-0"
-        
-        if ! gcloud projects describe "${TENANT_IAC_PROJECT}" &>/dev/null; then
-            echo -e "${YELLOW}Warning: Tenant IaC Core Project '${TENANT_IAC_PROJECT}' not found.${NC}"
-            read -p "Please enter the Tenant IaC Core Project ID: " INPUT_IAC_PROJECT
-            TENANT_IAC_PROJECT="${INPUT_IAC_PROJECT}"
+        # Validate extraction (basic check)
+        if [[ -z "$ENVIRONMENT" || -z "$TENANT_VAL" ]]; then
+             echo -e "${RED}Error: Could not derive Environment or Tenant from Project ID.${NC}"
+             echo -e "${YELLOW}Standard Pattern: prefix-env-tenant-main-0${NC}"
+             read -p "Switch to Custom Brownfield? (y/n): " SWITCH
+             if [[ "$SWITCH" == "y" || "$SWITCH" == "Y" ]]; then
+                 IS_BROWNFIELD="false"
+                 IS_CUSTOM="true"
+                 discover_infrastructure
+                 return
+             else
+                 return 1
+             fi
         fi
         
-        if [[ -z "$TENANT_IAC_PROJECT" ]]; then
-             echo -e "${RED}Error: Tenant IaC Core Project ID is required.${NC}"
-             return 1
-        fi
-        echo -e "Found Tenant IaC Project: ${YELLOW}${TENANT_IAC_PROJECT}${NC}"
-
-        # 2. Discover State Bucket
-        echo "Looking for state bucket in ${TENANT_IAC_PROJECT}..."
-        TENANT_BUCKETS=$(gcloud storage ls --project "${TENANT_IAC_PROJECT}" 2>/dev/null)
-        STATE_BUCKET=$(echo "$TENANT_BUCKETS" | grep "iac-0/$" | head -n 1)
-        
-        if [[ -z "$STATE_BUCKET" ]]; then
-            echo -e "${YELLOW}Warning: No Terraform state bucket found.${NC}"
-            read -p "Please enter the State Bucket Name (e.g., gs://my-bucket): " INPUT_BUCKET
-            STATE_BUCKET="${INPUT_BUCKET}"
+        # If tenant was extracted, use it (though default is g4g, usually it matches)
+        if [[ -n "$TENANT_VAL" ]]; then
+            TENANT="$TENANT_VAL"
         fi
         
-        if [[ -z "$STATE_BUCKET" ]]; then
-            echo -e "${RED}Error: State Bucket is required.${NC}"
-            return 1
-        fi
+        # 2. Check Tenant IaC Project
+        POTENTIAL_IAC_PROJECT="${PREFIX}-${ENVIRONMENT}-${TENANT}-iac-core-0"
+        echo "Checking for Tenant IaC Project: ${POTENTIAL_IAC_PROJECT}..."
         
-        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\///' | sed 's/\/$//')
-        echo -e "Using Tenant State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
-        
-        # 3. Discover CMEK
-        # We need a region first to look for keys
-        REGION=$(gcloud config get-value compute/region 2>/dev/null)
-        REGION=${REGION:-"us-east4"}
-        
-        echo "Looking for default CMEK key..."
-
-        # 3a. Check for existing US Multi-Region Key (Gemini Enterprise specific)
-        # This key is created by Stage 0 if Geolocation is "us". We prioritize it for Discovery Engine compatibility.
-        US_KEY_NAME="gemini-enterprise-us-key"
-        US_KEYRING_NAME="gemini-enterprise-us-keyring"
-        echo "Checking for existing US multi-region key in ${PROJECT_ID}..."
-        US_KEY_ID=$(gcloud kms keys describe "${US_KEY_NAME}" --keyring "${US_KEYRING_NAME}" --location "us" --project "${PROJECT_ID}" --format="value(name)" 2>/dev/null)
-
-        if [[ -n "$US_KEY_ID" ]]; then
-             echo -e "Found US Multi-Region Key: ${YELLOW}${US_KEY_ID}${NC}"
-             DEFAULT_CMEK_KEY="${US_KEY_ID}"
+        if gcloud projects describe "${POTENTIAL_IAC_PROJECT}" &>/dev/null; then
+            TENANT_IAC_PROJECT="${POTENTIAL_IAC_PROJECT}"
+            echo -e "Found Tenant IaC Project: ${GREEN}${TENANT_IAC_PROJECT}${NC}"
         else
-             # 3b. Fallback: Look for default CMEK key in Tenant IaC Project (Regional)
-             echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT} (Location: ${REGION})..."
-             KEYRINGS=$(gcloud kms keyrings list --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
-             
-             for keyring_path in $KEYRINGS; do
-                 keyring_name=$(basename "$keyring_path")
-                 KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
-                 if [[ -n "$KEY" ]]; then
-                     DEFAULT_CMEK_KEY=$KEY
-                     break
-                 fi
-             done
+            echo -e "${YELLOW}Tenant IaC Project not found.${NC}"
+            echo -e "${YELLOW}Standard Stellar Engine Landing Zone framework not detected.${NC}"
+            read -p "Switch to Custom Brownfield? (y/n): " SWITCH
+             if [[ "$SWITCH" == "y" || "$SWITCH" == "Y" ]]; then
+                 IS_BROWNFIELD="false"
+                 IS_CUSTOM="true"
+                 discover_infrastructure
+                 return
+             else
+                 return 1
+             fi
         fi
+
+        # 3. Check State Bucket
+        POTENTIAL_BUCKET="${PREFIX}-${ENVIRONMENT}-${TENANT}-iac-0"
+        echo "Checking for State Bucket: ${POTENTIAL_BUCKET}..."
+        if gcloud storage buckets describe "gs://${POTENTIAL_BUCKET}" &>/dev/null; then
+            STATE_BUCKET="${POTENTIAL_BUCKET}"
+            echo -e "Found State Bucket: ${GREEN}${STATE_BUCKET}${NC}"
+        else
+             echo -e "${YELLOW}State Bucket not found (Will be created).${NC}"
+             STATE_BUCKET=""
+        fi
+
+        # 4. Check Keyrings and Keys
+        # Prioritize US Multi-Region for CMEK_US_KEYRING
+        echo "Checking for CMEK Keys..."
         
-        if [[ -n "$DEFAULT_CMEK_KEY" ]]; then
-            echo -e "Found Default CMEK Key: ${YELLOW}${DEFAULT_CMEK_KEY}${NC}"
-            KMS_KEY_ID="${DEFAULT_CMEK_KEY}"
+        CMEK_PROJECT_ID="${TENANT_IAC_PROJECT}"
+        # Capitalize first letter of Environment for KeyRing name (e.g. prod -> Prod)
+        ENV_CAPITALIZED="$(echo "${ENVIRONMENT:0:1}" | tr '[:lower:]' '[:upper:]')${ENVIRONMENT:1}"
+        US_KEYRING_NAME="${ENV_CAPITALIZED}-${TENANT}-keyring"
+        US_KEYRING_ID="projects/${CMEK_PROJECT_ID}/locations/us/keyRings/${US_KEYRING_NAME}"
+        
+        # Check US Keyring
+        if gcloud kms keyrings describe "${US_KEYRING_ID}" &>/dev/null; then
+            echo -e "Found US Keyring: ${GREEN}${US_KEYRING_NAME}${NC}"
+            CMEK_US_KEYRING="${US_KEYRING_ID}"
             
-            if [[ "$KMS_KEY_ID" == *"/locations/us/"* ]]; then
-                echo -e "${GREEN}Success: Using US Multi-Region Key.${NC}"
-            else
-                echo -e "${YELLOW}Note: Using Regional Key (not US multi-region).${NC}"
+            # Check 'gcs' key in US Keyring
+            GCS_KEY_ID="${CMEK_US_KEYRING}/cryptoKeys/gcs"
+            if gcloud kms keys describe "${GCS_KEY_ID}" &>/dev/null; then
+                 echo -e "Found US GCS Key: ${GREEN}gcs${NC}"
+                 CMEK_STATE_KEY="${GCS_KEY_ID}"
             fi
-            read -p "Press Enter to confirm key selection and continue..."
+            
+            # Check 'gemini-enterprise' key in US Keyring
+            GEMINI_KEY_ID="${CMEK_US_KEYRING}/cryptoKeys/gemini-enterprise"
+            if gcloud kms keys describe "${GEMINI_KEY_ID}" &>/dev/null; then
+                 echo -e "Found Gemini Key: ${GREEN}gemini-enterprise${NC}"
+                 CMEK_US_RESOURCES_KEY="${GEMINI_KEY_ID}"
+            fi
         else
-            echo -e "${YELLOW}Warning: Could not find default CMEK key.${NC}"
+            echo -e "${YELLOW}US Keyring not found.${NC}"
+            CMEK_US_KEYRING=""
         fi
-        
+
+        # 5. Fallback for State Key (Regional) if US GCS Key not found
+        if [[ -z "$CMEK_STATE_KEY" ]]; then
+             # If state bucket exists, check what key protects it
+             if [[ -n "$STATE_BUCKET" ]]; then
+                  echo "Checking State Bucket encryption..."
+                  BUCKET_KEY=$(gcloud storage buckets describe "gs://${STATE_BUCKET}" --format="value(default_kms_key)" 2>/dev/null || true)
+                  if [[ -n "$BUCKET_KEY" ]]; then
+                       CMEK_STATE_KEY="${BUCKET_KEY}"
+                       echo -e "Using Existing State Bucket Key: ${YELLOW}${CMEK_STATE_KEY}${NC}"
+                  fi
+             fi
+             
+             # If still no key, check regional keyring
+             if [[ -z "$CMEK_STATE_KEY" ]]; then
+                  # Capitalize first letter of Environment for KeyRing name (e.g. prod -> Prod)
+                  ENV_CAPITALIZED="$(echo "${ENVIRONMENT:0:1}" | tr '[:lower:]' '[:upper:]')${ENVIRONMENT:1}"
+                  REGIONAL_KEYRING_ID="projects/${CMEK_PROJECT_ID}/locations/${REGION}/keyRings/${ENV_CAPITALIZED}-${TENANT}-keyring"
+                  echo "Checking Regional Keyring: ${REGIONAL_KEYRING_ID}..."
+                  if gcloud kms keyrings describe "${REGIONAL_KEYRING_ID}" &>/dev/null; then
+                        REGIONAL_GCS_KEY="${REGIONAL_KEYRING_ID}/cryptoKeys/gcs"
+                        if gcloud kms keys describe "${REGIONAL_GCS_KEY}" &>/dev/null; then
+                             CMEK_STATE_KEY="${REGIONAL_GCS_KEY}"
+                             echo -e "Found Regional GCS Key: ${YELLOW}${CMEK_STATE_KEY}${NC}"
+                        fi
+                  fi
+             fi
+        fi
+
+        # Ensure correct outputs
+        echo -e "Environment: ${YELLOW}${ENVIRONMENT}${NC}"
+        echo -e "Tenant: ${YELLOW}${TENANT}${NC}"
+
     elif [[ "$IS_CUSTOM" == "true" ]]; then
-        echo -e "${BLUE}--- Custom Brownfield Configuration ---${NC}"
+        read -p "Enter Environment identifier (e.g., prod): " ENVIRONMENT
+        read -p "Enter Tenant IaC Project ID: " TENANT_IAC_PROJECT
         
-        # Try to read from tfvars first
-        TFVARS_FILE="gemini-stage-0/terraform.tfvars"
-        if [[ -f "$TFVARS_FILE" ]]; then
-            STATE_BUCKET=$(get_tfvar_value "$TFVARS_FILE" "bucket")
-            KMS_KEY_ID=$(get_tfvar_value "$TFVARS_FILE" "kms_key_id")
+        # State Bucket
+        read -p "Enter Terraform State Bucket Name (leave blank to create): " STATE_BUCKET
+        if [[ -n "$STATE_BUCKET" ]]; then
+             # Validate Encryption
+             BUCKET_KEY=$(gcloud storage buckets describe "gs://${STATE_BUCKET}" --format="value(encryption.defaultKmsKeyName)" 2>/dev/null || true)
+             if [[ -z "$BUCKET_KEY" ]]; then
+                  echo -e "${RED}WARNING: State Bucket '${STATE_BUCKET}' is NOT encrypted with CMEK.${NC}"
+                  echo -e "Compliance requires CMEK. A new bucket will be created."
+                  STATE_BUCKET=""
+                  CMEK_STATE_KEY=""
+             else
+                  CMEK_STATE_KEY="${BUCKET_KEY}"
+                  echo -e "Using Key from Bucket: ${YELLOW}${CMEK_STATE_KEY}${NC}"
+             fi
         fi
         
-        if [[ -z "$STATE_BUCKET" ]]; then
-            read -p "Enter your Terraform State Bucket Name: " STATE_BUCKET
-        fi
-        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\///' | sed 's/\/$//')
-        
-        if [[ -z "$BUCKET_NAME" ]]; then
-             echo -e "${RED}Error: State Bucket is required.${NC}"
-             return 1
-        fi
-        echo -e "Using State Bucket: ${YELLOW}${BUCKET_NAME}${NC}"
-        
-        # Validate CMEK on bucket
-        BUCKET_KEY=$(gcloud storage buckets describe "gs://${BUCKET_NAME}" --format="value(encryption.defaultKmsKeyName)" 2>/dev/null || true)
-        if [[ -z "$BUCKET_KEY" ]]; then
-             echo -e "${RED}ERROR: State Bucket is NOT encrypted with CMEK.${NC}"
-             return 1
-        fi
-        
-        if [[ -z "$KMS_KEY_ID" ]]; then
-             KMS_KEY_ID="$BUCKET_KEY"
-        fi
-        echo -e "Using Resource CMEK Key: ${YELLOW}${KMS_KEY_ID}${NC}"
-        
-    else
+        read -p "Enter CMEK Project ID: " CMEK_PROJECT_ID
+        read -p "Enter US Multi-Region Keyring ID (optional): " CMEK_US_KEYRING
+        read -p "Enter US Gemini Resources Key ID (optional): " CMEK_US_RESOURCES_KEY
+
+    else 
         # Greenfield
-        if [[ -n "$PREFIX" && -n "$PROJECT_ID" ]]; then
-            BUCKET_NAME="${PREFIX}-gemini-enterprise-tf-state-${PROJECT_ID}"
-            echo -e "State Bucket will be: ${YELLOW}${BUCKET_NAME}${NC}"
-        fi
+        # Greenfield (No Landing Zone)
+        read -p "Enter Environment identifier (e.g., prod): " ENVIRONMENT
+        TENANT_IAC_PROJECT=""
+        STATE_BUCKET=""
+        CMEK_PROJECT_ID="${PROJECT_ID}"
+        CMEK_STATE_KEY=""
+        CMEK_US_KEYRING=""
+        CMEK_US_RESOURCES_KEY=""
     fi
+    return 0
+}
+
+ensure_prerequisites() {
+    echo -e "${BLUE}--- Ensuring Prerequisites ---${NC}"
+    
+    # Defaults
+    ENVIRONMENT=${ENVIRONMENT:-"prod"}
+    
+    # 1. State Key Creation (if missing)
+    if [[ -z "$CMEK_STATE_KEY" ]]; then
+        echo -e "${YELLOW}CMEK State Key not found. Creating...${NC}"
+        
+        KEYRING_NAME="${ENVIRONMENT}-${TENANT}-keyring"
+        KEY_NAME="gcs"
+        LOCATION="us"
+        
+        # Identify Target Project
+        TARGET_KMS_PROJECT="${CMEK_PROJECT_ID}"
+        
+        # Create Keyring if not exists
+        if ! gcloud kms keyrings describe "${KEYRING_NAME}" --location="${LOCATION}" --project="${TARGET_KMS_PROJECT}" &>/dev/null; then
+             echo "Creating Keyring '${KEYRING_NAME}' in ${LOCATION}..."
+             gcloud kms keyrings create "${KEYRING_NAME}" --location="${LOCATION}" --project="${TARGET_KMS_PROJECT}"
+        fi
+        
+        CMEK_US_KEYRING="projects/${TARGET_KMS_PROJECT}/locations/${LOCATION}/keyRings/${KEYRING_NAME}"
+        
+        # Create Key if not exists
+        FULL_KEY_NAME="${CMEK_US_KEYRING}/cryptoKeys/${KEY_NAME}"
+        if ! gcloud kms keys describe "${FULL_KEY_NAME}" &>/dev/null; then
+             echo "Creating Key '${KEY_NAME}'..."
+             gcloud kms keys create "${KEY_NAME}" \
+                 --keyring="${KEYRING_NAME}" \
+                 --location="${LOCATION}" \
+                 --project="${TARGET_KMS_PROJECT}" \
+                 --purpose="encryption" \
+                 --protection-level="hsm" \
+                 --rotation-period="7776000s" \
+                 --next-rotation-time="$(date -v+90d -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d '+90 days' +%Y-%m-%dT%H:%M:%SZ)"
+        fi
+        
+        CMEK_STATE_KEY="${FULL_KEY_NAME}"
+        echo -e "Created/Selected State Key: ${GREEN}${CMEK_STATE_KEY}${NC}"
+        
+        # Grant Permissions
+        echo "Granting permissions on State Key..."
+        CURRENT_USER=$(gcloud config get-value account 2>/dev/null)
+        
+        # User
+        gcloud kms keys add-iam-policy-binding "${CMEK_STATE_KEY}" \
+            --member="user:${CURRENT_USER}" \
+            --role="roles/cloudkms.cryptoKeyEncrypterDecrypter" --quiet
+            
+        # Storage Service Account (for the project where the bucket will live)
+        # Verify if TENANT_IAC_PROJECT is set, use that, else use PROJECT_ID
+        BUCKET_PROJECT="${TENANT_IAC_PROJECT}"
+        if [[ -z "$BUCKET_PROJECT" ]]; then
+             BUCKET_PROJECT="${PROJECT_ID}"
+        fi
+        
+        BUCKET_PROJECT_NUMBER=$(gcloud projects describe "${BUCKET_PROJECT}" --format="value(projectNumber)")
+        STORAGE_SA="service-${BUCKET_PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com"
+        
+        gcloud kms keys add-iam-policy-binding "${CMEK_STATE_KEY}" \
+            --member="serviceAccount:${STORAGE_SA}" \
+            --role="roles/cloudkms.cryptoKeyEncrypterDecrypter" --quiet
+    fi
+
+    # 2. State Bucket Creation (if missing)
+    if [[ -z "$STATE_BUCKET" ]]; then
+        echo -e "${YELLOW}State Bucket not found. Creating...${NC}"
+        
+        if [[ -n "$TENANT_IAC_PROJECT" ]]; then
+             BUCKET_PROJECT="${TENANT_IAC_PROJECT}"
+        else
+             BUCKET_PROJECT="${PROJECT_ID}"
+        fi
+        
+        # Construct Name
+        NEW_BUCKET_NAME="${PREFIX}-${ENVIRONMENT}-${TENANT}-iac-0"
+        
+        echo "Creating Bucket '${NEW_BUCKET_NAME}' in ${REGION}..."
+        # Note: If REGION != 'us' and Key is 'us', this might fail if not dual-region. 
+        # Attempting creation.
+        if ! gcloud storage buckets create "gs://${NEW_BUCKET_NAME}" \
+            --project="${BUCKET_PROJECT}" \
+            --location="${REGION}" \
+            --default-encryption-key="${CMEK_STATE_KEY}" \
+            --uniform-bucket-level-access; then
+            
+            echo -e "${RED}Failed to create bucket. Retrying with 'US' location if Key is US...${NC}"
+            # Fallback logic if region mismatch suspected
+             if [[ "$CMEK_STATE_KEY" == *"/locations/us/"* ]]; then
+                  gcloud storage buckets create "gs://${NEW_BUCKET_NAME}" \
+                    --project="${BUCKET_PROJECT}" \
+                    --location="us" \
+                    --default-encryption-key="${CMEK_STATE_KEY}" \
+                    --uniform-bucket-level-access
+             else
+                  return 1
+             fi
+        fi
+        
+        STATE_BUCKET="${NEW_BUCKET_NAME}"
+        echo -e "Created State Bucket: ${GREEN}${STATE_BUCKET}${NC}"
+    fi
+    
     return 0
 }
 
@@ -469,35 +624,115 @@ configure_stage_0() {
         read -p "Reuse existing configuration? (Y/n): " REUSE_CONFIG
         if [[ "$REUSE_CONFIG" != "n" && "$REUSE_CONFIG" != "N" ]]; then
             echo "Using existing configuration."
+            
+            # Even when reusing, check if Terraform State dictates we should suppress CMEK variables
+            # This handles cases where resources were created, but tfvars still points to "new" logic
+            echo "Verifying CMEK configuration against Terraform State..."
+            cd gemini-stage-0
+            
+            # We need BUCKET_NAME. Try to grab it from deploy vars or tfvars
+            if [[ -z "$BUCKET_NAME" ]]; then
+                 # Try to extract from tfvars if not in env
+                 BUCKET_NAME=$(grep 'terraform_state_bucket' terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+                 # Clean up gs:// prefix if present in tfvars
+                 BUCKET_NAME=$(echo "$BUCKET_NAME" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+            fi
+            
+            if [[ -n "$BUCKET_NAME" ]]; then
+                if terraform init -migrate-state -backend-config="bucket=${BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-0" &>/dev/null; then
+                     if terraform state list | grep -q "google_kms_key_ring.created"; then
+                         echo -e "${YELLOW}KeyRing found in Terraform State. Updating existing config to use managed resource.${NC}"
+                         # Update tfvars to clear us_keyring_name
+                         # Use strict matching or regex to avoid partial matches
+                         # Assuming standard format: us_keyring_name = "..."
+                         sed -i '' 's/us_keyring_name *= *".*"/us_keyring_name = ""/' terraform.tfvars 2>/dev/null || sed -i 's/us_keyring_name *= *".*"/us_keyring_name = ""/' terraform.tfvars
+                     fi
+                     
+                     if terraform state list | grep -q "google_kms_crypto_key.gemini_enterprise"; then
+                         echo -e "${YELLOW}gemini-enterprise Key found in Terraform State. Updating existing config to use managed resource.${NC}"
+                         sed -i '' 's/kms_key_id *= *".*"/kms_key_id = ""/' terraform.tfvars 2>/dev/null || sed -i 's/kms_key_id *= *".*"/kms_key_id = ""/' terraform.tfvars
+                     fi
+                fi
+            fi
+            cd ..
+            
             return 0
         fi
     fi
 
-    # 1. Assured Workloads Check
-    read -p "Is this project deployed in a FedRAMP High Assured Workloads folder? (y/N): " IS_ASSURED
-    if [[ "$IS_ASSURED" == "y" || "$IS_ASSURED" == "Y" ]]; then
-        read -p "Enter the region (e.g., us-east4): " WORKLOAD_REGION
-        if [[ -n "$WORKLOAD_REGION" ]]; then
-            echo "Fetching FedRAMP High Assured Workload folders in ${WORKLOAD_REGION}..."
-            WORKLOAD_NAME=$(gcloud assured workloads list --location="${WORKLOAD_REGION}" --organization="${ORG_ID}" --filter="complianceRegime=FEDRAMP_HIGH" --format="value(displayName)" 2>/dev/null | head -n 1)
-            
-            if [[ -z "$WORKLOAD_NAME" ]]; then
-                echo -e "${RED}Error: Could not find FedRAMP High Assured Workload folder in ${WORKLOAD_REGION}.${NC}"
-                return 1
-            fi
+    # Run Discovery
+    if ! discover_infrastructure; then
+        echo -e "${RED}Infrastructure Discovery Failed.${NC}"
+        pause
+        return
+    fi
+    
+    # Ensure Prerequisites (Bucket, CMEK)
+    if ! ensure_prerequisites; then
+        echo -e "${RED}Prerequisite check failed.${NC}"
+        pause
+        return
+    fi
 
-            echo ""
-            echo -e "${YELLOW}ACTION REQUIRED: Please update your Assured Workload environment manually.${NC}"
-            echo -e "1. Navigate to the following URL in your browser:"
-            echo -e "${BLUE}https://console.cloud.google.com/compliance/assuredworkloads?organizationId=${ORG_ID}${NC}"
-            echo -e "2. Click on the FedRAMP High Assured Workload named: ${GREEN}${WORKLOAD_NAME}${NC}"
-            echo -e "3. Click on the button to ${GREEN}\"Review available updates\"${NC} and apply them."
-            echo ""
-            read -p "Press Enter after you have confirmed the updates have been made..."
-            echo -e "${GREEN}Assured Workload folder ${WORKLOAD_NAME} validated / updated${NC}"
-            echo ""
+    # 1. Assured Workloads Check
+    echo -e "${BLUE}--- Compliance Regime Selection ---${NC}"
+    echo "1. FedRAMP High (Default)"
+    echo "2. IL4"
+    echo "3. None"
+    read -p "What compliance regime will you be using? [1]: " REGIME_CHOICE
+    REGIME_CHOICE=${REGIME_CHOICE:-1}
+
+    COMPLIANCE_REGIME=""
+    REGIME_DISPLAY=""
+
+    case $REGIME_CHOICE in
+        1)
+            COMPLIANCE_REGIME="FEDRAMP_HIGH"
+            REGIME_DISPLAY="FedRAMP High"
+            ;;
+        2)
+            COMPLIANCE_REGIME="IL4"
+            REGIME_DISPLAY="IL4"
+            ;;
+        3)
+            echo -e "${YELLOW}WARNING: Gemini for Government currently only supports deployment within FedRAMP High / IL4 Assured Workloads folders.${NC}"
+            echo -e "${YELLOW}Proceed at your own risk.${NC}"
+            read -p "Press Enter to acknowledge..."
+            ;;
+        *)
+            echo -e "${RED}Invalid selection. Defaulting to FedRAMP High.${NC}"
+            COMPLIANCE_REGIME="FEDRAMP_HIGH"
+            REGIME_DISPLAY="FedRAMP High"
+            ;;
+    esac
+
+    if [[ -n "$COMPLIANCE_REGIME" ]]; then
+        read -p "Is this project deployed in a ${REGIME_DISPLAY} Assured Workloads folder? (y/N): " IS_ASSURED
+        if [[ "$IS_ASSURED" == "y" || "$IS_ASSURED" == "Y" ]]; then
+            read -p "Enter the region (e.g., us-east4): " WORKLOAD_REGION
+            if [[ -n "$WORKLOAD_REGION" ]]; then
+                echo "Fetching ${REGIME_DISPLAY} Assured Workload folders in ${WORKLOAD_REGION}..."
+                WORKLOAD_NAME=$(gcloud assured workloads list --location="${WORKLOAD_REGION}" --organization="${ORG_ID}" --filter="complianceRegime=${COMPLIANCE_REGIME}" --format="value(displayName)" 2>/dev/null | head -n 1 || true)
+                
+                if [[ -z "$WORKLOAD_NAME" ]]; then
+                    echo -e "${YELLOW}Warning: Could not find ${REGIME_DISPLAY} Assured Workload folder in ${WORKLOAD_REGION}.${NC}"
+                    echo -e "${YELLOW}Skipping automated Assured Workloads updates.${NC}"
+                else
+                    echo ""
+                    echo -e "${YELLOW}ACTION REQUIRED: Please update your Assured Workload environment manually.${NC}"
+                    echo -e "1. Navigate to the following URL in your browser:"
+                    echo -e "${BLUE}https://console.cloud.google.com/compliance/assuredworkloads?organizationId=${ORG_ID}${NC}"
+                    echo -e "2. Click on the ${REGIME_DISPLAY} Assured Workload named: ${GREEN}${WORKLOAD_NAME}${NC}"
+                    echo -e "3. Click on the button to ${GREEN}\"Review available updates\"${NC} and apply them."
+                    echo ""
+                    read -p "Press Enter after you have confirmed the updates have been made..."
+                    echo -e "${GREEN}Assured Workload folder ${WORKLOAD_NAME} validated / updated${NC}"
+                    echo ""
+                fi
+            fi
         fi
     fi
+
 
     # 2. Shared VPC
     USE_SHARED_VPC="false"
@@ -736,25 +971,6 @@ configure_stage_0() {
     if [ -z "$ACCESS_POLICY_NUMBER" ]; then
         echo -e "${YELLOW}Warning: Could not auto-discover Access Policy Number.${NC}"
         read -p "Enter Access Policy Number: " ACCESS_POLICY_NUMBER
-        echo "An Access Policy is required for Access Context Manager."
-        read -p "Do you want to create a new Access Policy? (y/N): " CREATE_POLICY
-        if [[ "$CREATE_POLICY" == "y" || "$CREATE_POLICY" == "Y" ]]; then
-            read -p "Enter a title for the new Access Policy [Gemini-Enterprise-Policy]: " POLICY_TITLE
-            POLICY_TITLE=${POLICY_TITLE:-"Gemini-Enterprise-Policy"}
-            
-            echo "Creating Access Policy '${POLICY_TITLE}' in Organization ${ORG_ID}..."
-            if gcloud access-context-manager policies create --organization "${ORG_ID}" --title "${POLICY_TITLE}" --quiet; then
-                echo -e "${GREEN}Access Policy created successfully.${NC}"
-                # Retrieve the new policy number
-                ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1)
-            else
-                echo -e "${RED}Error: Failed to create Access Policy.${NC}"
-                echo "Please ensure you have the 'Access Context Manager Admin' role at the Organization level."
-                read -p "Enter Access Policy Number manually: " ACCESS_POLICY_NUMBER
-            fi
-        else
-            read -p "Enter Access Policy Number: " ACCESS_POLICY_NUMBER
-        fi
     else
         ACCESS_POLICY_NUMBER=$(basename "${ACCESS_POLICY_NUMBER}")
         echo -e "Found Access Policy Number: ${YELLOW}${ACCESS_POLICY_NUMBER}${NC}"
@@ -763,6 +979,39 @@ configure_stage_0() {
     if [[ -z "$ACCESS_POLICY_NUMBER" ]]; then
         echo -e "${RED}Error: Access Policy Number is required.${NC}"
         return 1
+    fi
+
+    echo "Checking for existing Access Levels in Policy ${ACCESS_POLICY_NUMBER}..."
+    EXISTING_LEVELS=$(gcloud access-context-manager levels list --policy="${ACCESS_POLICY_NUMBER}" --format="value(name)" || echo "")
+    
+    # Check if key levels exist
+    LEVELS_TO_CHECK=("ip_based_access" "us" "time" "expire" "lenient_device" "moderate_device" "strict_device")
+    ALL_EXIST=true
+    ANY_EXIST=false
+    
+    for level in "${LEVELS_TO_CHECK[@]}"; do
+        # Check if level exists (either as full path or just short name)
+        if echo "$EXISTING_LEVELS" | grep -qE "(/|^)${level}$"; then
+            ANY_EXIST=true
+        else
+            ALL_EXIST=false
+        fi
+    done
+    
+    CREATE_ACCESS_POLICIES="true"
+    if [[ "$ALL_EXIST" == "true" ]]; then
+        echo -e "${GREEN}All required Access Levels already exist. Skipping creation.${NC}"
+        CREATE_ACCESS_POLICIES="false"
+    elif [[ "$ANY_EXIST" == "true" ]]; then
+        echo -e "${YELLOW}Some Access Levels exist but not all. Terraform may conflict.${NC}"
+        echo -e "${YELLOW}Setting CREATE_ACCESS_POLICIES to false to avoid collisions, but this might result in missing levels.${NC}"
+        # Strategy choice: If ANY exist, we likely shouldn't try to create them blindly with Terraform 
+        # unless we were doing imports. The user requested: "set it to false if the ... already exist"
+        # I will strictly follow: if they exist, don't create.
+        CREATE_ACCESS_POLICIES="false"
+    else
+        echo -e "${GREEN}No existing Access Levels found. Will create new ones.${NC}"
+        CREATE_ACCESS_POLICIES="true"
     fi
 
     # 8. Deployment Type (LB)
@@ -895,50 +1144,79 @@ configure_stage_0() {
         CREATE_RESOURCE_KEYS_BOOL="false"
     fi
 
-    # Generate tfvars
+    # Initialize Terraform early to check state
+    echo "Initializing Terraform to check state..."
+    cd gemini-stage-0
+    # Ensure BUCKET_NAME is set for backend init
+    if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
+        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+    fi
+    terraform init -migrate-state -backend-config="bucket=${BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-0" || echo "Warning: Init failed during state check."
+
+    # Check if KeyRing is in state
+    if terraform state list | grep -q "google_kms_key_ring.created"; then
+        echo -e "${YELLOW}KeyRing found in Terraform State. Will use managed resource instead of data source.${NC}"
+        CMEK_US_KEYRING=""
+    fi
+
+    # Check if Key is in state
+    if terraform state list | grep -q "google_kms_crypto_key.gemini_enterprise"; then
+        echo -e "${YELLOW}gemini-enterprise Key found in Terraform State. Will use managed resource instead of data source.${NC}"
+        CMEK_US_RESOURCES_KEY=""
+    fi
+    cd ..
+
+    # Generate terraform.tfvars
     cat > gemini-stage-0/terraform.tfvars <<EOF
-deployment_type = "${DEPLOYMENT_TYPE}"
-domain = "${DOMAIN}"
-main_project_id = "${PROJECT_ID}"
-prefix = "${PREFIX}"
-region = "${REGION}"
-geolocation = "us"
-admin_group = "${ADMIN_GROUP}"
-user_group = "${USER_GROUP}"
-access_policy_number = ${ACCESS_POLICY_NUMBER}
-create_data_stores = ${CREATE_DS_BOOL}
-acl_idp_type = "${ACL_IDP_TYPE}"
-acl_workforce_pool_name = "${ACL_POOL_NAME}"
-acl_workforce_provider_id = "${ACL_PROVIDER_ID}"
-kms_key_id = "${KMS_KEY_ID}"
-enable_chrome_enterprise_premium = ${ENABLE_CEP_BOOL}
-terraform_state_bucket = "${BUCKET_NAME}"
-use_shared_vpc = ${USE_SHARED_VPC}
-create_resource_keys = ${CREATE_RESOURCE_KEYS_BOOL}
-allowed_ip_ranges = ${ALLOWED_IPS}
+main_project_id             = "${PROJECT_ID}"
+environment                 = "${ENVIRONMENT}"
+tenant                      = "${TENANT}"
+kms_project_id              = "${CMEK_PROJECT_ID}"
+us_keyring_name             = "${CMEK_US_KEYRING}"
+kms_key_id                  = "${CMEK_US_RESOURCES_KEY}"
+terraform_state_bucket      = "${STATE_BUCKET}"
+region                      = "${REGION}"
+domain                      = "${DOMAIN}"
+prefix                      = "${PREFIX}"
+deployment_type             = "${DEPLOYMENT_TYPE}"
+access_policy_number        = ${ACCESS_POLICY_NUMBER}
+admin_group                 = "${ADMIN_GROUP}"
+user_group                  = "${USER_GROUP}"
+acl_idp_type                = "${ACL_IDP_TYPE}"
+acl_workforce_pool_name     = "${ACL_POOL_NAME}"
+acl_workforce_provider_id   = "${ACL_PROVIDER_ID}"
+use_shared_vpc              = ${USE_SHARED_VPC}
+network_project_id          = "${SHARED_VPC_HOST_PROJECT}"
+shared_vpc_network_name     = "${SHARED_VPC_NETWORK}"
+shared_vpc_subnet_name      = "${SHARED_VPC_SUBNET}"
+shared_vpc_proxy_subnet_name = "${SHARED_VPC_PROXY_SUBNET}"
+create_data_stores          = ${CREATE_DS_BOOL}
 EOF
 
-    if [[ "$USE_SHARED_VPC" == "true" ]]; then
-        cat >> gemini-stage-0/terraform.tfvars <<EOF
-network_project_id = "${SHARED_VPC_HOST_PROJECT}"
-shared_vpc_network_name = "${SHARED_VPC_NETWORK}"
-shared_vpc_subnet_name = "${SHARED_VPC_SUBNET}"
-shared_vpc_proxy_subnet_name = "${SHARED_VPC_PROXY_SUBNET}"
-EOF
-    fi
     
     # Add example data stores
-    cat >> gemini-stage-0/terraform.tfvars <<EOF
+    if [[ "$CREATE_DS_BOOL" == "true" ]]; then
+        cat >> gemini-stage-0/terraform.tfvars <<EOF
 gcs_data_store_names = ${GCS_DATA_STORES}
 bq_data_store_configs = ${BQ_DATA_STORES}
 EOF
+    fi
+
+    # Add Access Policy Creation Flag
+    echo "create_access_policies = ${CREATE_ACCESS_POLICIES}" >> gemini-stage-0/terraform.tfvars
 
     echo -e "${GREEN}Configuration generated in gemini-stage-0/terraform.tfvars${NC}"
+
     return 0
 }
 
 deploy_stage_0() {
     echo -e "${BLUE}--- Deploying Stage 0 ---${NC}"
+    
+    # Ensure BUCKET_NAME is set from STATE_BUCKET if not already
+    if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
+        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+    fi
     
     # Ensure bucket exists if Greenfield
     if [[ "$IS_BROWNFIELD" == "false" ]]; then
@@ -975,7 +1253,7 @@ deploy_stage_0() {
     fi
     
     echo "Applying Terraform..."
-    if ! terraform apply; then
+    if ! terraform apply -var-file="terraform.tfvars"; then
         echo -e "${RED}Terraform Apply failed! Please try resolving the error and running the Step again.${NC}"
         cd ..
         pause
@@ -1065,6 +1343,8 @@ configure_gem4gov() {
 
 
     echo "Running: $CMD"
+    export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
+    export GOOGLE_CLOUD_QUOTA_PROJECT="${PROJECT_ID}"
     $CMD
     
     echo -e "${GREEN}Gemini Enterprise Application configured.${NC}"
@@ -1117,6 +1397,8 @@ update_app_compliance() {
     CMD="gem4gov app update-compliance --project-id ${PROJECT_ID} --engine-id ${ENGINE_ID} --compliance-regime ${COMPLIANCE_REGIME}"
     
     echo "Running: $CMD"
+    export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
+    export GOOGLE_CLOUD_QUOTA_PROJECT="${PROJECT_ID}"
     $CMD
     
     pause
@@ -1487,7 +1769,7 @@ main_menu() {
                 auth_and_project_setup || continue
                 enable_apis || continue
                 select_deployment_type || continue
-                discover_brownfield_resources || continue
+                discover_infrastructure || continue
                 ;;
             6)
                 echo "Exiting..."
@@ -1507,5 +1789,5 @@ check_dependencies
 auth_and_project_setup
 enable_apis
 select_deployment_type
-discover_brownfield_resources
+discover_infrastructure
 main_menu

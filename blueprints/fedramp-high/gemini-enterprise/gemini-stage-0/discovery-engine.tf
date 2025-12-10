@@ -36,7 +36,6 @@ resource "google_discovery_engine_cmek_config" "default" {
   depends_on = [
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
-    data.google_kms_crypto_key.cmek_crypto_key,
     google_project_service.services,
     time_sleep.wait_for_services,
   ]
@@ -76,8 +75,7 @@ resource "google_storage_bucket" "gemini_enterprise_gcs_bucket" {
   }
 
   depends_on = [
-    google_kms_crypto_key_iam_member.gcs_sa_kms_access,
-    google_kms_crypto_key_iam_member.gcs_sa_us_kms_access
+    google_kms_crypto_key_iam_member.gcs_sa_kms_access
   ]
 }
 
@@ -113,10 +111,7 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_gcs_data_store"
   depends_on = [
     google_discovery_engine_cmek_config.default,
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
-    google_kms_crypto_key_iam_member.discoveryengine_sa_us_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
-    google_kms_crypto_key_iam_member.gcs_sa_us_kms_access,
-    data.google_kms_crypto_key.cmek_crypto_key,
     google_project_service.services,
     time_sleep.wait_for_services,
   ]
@@ -146,8 +141,7 @@ resource "google_bigquery_dataset" "gemini_enterprise_bq_dataset" {
   depends_on = [
     google_project_service.services,
     time_sleep.wait_for_services,
-    google_kms_crypto_key_iam_member.bq_sa_kms_access,
-    google_kms_crypto_key_iam_member.bq_sa_us_kms_access
+    google_kms_crypto_key_iam_member.bq_sa_kms_access
   ]
 }
 
@@ -185,8 +179,7 @@ EOF
 
   depends_on = [
     google_bigquery_dataset.gemini_enterprise_bq_dataset,
-    google_kms_crypto_key_iam_member.bq_sa_kms_access,
-    google_kms_crypto_key_iam_member.bq_sa_us_kms_access
+    google_kms_crypto_key_iam_member.bq_sa_kms_access
   ]
 }
 
@@ -219,12 +212,8 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_bq_data_store" 
   depends_on = [
     google_discovery_engine_cmek_config.default,
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
-    google_kms_crypto_key_iam_member.discoveryengine_sa_us_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
-    google_kms_crypto_key_iam_member.gcs_sa_us_kms_access,
     google_kms_crypto_key_iam_member.bq_sa_kms_access,
-    google_kms_crypto_key_iam_member.bq_sa_us_kms_access,
-    data.google_kms_crypto_key.cmek_crypto_key,
     google_project_service.services,
     time_sleep.wait_for_services,
   ]

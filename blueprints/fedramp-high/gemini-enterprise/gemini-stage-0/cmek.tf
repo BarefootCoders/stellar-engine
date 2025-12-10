@@ -14,65 +14,49 @@
 
 locals {
   kms_rotation_period = "7776000s" # 90 days
-  # Use provided key or the newly created resource key
-  # If geolocation is "us" and we created a US key, use that.
-  cmek_key_id = (var.geolocation == "us" && length(google_kms_crypto_key.us_crypto_key) > 0) ? google_kms_crypto_key.us_crypto_key[0].id : (var.create_resource_keys ? google_kms_crypto_key.resources[0].id : var.kms_key_id)
+
+  # Determine if we have a US Keyring
+  has_us_keyring = var.us_keyring_name != ""
+
+  # ID of the KeyRing to use (Created or Existing)
+  keyring_id = local.has_us_keyring ? data.google_kms_key_ring.existing[0].id : google_kms_key_ring.created[0].id
+
+  # Determine if we need to create a new Key
+  create_key = var.kms_key_id == ""
+
+  # Final CMEK Key ID
+  cmek_key_id = local.create_key ? google_kms_crypto_key.gemini_enterprise[0].id : var.kms_key_id
 }
 
 # ---------------------------------------------------------------------------- #
-# CMEK Key Ring
+# 1. KeyRing (US Multi-Region)
 # ---------------------------------------------------------------------------- #
-# Data source to read the keyring from the provided KMS Key ID (State Key)
-data "google_kms_key_ring" "cmek_key_ring" {
-  name     = element(split("/", var.kms_key_id), 5)
-  location = element(split("/", var.kms_key_id), 3)
-  project  = element(split("/", var.kms_key_id), 1)
-}
 
-# Data source to validate/read the provided key
-data "google_kms_crypto_key" "cmek_crypto_key" {
-  name     = element(split("/", var.kms_key_id), 7)
-  key_ring = join("/", slice(split("/", var.kms_key_id), 0, 6))
-}
-
-# ---------------------------------------------------------------------------- #
-# Gemini Enterprise CMEK Crypto Key
-# ---------------------------------------------------------------------------- #
-# This Crypto Key will be used to encrypt/decrypt Gemini Enterprise Data Stores
-# (i.e. Cloud Storage, BigQuery) and Session data
-resource "google_kms_crypto_key" "resources" {
-  count           = var.create_resource_keys ? 1 : 0
-  name            = "gemini-enterprise-cmek-key"
-  key_ring        = data.google_kms_key_ring.cmek_key_ring.id
-  purpose         = "ENCRYPT_DECRYPT"
-  rotation_period = local.kms_rotation_period # 90 days
-
-  version_template {
-    algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-    protection_level = "HSM"
-  }
-
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
-}
-
-# ---------------------------------------------------------------------------- #
-# US Multi-Region Key (Conditional)
-# ---------------------------------------------------------------------------- #
-# Created ONLY if geolocation is "us" AND the provided/resource key is NOT in "us".
-# Discovery Engine requires a key in the "us" multi-region for "us" data stores.
-resource "google_kms_key_ring" "us_key_ring" {
-  count    = var.geolocation == "us" && data.google_kms_key_ring.cmek_key_ring.location != "us" ? 1 : 0
-  name     = "gemini-enterprise-us-keyring"
+# Create KeyRing if name not provided
+resource "google_kms_key_ring" "created" {
+  count    = local.has_us_keyring ? 0 : 1
+  name     = "${title(var.environment)}-${var.tenant}-keyring"
   location = "us"
-  project  = var.main_project_id
+  project  = var.kms_project_id
 }
 
-resource "google_kms_crypto_key" "us_crypto_key" {
-  count           = var.geolocation == "us" && data.google_kms_key_ring.cmek_key_ring.location != "us" ? 1 : 0
-  name            = "gemini-enterprise-us-key"
-  key_ring        = google_kms_key_ring.us_key_ring[0].id
+# Read KeyRing if name provided
+data "google_kms_key_ring" "existing" {
+  count    = local.has_us_keyring ? 1 : 0
+  name     = basename(var.us_keyring_name)
+  location = "us"
+  project  = var.kms_project_id
+}
+
+# ---------------------------------------------------------------------------- #
+# 2. Crypto Key (Gemini Enterprise)
+# ---------------------------------------------------------------------------- #
+
+# Create Key if kms_key_id is not provided
+resource "google_kms_crypto_key" "gemini_enterprise" {
+  count           = local.create_key ? 1 : 0
+  name            = "gemini-enterprise"
+  key_ring        = local.keyring_id
   purpose         = "ENCRYPT_DECRYPT"
   rotation_period = local.kms_rotation_period
 
@@ -82,10 +66,20 @@ resource "google_kms_crypto_key" "us_crypto_key" {
   }
 }
 
+# If NOT creating keys (kms_key_id IS provided)
+# Usage for IAM binding validation/lookup if needed:
+data "google_kms_crypto_key" "provided" {
+  count    = local.create_key ? 0 : 1
+  name     = basename(var.kms_key_id)
+  key_ring = element(split("/cryptoKeys/", var.kms_key_id), 0)
+}
+
 # ---------------------------------------------------------------------------- #
-# Gemini Enterprise CMEK IAM: Grant Discovery Engine Service Agent access
+# 3. IAM Bindings
+# ---------------------------------------------------------------------------- #
+
+# Grant Discovery Engine Service Agent access
 resource "google_kms_crypto_key_iam_member" "discoveryengine_sa_kms_access" {
-
   crypto_key_id = local.cmek_key_id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-discoveryengine.iam.gserviceaccount.com"
@@ -96,22 +90,8 @@ resource "google_kms_crypto_key_iam_member" "discoveryengine_sa_kms_access" {
   ]
 }
 
-resource "google_kms_crypto_key_iam_member" "discoveryengine_sa_us_kms_access" {
-  count         = var.geolocation == "us" && data.google_kms_key_ring.cmek_key_ring.location != "us" ? 1 : 0
-  crypto_key_id = google_kms_crypto_key.us_crypto_key[0].id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-discoveryengine.iam.gserviceaccount.com"
-
-  depends_on = [
-    google_project_service_identity.discoveryengine,
-    time_sleep.wait_for_services
-  ]
-}
-
-# ---------------------------------------------------------------------------- #
-# Gemini Enterprise CMEK IAM: Grant Cloud Storage Service Agent access
+# Grant Cloud Storage Service Agent access
 resource "google_kms_crypto_key_iam_member" "gcs_sa_kms_access" {
-
   crypto_key_id = local.cmek_key_id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
@@ -122,35 +102,9 @@ resource "google_kms_crypto_key_iam_member" "gcs_sa_kms_access" {
   ]
 }
 
-resource "google_kms_crypto_key_iam_member" "gcs_sa_us_kms_access" {
-  count         = var.geolocation == "us" && data.google_kms_key_ring.cmek_key_ring.location != "us" ? 1 : 0
-  crypto_key_id = google_kms_crypto_key.us_crypto_key[0].id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
-
-  depends_on = [
-    google_project_service_identity.storage,
-    time_sleep.wait_for_services
-  ]
-}
-
-# ---------------------------------------------------------------------------- #
-# Gemini Enterprise CMEK IAM: Grant BigQuery Service Agent access
+# Grant BigQuery Service Agent access
 resource "google_kms_crypto_key_iam_member" "bq_sa_kms_access" {
-
   crypto_key_id = local.cmek_key_id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:bq-${data.google_project.project.number}@bigquery-encryption.iam.gserviceaccount.com"
-
-  depends_on = [
-    google_project_service_identity.bigquery,
-    time_sleep.wait_for_services
-  ]
-}
-
-resource "google_kms_crypto_key_iam_member" "bq_sa_us_kms_access" {
-  count         = var.geolocation == "us" && data.google_kms_key_ring.cmek_key_ring.location != "us" ? 1 : 0
-  crypto_key_id = google_kms_crypto_key.us_crypto_key[0].id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:bq-${data.google_project.project.number}@bigquery-encryption.iam.gserviceaccount.com"
 

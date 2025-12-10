@@ -14,6 +14,27 @@
  * limitations under the License.
  */
 
+variable "environment" {
+  description = "The environment identifier (e.g. prod, dev, staging)."
+  type        = string
+}
+
+variable "tenant" {
+  description = "The tenant identifier (e.g. g4g)."
+  type        = string
+}
+
+variable "kms_project_id" {
+  description = "The Project ID where CMEK keys are stored."
+  type        = string
+}
+
+variable "us_keyring_name" {
+  description = "The name of the US Multi-Region KeyRing (if existing). If empty, one will be created."
+  type        = string
+  default     = ""
+}
+
 variable "domain" {
   description = "FQDN for the load-balancer hosted apps, where the subdomain will be prepended to."
   type        = string
@@ -28,12 +49,6 @@ variable "prefix" {
   description = "Prefix for naming resources in this blueprint."
   type        = string
   default     = "cnap"
-}
-
-variable "environment" {
-  description = "Environment identifier"
-  type        = string
-  default     = "prod"
 }
 
 variable "access_policy_number" {
@@ -98,12 +113,6 @@ variable "access_end_day" {
   default     = 5
 }
 
-variable "create_resource_keys" {
-  description = "Whether to create a separate CMEK key for resources (Discovery Engine, GCS, BigQuery). Set to true for Greenfield deployments."
-  type        = bool
-  default     = false
-}
-
 variable "kms_key_id" {
   description = "The full resource name of the Cloud KMS key to use for CMEK (e.g. projects/p/locations/l/keyRings/r/cryptoKeys/k). If not provided, a new key will be created."
   type        = string
@@ -118,6 +127,12 @@ variable "deployment_type" {
     condition     = contains(["internal", "external"], var.deployment_type)
     error_message = "Allowed values for deployment_type are 'internal' or 'external'."
   }
+}
+
+variable "create_access_policies" {
+  description = "Whether to create Access Context Manager policies. Set to false if they already exist."
+  type        = bool
+  default     = true
 }
 
 variable "create_data_stores" {
