@@ -13,7 +13,6 @@
 # limitations under the License.
 
 # the following permissions are a descoped version of storage.admin
-name: storageViewer
 includedPermissions:
   - storage.buckets.get
   - storage.buckets.getIamPolicy

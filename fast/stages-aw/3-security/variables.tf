@@ -75,9 +75,9 @@ variable "kms_keys" {
     # Default locations for IL5/FedRAMP compliance - can be overridden per environment
     # Uses primary US regions and zones commonly approved for government workloads
     locations = optional(list(string), [
-      "us",           # Multi-region
-      "us-east4",     # Primary region
-      "us-central1",  # Secondary region
+      "us",          # Multi-region
+      "us-east4",    # Primary region
+      "us-central1", # Secondary region
     ])
     purpose                       = optional(string, "ENCRYPT_DECRYPT")
     skip_initial_version_creation = optional(bool, false)

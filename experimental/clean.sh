@@ -24,7 +24,7 @@ source "${SCRIPT_DIR}"/config.env
 
 # Tags
 parent_tag_name=$(gcloud resource-manager tags keys list \
-  --parent=organizations/${ORGANIZATION_ID} \
+  --parent=organizations/"${ORGANIZATION_ID}" \
   --format="value(name)")
 
 child_tag_name=$(gcloud resource-manager tags values list \
@@ -39,7 +39,7 @@ declare -a custom_org_roles=()
 while IFS= read -r role_name; do
     custom_org_roles+=("$role_name")
 done < <(gcloud iam roles list \
-          --organization=${ORGANIZATION_ID} \
+          --organization="${ORGANIZATION_ID}" \
           --filter='name~^organizations/' \
           --format='value(name)' | awk -F'/' '{print $NF}' 2>/dev/null)
 

@@ -68,12 +68,12 @@ resource "google_compute_region_security_policy_rule" "policy_rule" {
   description = try(each.value.description, null)
 
   match {
-          dynamic "expr" {
-            for_each = try(each.value.expression, null) != null ? [1] : []
-            content {
-              expression = try(each.value.is_custom_expr, false) ? each.value.expression : "evaluatePreconfiguredWaf('${each.value.expression}')"
-            }
-          }
+    dynamic "expr" {
+      for_each = try(each.value.expression, null) != null ? [1] : []
+      content {
+        expression = try(each.value.is_custom_expr, false) ? each.value.expression : "evaluatePreconfiguredWaf('${each.value.expression}')"
+      }
+    }
     //only create a versioned_expr and config block if there isn't an expr block
     versioned_expr = try(each.value.expression, null) != null ? null : "SRC_IPS_V1"
     dynamic "config" {

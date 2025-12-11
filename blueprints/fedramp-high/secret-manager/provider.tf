@@ -21,7 +21,7 @@ terraform {
     }
     google-beta = {
       source  = "hashicorp/google-beta"
-      version = ">= 6.21.0, < 7.0.0"    # tftest
+      version = ">= 6.21.0, < 7.0.0" # tftest
     }
   }
 }

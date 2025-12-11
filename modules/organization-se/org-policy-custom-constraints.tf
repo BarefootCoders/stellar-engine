@@ -46,7 +46,7 @@ locals {
 resource "google_org_policy_custom_constraint" "constraint" {
   provider = google-beta
 
-  for_each = local.custom_constraints
+  for_each       = local.custom_constraints
   name           = var.prefix != "" && strcontains("${each.value.name}", "custom") ? "${each.value.name}${var.prefix}" : each.value.name
   parent         = each.value.parent
   display_name   = each.value.display_name
