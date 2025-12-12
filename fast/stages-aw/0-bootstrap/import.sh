@@ -42,6 +42,8 @@ else
     if terraform state show "module.organization.google_org_policy_policy.default[\"${constraint_name}\"]" > /dev/null 2>&1; then
       # Skip Import
       echo "${constraint_name} already managed, skipping import."
+    elif [[ "${constraint_name}" == custom.* ]]; then
+       echo "${constraint_name} is a custom policy, skipping import."
     else
 
       # Attempt Import
