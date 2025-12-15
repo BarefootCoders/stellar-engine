@@ -208,7 +208,7 @@ enable_apis() {
 # --- Deployment Configuration ---
 
 select_deployment_type() {
-    echo -e "${BLUE}--- Deployment Type Selection ---${NC}"
+    echo -e "${BLUE}--- Deployment Topology Selection ---${NC}"
     echo "1. Brownfield (Stellar Engine Integration)"
     echo "2. Greenfield (New GCP Project Deployment)"
     echo "3. Custom Brownfield (Manual Configuration)"
@@ -223,22 +223,16 @@ select_deployment_type() {
         DEPLOYMENT_TYPE_TEXT="Brownfield (Stellar Engine Integration)"
         IS_BROWNFIELD="true"
         IS_CUSTOM="false"
-        PREFIX=$(echo "$PROJECT_ID" | cut -d'-' -f1 | cut -d'-' -f1-6)
-        echo -e "Derived Prefix: ${YELLOW}${PREFIX}${NC}"
     elif [[ "$DEPLOYMENT_CHOICE" == "2" ]]; then # Greenfield
         DEPLOYMENT_TYPE_TEXT="Greenfield (New GCP Project Deployment)"
         IS_BROWNFIELD="false"
         IS_CUSTOM="false"
-        read -p "Enter a prefix for your resources: " PREFIX
     elif [[ "$DEPLOYMENT_CHOICE" == "3" ]]; then # Custom Brownfield
         DEPLOYMENT_TYPE_TEXT="Custom Brownfield (Manual Configuration)"
         IS_BROWNFIELD="false"
         IS_CUSTOM="true"
-        read -p "Enter a prefix for your resources: " INPUT_PREFIX
-        PREFIX=${INPUT_PREFIX:-"sedev"}
     fi
     
-    echo -e "Using Prefix: ${YELLOW}${PREFIX}${NC}"
     return 0
 }
 
@@ -253,6 +247,20 @@ discover_infrastructure() {
     CMEK_US_RESOURCES_KEY=""
 
     echo -e "${BLUE}--- Infrastructure Discovery ---${NC}"
+
+    # 0. Prefix Discovery
+    if [[ "$IS_BROWNFIELD" == "true" ]]; then
+        PREFIX=$(echo "$PROJECT_ID" | cut -d'-' -f1 | cut -d'-' -f1-6)
+        echo -e "Derived Prefix: ${YELLOW}${PREFIX}${NC}"
+    elif [[ "$IS_CUSTOM" == "true" ]]; then
+        read -p "Enter a prefix for your resources: " INPUT_PREFIX
+        PREFIX=${INPUT_PREFIX:-"sedev"}
+        echo -e "Using Prefix: ${YELLOW}${PREFIX}${NC}"
+    else 
+        # Greenfield
+        read -p "Enter a prefix for your resources: " PREFIX
+        echo -e "Using Prefix: ${YELLOW}${PREFIX}${NC}"
+    fi
 
     if [[ "$IS_BROWNFIELD" == "true" ]]; then
         # 1. Extract Environment and Tenant
@@ -660,11 +668,14 @@ configure_stage_0() {
         fi
     fi
 
-    # Run Discovery
-    if ! discover_infrastructure; then
-        echo -e "${RED}Infrastructure Discovery Failed.${NC}"
-        pause
-        return
+    # Run Discovery (Only if not already done)
+    # If ENVIRONMENT is set, we assume discovery ran successfully at startup or was manually set.
+    if [[ -z "$ENVIRONMENT" ]]; then
+        if ! discover_infrastructure; then
+            echo -e "${RED}Infrastructure Discovery Failed.${NC}"
+            pause
+            return
+        fi
     fi
     
     # Ensure Prerequisites (Bucket, CMEK)
@@ -1297,6 +1308,11 @@ configure_gem4gov() {
     fi
 
     # Retrieve outputs from Stage 0 state
+    # Ensure BUCKET_NAME is set from STATE_BUCKET if not already
+    if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
+        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+    fi
+    
     echo "Retrieving state from gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate..."
     STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null || echo "{}")
     
@@ -1559,6 +1575,12 @@ configure_stage_1() {
     # Retrieve Region from Stage 0 state if not set
     if [[ -z "$REGION" ]]; then
         echo "Retrieving region from state..."
+        
+        # Ensure BUCKET_NAME is set from STATE_BUCKET if not already
+        if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
+            BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+        fi
+        
         STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null || echo "{}")
         REGION=$(echo "$STATE_CONTENT" | jq -r '.outputs.region.value // empty')
         
@@ -1724,13 +1746,13 @@ main_menu() {
         clear
         print_header
         echo -e "Current Project: ${YELLOW}${PROJECT_ID:-None}${NC}"
-        echo -e "Deployment Type: ${YELLOW}${DEPLOYMENT_TYPE_TEXT:-None}${NC}"
+        echo -e "Deployment Topology: ${YELLOW}${DEPLOYMENT_TYPE_TEXT:-None}${NC}"
         echo "-----------------------------------"
         echo -e "1. ${BLUE}Step 1${NC} - Configure & Deploy Infrastructure (gemini-stage-0)"
         echo -e "2. ${BLUE}Step 2${NC} - Create Gemini Enterprise App (gem4gov-cli)"
         echo -e "3. ${BLUE}Step 3${NC} - Configure & Deploy Load Balancer / Access Policies (gemini-stage-1)"
         echo -e "4. ${YELLOW}Helper Functions${NC}"
-        echo -e "5. ${YELLOW}Re-select Deployment Type / Project${NC}"
+        echo -e "5. ${YELLOW}Re-select Deployment Topology / Project${NC}"
         echo -e "6. ${RED}Exit${NC}"
         echo "-----------------------------------"
         read -p "Select an option [1-6]: " OPTION
