@@ -1,8 +1,3 @@
-## Google’s Open Source Software Vulnerability Rewards Program (OSS VRP)
-This is not an officially supported Google product. This project is not
-eligible for the [Google Open Source Software Vulnerability Rewards
-Program](https://bughunters.google.com/open-source-security).
-
 ## Introduction
 
 Stellar Engine is a fork of the Google Cloud Foundation Fabric (CFF) repository, aimed at providing Infrastructure as Code (IaC) for Google Cloud Platform (GCP) customers who need to create a landing zone environment with the Assured Workload overlays. In addition to the IaC, there is documentation available for both the DISA FedRAMP High (FRH), DoD Impact Level 4 (IL4) and DoD Impact Level (IL5) compliance regimes that provide a mapping of National Institute of Standards and Technology (NIST) 800-53r5 controls to enable projects that leverage the Stellar Engine codebase to accelerate the speed at which an Authorization to Operate (ATO) can be attained.
@@ -104,3 +99,7 @@ For issue reporting please create an issue on the GitHub repository and email [s
 To contribute code to this repository, please email [stellar-engine@google.com](mailto:stellar-engine@google.com) with a request for developer access to Stellar Engine's codebase.
 
 We'll review your request and grant you the necessary access as quickly as possible.
+
+## Google’s Open Source Software Vulnerability Rewards Program (OSS VRP)
+
+This is not an officially supported Google product. This project is not eligible for the [Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security).
