@@ -16,6 +16,14 @@ locals {
   gcs_lifecycle_age              = 30
   bq_connector_refresh_interval  = "86400s" # Daily
   wait_for_bq_datastore_duration = "120s"
+
+  # Discovery Engine Data Store Configuration
+  discovery_engine_industry_vertical = "GENERIC"
+  discovery_engine_solution_types    = ["SOLUTION_TYPE_SEARCH"]
+  discovery_engine_content_config    = "CONTENT_REQUIRED"
+  
+  # Document Processing (digital_parsing_config or ocr_parsing_config)
+  discovery_engine_parsing_mode      = "digital_parsing_config"
 }
 
 # ---------------------------------------------------------------------------- #
@@ -86,6 +94,13 @@ resource "random_string" "gcs_suffix" {
   length  = 6
   special = false
   upper   = false
+  keepers = {
+    industry_vertical = local.discovery_engine_industry_vertical
+    solution_types    = join(",", local.discovery_engine_solution_types)
+    content_config    = local.discovery_engine_content_config
+    kms_key_name      = local.cmek_key_id
+    parsing_mode      = local.discovery_engine_parsing_mode
+  }
 }
 
 # Discovery Engine Data Stores for GCS
@@ -96,15 +111,18 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_gcs_data_store"
   location          = var.geolocation # Must match the Data Store and Engine location
   data_store_id     = "${each.key}-gcs-data-store-${random_string.gcs_suffix[each.key].result}"
   display_name      = each.key
-  industry_vertical = "GENERIC"
-  content_config    = "CONTENT_REQUIRED"
-  solution_types    = ["SOLUTION_TYPE_SEARCH"]
+  industry_vertical = local.discovery_engine_industry_vertical
+  content_config    = local.discovery_engine_content_config
+  solution_types    = local.discovery_engine_solution_types
   kms_key_name      = local.cmek_key_id
   provider          = google-beta
 
   document_processing_config {
     default_parsing_config {
-      digital_parsing_config {}
+      dynamic "digital_parsing_config" {
+        for_each = local.discovery_engine_parsing_mode == "digital_parsing_config" ? [1] : []
+        content {}
+      }
     }
   }
 
@@ -153,6 +171,10 @@ resource "google_bigquery_table" "gemini_enterprise_bq_table" {
   table_id            = each.value.table_id
   deletion_protection = false
 
+  encryption_configuration {
+    kms_key_name = local.cmek_key_id
+  }
+
   # Define a default schema, users can adapt this as needed
   schema = <<EOF
 [
@@ -190,6 +212,13 @@ resource "random_string" "bq_suffix" {
   length  = 6
   special = false
   upper   = false
+  keepers = {
+    industry_vertical = local.discovery_engine_industry_vertical
+    solution_types    = join(",", local.discovery_engine_solution_types)
+    content_config    = local.discovery_engine_content_config
+    kms_key_name      = local.cmek_key_id
+    parsing_mode      = local.discovery_engine_parsing_mode
+  }
 }
 
 # ---------------------------------------------------------------------------- #
@@ -202,12 +231,21 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_bq_data_store" 
   location                     = var.geolocation # Must match the Data Store and Engine location
   data_store_id                = "${replace(each.value.dataset_id, "_", "-")}-bq-data-store-${random_string.bq_suffix[each.key].result}"
   display_name                 = "${each.value.dataset_id} - ${each.value.table_id}"
-  industry_vertical            = "GENERIC"
-  content_config               = "CONTENT_REQUIRED"
-  solution_types               = ["SOLUTION_TYPE_SEARCH"]
+  industry_vertical            = local.discovery_engine_industry_vertical
+  content_config               = local.discovery_engine_content_config
+  solution_types               = local.discovery_engine_solution_types
   kms_key_name                 = local.cmek_key_id
   skip_default_schema_creation = true
   provider                     = google-beta
+
+  document_processing_config {
+    default_parsing_config {
+      dynamic "digital_parsing_config" {
+        for_each = local.discovery_engine_parsing_mode == "digital_parsing_config" ? [1] : []
+        content {}
+      }
+    }
+  }
 
   depends_on = [
     google_discovery_engine_cmek_config.default,

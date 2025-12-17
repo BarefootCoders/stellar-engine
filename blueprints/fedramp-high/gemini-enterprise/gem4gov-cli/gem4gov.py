@@ -20,6 +20,7 @@ from data_stores import (
     create_bq_data_store,
     create_data_store_schema,
     import_bq_documents,
+    list_data_stores,
 )
 from auth import (
     get_credentials,
@@ -410,7 +411,8 @@ def onboard():
     else:
         click.echo(click.style("Let's now create the Gemini Enterprise application, connect the data store(s), and configure some of it's default settings to comply with the regulatory boundary indicated (if applicable)", fg='yellow'))
     engine_display_name = click.prompt('Please enter a Display Name for the Gemini Enterprise application').strip()
-    company_name = click.prompt('Please enter the Company Name').strip()
+    company_name = click.prompt('Please enter the Agency / Department Name (no abbreviations)').strip()
+    click.echo(nl=True)
     engine_id = generate_id('g4g-gem-ent-app-')
     create_engine(credentials, project_id, engine_id, engine_display_name, company_name, data_store_list)
     if idp_type == "THIRD_PARTY" and (workforce_pool_id and workforce_provider_id):
@@ -575,21 +577,101 @@ def update_compliance(project_id, engine_id, compliance_regime):
     click.echo(click.style(f"Gemini Enterprise Widget Config ID: {config_id}", fg='green'))
 
 
-@app.command("set-idp")
+@app.command("update-idp")
 @click.option('--project-id', required=True, help='GCP Project ID')
 @click.option('--engine-id', required=True, help='Gemini Enterprise Engine ID')
 @click.option('--workforce-pool-id', required=True, help='Workforce Identity Pool ID')
 @click.option('--workforce-provider-id', required=True, help='Workforce Identity Provider ID')
-def set_idp(project_id, engine_id, workforce_pool_id, workforce_provider_id):
+def update_idp(project_id, engine_id, workforce_pool_id, workforce_provider_id):
     """Configures the Identity Provider for a Gemini Enterprise application widget."""
     credentials = get_credentials()
     configure_idp_for_widget(credentials, project_id, engine_id, workforce_pool_id, workforce_provider_id)
 
 
+##############################################################
+################       gem4gov datastore      ################
+##############################################################
+
+@cli.group()
+def datastore():
+    """Manage Gemini Enterprise data stores."""
+    pass
+
+@datastore.command("import")
+@click.option('--project-id', required=True, help='GCP Project ID')
+@click.option('--source-type', required=True, type=click.Choice(['gcs', 'bigquery']), help='Source of the documents to import')
+@click.option('--data-store-id', required=False, help='Gemini Enterprise Data Store ID')
+def import_documents(project_id, source_type, data_store_id):
+    """Import documents into a Gemini Enterprise data store."""
+    credentials = get_credentials()
+    
+    # Set quota project
+    credentials = credentials.with_quota_project(project_id)
+    
+    import_documents_helper(credentials, project_id, source_type, data_store_id)
+
+
+def import_documents_helper(credentials, project_id, source_type, data_store_id=None):
+    """Helper to import documents into a selected data store."""
+    if not data_store_id:
+        click.echo(nl=True)
+        click.echo(click.style(f"Fetching available Gemini Enterprise data stores for import destination...", fg='yellow'))
+        
+        # List and select data store
+        data_store_id = list_data_stores(credentials, project_id)
+    
+    if not data_store_id or data_store_id == 'none':
+        click.echo("No data store selected. Exiting import process.")
+        return
+
+    # Validate data store exists
+    click.echo(f"Inspecting data store: {data_store_id}...")
+    ds_details = validate_data_store(credentials, project_id, data_store_id)
+    
+    if not ds_details.get('valid', False):
+        click.echo(click.style(f"Data Store {data_store_id} could not be validated or does not exist.", fg='red'))
+        if not click.confirm("Do you want to proceed anyway?"):
+            return
+
+    # Dispatch based on source-type
+    if source_type == 'gcs':
+        # GCS Data Store
+        click.echo(click.style("Importing from Google Cloud Storage.", fg='green'))
+        gcs_uri = click.prompt('Please enter the GCS URI to the documents (e.g., gs://my-bucket/path/to/docs)', type=str).strip()
+        
+        if not gcs_uri.startswith("gs://"):
+            click.echo(click.style("Invalid URI. Must start with 'gs://'.", fg='red'))
+            return
+
+        # Parse bucket and prefix
+        # gs://bucket/prefix...
+        parts = gcs_uri[5:].split('/', 1)
+        bucket_name = parts[0]
+        prefix = parts[1] if len(parts) > 1 else ""
+        
+        # Let's clean the prefix
+        prefix = prefix.strip('/')
+        if prefix:
+             path_prefix = f"{prefix}/**"
+        else:
+             path_prefix = "**"
+        
+        click.echo(f"Importing from: gs://{bucket_name}/{path_prefix}")
+        
+        if click.confirm("Proceed with import?"):
+            import_gcs_documents(credentials, project_id, data_store_id, bucket_name, path_prefix)
+            click.echo(click.style("Import operation started successfully.", fg='green'))
+            
+    elif source_type == 'bigquery':
+        click.echo(click.style("BigQuery import via this command is not yet implemented.", fg='yellow'))
+        click.echo("Please use the 'onboard' command for BigQuery data store creation and initial import.")
+
+
 def create_application_logic(credentials, project_id, data_store_list, workforce_pool_id, workforce_provider_id, compliance_regime=None):
     """Shared logic for creating a Gemini Enterprise application."""
     engine_display_name = click.prompt('Please enter a Display Name for the Gemini Enterprise application').strip()
-    company_name = click.prompt('Please enter the Company Name').strip()
+    company_name = click.prompt('Please enter the Agency / Department Name (no abbreviations)').strip()
+    click.echo(nl=True)
     engine_id = generate_id('g4g-gem-ent-app-' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=4)))
     
     create_engine(credentials, project_id, engine_id, engine_display_name, company_name, data_store_list)
@@ -634,6 +716,27 @@ def create_application_logic(credentials, project_id, data_store_list, workforce
     click.echo(click.style("Application creation complete!", fg='green'))
     click.echo(click.style(f"Gemini Enterprise Application ID: {engine_id}", fg='green'))
     click.echo(click.style(f"Gemini Enterprise Widget Config ID: {config_id}", fg='green'))
+    if data_store_list:
+        click.echo(click.style(f"Gemini Enterprise Data Store IDs: {', '.join(data_store_list)}", fg='green'))
+        for ds_id in data_store_list:
+            click.echo(click.style(f"Data Store URL ({ds_id}): https://console.cloud.google.com/gen-app-builder/locations/us/engines/{engine_id}/collections/default_collection/data-stores/{ds_id}/data/documents?project={project_id}", fg='green'))
+    
+    click.echo(nl=True)
+    click.echo(nl=True)
+
+    if config_id:
+        if workforce_pool_id and workforce_provider_id:
+            # URL encode the continue URL
+            import urllib.parse
+            continue_url = f"https://vertexaisearch.cloud.google/us/home/cid/{config_id}"
+            encoded_continue_url = urllib.parse.quote(continue_url, safe='')
+            final_url = f"https://auth.cloud.google/signin/locations/global/workforcePools/{workforce_pool_id}/providers/{workforce_provider_id}?continueUrl={encoded_continue_url}&hl=en_US"
+            click.echo(click.style(f"Gemini Enterprise UI URL: {final_url}", fg='green'))
+        else:
+            click.echo(click.style(f"Gemini Enterprise UI URL: https://vertexaisearch.cloud.google.com/us/home/cid/{config_id}?hl=en_US", fg='green'))
+    
+    click.echo(nl=True)
+    click.echo(click.style("NOTE: Please wait approximately 10 minutes before using your Gemini Enterprise application as it finishes provisioning.", fg='yellow'))
 
     return engine_id, config_id
 

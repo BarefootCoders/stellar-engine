@@ -113,6 +113,18 @@ variable "access_end_day" {
   default     = 5
 }
 
+variable "access_time_zone" {
+  description = "The timezone for time-based access controls (e.g. America/New_York)."
+  type        = string
+  default     = "America/New_York"
+}
+
+variable "access_expiration_timestamp" {
+  description = "The timestamp when access expires (RFC 3339 format, e.g. 2028-01-01T00:00:00Z)."
+  type        = string
+  default     = "2028-01-01T00:00:00Z"
+}
+
 variable "kms_key_id" {
   description = "The full resource name of the Cloud KMS key to use for CMEK (e.g. projects/p/locations/l/keyRings/r/cryptoKeys/k). If not provided, a new key will be created."
   type        = string
@@ -129,8 +141,44 @@ variable "deployment_type" {
   }
 }
 
-variable "create_access_policies" {
-  description = "Whether to create Access Context Manager policies. Set to false if they already exist."
+variable "create_ip_based_access" {
+  description = "Whether to create the IP-based access level."
+  type        = bool
+  default     = true
+}
+
+variable "create_us_access" {
+  description = "Whether to create the US-only access level."
+  type        = bool
+  default     = true
+}
+
+variable "create_time_access" {
+  description = "Whether to create the Time-based access level."
+  type        = bool
+  default     = true
+}
+
+variable "create_expire_access" {
+  description = "Whether to create the Expiration access level."
+  type        = bool
+  default     = true
+}
+
+variable "create_lenient_device_access" {
+  description = "Whether to create the Lenient device access level."
+  type        = bool
+  default     = true
+}
+
+variable "create_moderate_device_access" {
+  description = "Whether to create the Moderate device access level."
+  type        = bool
+  default     = true
+}
+
+variable "create_strict_device_access" {
+  description = "Whether to create the Strict device access level."
   type        = bool
   default     = true
 }

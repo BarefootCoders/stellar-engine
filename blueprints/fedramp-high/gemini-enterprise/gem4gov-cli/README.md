@@ -152,3 +152,34 @@ gem4gov app update-compliance --project-id <PROJECT_ID> --engine-id <ENGINE_ID> 
 *   Disables unauthorized features (e.g., Private Knowledge Graph, Location Context).
 *   Updates the Default Search Widget to disable user event collection.
 *   Disables Implicit Model Caching for the project.
+
+### `gem4gov app update-idp`
+
+Configures the Identity Provider for a Gemini Enterprise application widget.
+
+```bash
+gem4gov app update-idp --project-id <PROJECT_ID> --engine-id <ENGINE_ID> --workforce-pool-id <POOL_ID> --workforce-provider-id <PROVIDER_ID>
+```
+
+**Options:**
+*   `--project-id`: (Required) GCP Project ID.
+*   `--engine-id`: (Required) The ID of the Gemini Enterprise Engine.
+*   `--workforce-pool-id`: (Required) Workforce Identity Pool ID.
+*   `--workforce-provider-id`: (Required) Workforce Identity Provider ID.
+
+### `gem4gov datastore import`
+
+Import documents into a Gemini Enterprise data store.
+
+```bash
+gem4gov datastore import --project-id <PROJECT_ID> --source-type <SOURCE_TYPE> [OPTIONS]
+```
+
+**Options:**
+*   `--project-id`: (Required) GCP Project ID.
+*   `--source-type`: (Required) Source of documents. Values: `gcs`, `bigquery`.
+*   `--data-store-id`: (Optional) The ID of the data store. If not provided, you will be prompted to select one.
+
+**Behavior:**
+*   **GCS**: Prompts for the GCS URI (`gs://bucket/path`) and imports documents.
+*   **BigQuery**: Not currently supported via this command (use `onboard`).

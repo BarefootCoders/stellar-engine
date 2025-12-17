@@ -42,6 +42,7 @@ def validate_data_store(credentials, project_id, data_store_id):
         kms_key_name = data_store.get('cmekConfig', {}).get('kmsKey', None)
         idp_type = data_store.get('idpConfig', {}).get('idpType', None)
         acl_enabled = data_store.get('aclEnabled', False)
+        content_config = data_store.get('contentConfig', None)
 
         if industry_vertical == 'GENERIC' and kms_key_name != None:
             valid_response = {
@@ -53,7 +54,8 @@ def validate_data_store(credentials, project_id, data_store_id):
                 "solution_types": solution_types,
                 "kms_key_name": kms_key_name,
                 "idp_type": idp_type,
-                "acl_enabled": acl_enabled
+                "acl_enabled": acl_enabled,
+                "content_config": content_config
             }
         else:
             valid_response = {
@@ -65,7 +67,8 @@ def validate_data_store(credentials, project_id, data_store_id):
                 "solution_types": solution_types,
                 "kms_key_name": kms_key_name,
                 "idp_type": idp_type,
-                "acl_enabled": acl_enabled
+                "acl_enabled": acl_enabled,
+                "content_config": content_config
             }
         return valid_response
 
@@ -96,25 +99,19 @@ def list_data_stores(credentials, project_id):
             valid_data_stores = [ds for ds in data_stores if "SOLUTION_TYPE_SEARCH" in ds.get("solutionTypes", [])]
 
         if valid_data_stores:
-            click.echo("Found existing data stores:")
+            click.echo("Select a data store:")
             for i, ds in enumerate(valid_data_stores):
                 click.echo(f"{i + 1}) {ds['displayName']} ({ds['name'].split('/')[-1]})")
 
-        option_offset = len(valid_data_stores)
-        click.echo(f"{option_offset + 1}) Create a new data store")
-        click.echo(f"{option_offset + 2}) No data store required")
-
         choice = click.prompt(
-            'Select an existing data store, create a new one, or proceed without a data store',
-            type=click.IntRange(1, len(valid_data_stores) + 2)
+            'Please enter the number for your response',
+            type=click.IntRange(1, len(valid_data_stores))
         )
 
         if choice <= len(valid_data_stores):
             return valid_data_stores[choice - 1]['name'].split('/')[-1]
-        elif choice == len(valid_data_stores) + 1:
-            return None # Create new
-        else: # choice == len(valid_data_stores) + 2
-            return 'none' # No data store
+        else: # invalid choice
+            return None
 
     except Exception as e:
         click.echo(click.style(f"An error occurred while listing data stores: {parse_http_error(e)}", fg=(255,165,0)))

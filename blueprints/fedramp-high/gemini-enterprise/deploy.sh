@@ -46,7 +46,15 @@ print_header() {
 }
 
 pause() {
+    echo ""
     read -p "Press Enter to continue..."
+}
+
+normalize_environment() {
+    # Capitalize first letter of Environment (e.g. prod -> Prod)
+    if [[ -n "$ENVIRONMENT" ]]; then
+        CAP_ENV=$(echo "$ENVIRONMENT" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+    fi
 }
 
 check_dependencies() {
@@ -185,6 +193,7 @@ auth_and_project_setup() {
 }
 
 enable_apis() {
+    echo ""
     echo -e "${BLUE}--- Enabling Required APIs ---${NC}"
     echo "Enabling: Assured Workloads, Access Context Manager, Org Policy, KMS, Storage, IAM, Service Usage..."
     if ! gcloud services enable \
@@ -208,9 +217,10 @@ enable_apis() {
 # --- Deployment Configuration ---
 
 select_deployment_type() {
+    echo ""
     echo -e "${BLUE}--- Deployment Topology Selection ---${NC}"
-    echo "1. Brownfield (Stellar Engine Integration)"
-    echo "2. Greenfield (New GCP Project Deployment)"
+    echo "1. Greenfield (New GCP Project Deployment)"
+    echo "2. Brownfield (Stellar Engine Integration)"
     echo "3. Custom Brownfield (Manual Configuration)"
     read -p "Select an option [1-3]: " DEPLOYMENT_CHOICE
 
@@ -219,13 +229,13 @@ select_deployment_type() {
         return 1
     fi
 
-    if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then # Brownfield
-        DEPLOYMENT_TYPE_TEXT="Brownfield (Stellar Engine Integration)"
-        IS_BROWNFIELD="true"
-        IS_CUSTOM="false"
-    elif [[ "$DEPLOYMENT_CHOICE" == "2" ]]; then # Greenfield
+    if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then # Greenfield
         DEPLOYMENT_TYPE_TEXT="Greenfield (New GCP Project Deployment)"
         IS_BROWNFIELD="false"
+        IS_CUSTOM="false"
+    elif [[ "$DEPLOYMENT_CHOICE" == "2" ]]; then # Brownfield
+        DEPLOYMENT_TYPE_TEXT="Brownfield (Stellar Engine Integration)"
+        IS_BROWNFIELD="true"
         IS_CUSTOM="false"
     elif [[ "$DEPLOYMENT_CHOICE" == "3" ]]; then # Custom Brownfield
         DEPLOYMENT_TYPE_TEXT="Custom Brownfield (Manual Configuration)"
@@ -246,6 +256,7 @@ discover_infrastructure() {
     CMEK_STATE_KEY=""
     CMEK_US_RESOURCES_KEY=""
 
+    echo ""
     echo -e "${BLUE}--- Infrastructure Discovery ---${NC}"
 
     # 0. Prefix Discovery
@@ -253,13 +264,11 @@ discover_infrastructure() {
         PREFIX=$(echo "$PROJECT_ID" | cut -d'-' -f1 | cut -d'-' -f1-6)
         echo -e "Derived Prefix: ${YELLOW}${PREFIX}${NC}"
     elif [[ "$IS_CUSTOM" == "true" ]]; then
-        read -p "Enter a prefix for your resources: " INPUT_PREFIX
+        read -p "Enter a prefix for your resources (<= 6 characters): " INPUT_PREFIX
         PREFIX=${INPUT_PREFIX:-"sedev"}
-        echo -e "Using Prefix: ${YELLOW}${PREFIX}${NC}"
     else 
         # Greenfield
-        read -p "Enter a prefix for your resources: " PREFIX
-        echo -e "Using Prefix: ${YELLOW}${PREFIX}${NC}"
+        read -p "Enter a prefix for your resources (<= 6 characters): " PREFIX
     fi
 
     if [[ "$IS_BROWNFIELD" == "true" ]]; then
@@ -288,6 +297,8 @@ discover_infrastructure() {
             TENANT="$TENANT_VAL"
         fi
         
+        normalize_environment
+        
         # 2. Check Tenant IaC Project
         POTENTIAL_IAC_PROJECT="${PREFIX}-${ENVIRONMENT}-${TENANT}-iac-core-0"
         echo "Checking for Tenant IaC Project: ${POTENTIAL_IAC_PROJECT}..."
@@ -311,23 +322,22 @@ discover_infrastructure() {
 
         # 3. Check State Bucket
         POTENTIAL_BUCKET="${PREFIX}-${ENVIRONMENT}-${TENANT}-iac-0"
-        echo "Checking for State Bucket: ${POTENTIAL_BUCKET}..."
+        echo "Checking for Terraform State Bucket: ${POTENTIAL_BUCKET}..."
         if gcloud storage buckets describe "gs://${POTENTIAL_BUCKET}" &>/dev/null; then
             STATE_BUCKET="${POTENTIAL_BUCKET}"
-            echo -e "Found State Bucket: ${GREEN}${STATE_BUCKET}${NC}"
+            echo -e "Found Terraform State Bucket: ${GREEN}${STATE_BUCKET}${NC}"
         else
-             echo -e "${YELLOW}State Bucket not found (Will be created).${NC}"
+             echo -e "${YELLOW}Terraform State Bucket not found (Will be created).${NC}"
              STATE_BUCKET=""
         fi
 
         # 4. Check Keyrings and Keys
         # Prioritize US Multi-Region for CMEK_US_KEYRING
-        echo "Checking for CMEK Keys..."
+        echo "Searching for CMEK Keyring in the US multi-region..."
         
         CMEK_PROJECT_ID="${TENANT_IAC_PROJECT}"
         # Capitalize first letter of Environment for KeyRing name (e.g. prod -> Prod)
-        ENV_CAPITALIZED="$(echo "${ENVIRONMENT:0:1}" | tr '[:lower:]' '[:upper:]')${ENVIRONMENT:1}"
-        US_KEYRING_NAME="${ENV_CAPITALIZED}-${TENANT}-keyring"
+        US_KEYRING_NAME="${CAP_ENV}-${TENANT}-keyring"
         US_KEYRING_ID="projects/${CMEK_PROJECT_ID}/locations/us/keyRings/${US_KEYRING_NAME}"
         
         # Check US Keyring
@@ -338,14 +348,14 @@ discover_infrastructure() {
             # Check 'gcs' key in US Keyring
             GCS_KEY_ID="${CMEK_US_KEYRING}/cryptoKeys/gcs"
             if gcloud kms keys describe "${GCS_KEY_ID}" &>/dev/null; then
-                 echo -e "Found US GCS Key: ${GREEN}gcs${NC}"
+                 echo -e "Found US GCS Crypto Key: ${GREEN}gcs${NC}"
                  CMEK_STATE_KEY="${GCS_KEY_ID}"
             fi
             
             # Check 'gemini-enterprise' key in US Keyring
             GEMINI_KEY_ID="${CMEK_US_KEYRING}/cryptoKeys/gemini-enterprise"
             if gcloud kms keys describe "${GEMINI_KEY_ID}" &>/dev/null; then
-                 echo -e "Found Gemini Key: ${GREEN}gemini-enterprise${NC}"
+                 echo -e "Found US Gemini Enterprise Crypto Key: ${GREEN}gemini-enterprise${NC}"
                  CMEK_US_RESOURCES_KEY="${GEMINI_KEY_ID}"
             fi
         else
@@ -357,25 +367,24 @@ discover_infrastructure() {
         if [[ -z "$CMEK_STATE_KEY" ]]; then
              # If state bucket exists, check what key protects it
              if [[ -n "$STATE_BUCKET" ]]; then
-                  echo "Checking State Bucket encryption..."
-                  BUCKET_KEY=$(gcloud storage buckets describe "gs://${STATE_BUCKET}" --format="value(default_kms_key)" 2>/dev/null || true)
+                  echo "Checking Terraform State Bucket encryption..."
+                  BUCKET_JSON=$(gcloud storage buckets describe "gs://${STATE_BUCKET}" --format="json" 2>/dev/null || echo "{}")
+                  BUCKET_KEY=$(echo "$BUCKET_JSON" | jq -r '.default_kms_key // .default_kms_key_name // .encryption.defaultKmsKeyName // empty')
                   if [[ -n "$BUCKET_KEY" ]]; then
                        CMEK_STATE_KEY="${BUCKET_KEY}"
-                       echo -e "Using Existing State Bucket Key: ${YELLOW}${CMEK_STATE_KEY}${NC}"
+                       echo -e "Using Existing Terraform State Bucket Crypto Key: ${YELLOW}${CMEK_STATE_KEY}${NC}"
                   fi
              fi
              
              # If still no key, check regional keyring
-             if [[ -z "$CMEK_STATE_KEY" ]]; then
-                  # Capitalize first letter of Environment for KeyRing name (e.g. prod -> Prod)
-                  ENV_CAPITALIZED="$(echo "${ENVIRONMENT:0:1}" | tr '[:lower:]' '[:upper:]')${ENVIRONMENT:1}"
-                  REGIONAL_KEYRING_ID="projects/${CMEK_PROJECT_ID}/locations/${REGION}/keyRings/${ENV_CAPITALIZED}-${TENANT}-keyring"
+              if [[ -z "$CMEK_STATE_KEY" ]]; then
+                   REGIONAL_KEYRING_ID="projects/${CMEK_PROJECT_ID}/locations/${REGION}/keyRings/${CAP_ENV}-${TENANT}-keyring"
                   echo "Checking Regional Keyring: ${REGIONAL_KEYRING_ID}..."
                   if gcloud kms keyrings describe "${REGIONAL_KEYRING_ID}" &>/dev/null; then
                         REGIONAL_GCS_KEY="${REGIONAL_KEYRING_ID}/cryptoKeys/gcs"
                         if gcloud kms keys describe "${REGIONAL_GCS_KEY}" &>/dev/null; then
                              CMEK_STATE_KEY="${REGIONAL_GCS_KEY}"
-                             echo -e "Found Regional GCS Key: ${YELLOW}${CMEK_STATE_KEY}${NC}"
+                             echo -e "Found Regional GCS Crypto Key: ${YELLOW}${CMEK_STATE_KEY}${NC}"
                         fi
                   fi
              fi
@@ -387,13 +396,15 @@ discover_infrastructure() {
 
     elif [[ "$IS_CUSTOM" == "true" ]]; then
         read -p "Enter Environment identifier (e.g., prod): " ENVIRONMENT
+        normalize_environment
         read -p "Enter Tenant IaC Project ID: " TENANT_IAC_PROJECT
         
         # State Bucket
         read -p "Enter Terraform State Bucket Name (leave blank to create): " STATE_BUCKET
         if [[ -n "$STATE_BUCKET" ]]; then
              # Validate Encryption
-             BUCKET_KEY=$(gcloud storage buckets describe "gs://${STATE_BUCKET}" --format="value(encryption.defaultKmsKeyName)" 2>/dev/null || true)
+             BUCKET_JSON=$(gcloud storage buckets describe "gs://${STATE_BUCKET}" --format="json" 2>/dev/null || echo "{}")
+             BUCKET_KEY=$(echo "$BUCKET_JSON" | jq -r '.default_kms_key // .default_kms_key_name // .encryption.defaultKmsKeyName // empty')
              if [[ -z "$BUCKET_KEY" ]]; then
                   echo -e "${RED}WARNING: State Bucket '${STATE_BUCKET}' is NOT encrypted with CMEK.${NC}"
                   echo -e "Compliance requires CMEK. A new bucket will be created."
@@ -401,7 +412,7 @@ discover_infrastructure() {
                   CMEK_STATE_KEY=""
              else
                   CMEK_STATE_KEY="${BUCKET_KEY}"
-                  echo -e "Using Key from Bucket: ${YELLOW}${CMEK_STATE_KEY}${NC}"
+                  echo -e "Using Existing Terraform State Bucket Crypto Key: ${YELLOW}${CMEK_STATE_KEY}${NC}"
              fi
         fi
         
@@ -413,8 +424,9 @@ discover_infrastructure() {
         # Greenfield
         # Greenfield (No Landing Zone)
         read -p "Enter Environment identifier (e.g., prod): " ENVIRONMENT
+        normalize_environment
         TENANT_IAC_PROJECT=""
-        STATE_BUCKET=""
+        STATE_BUCKET="${PREFIX}-${ENVIRONMENT}-${TENANT}-tfstate-0"
         CMEK_PROJECT_ID="${PROJECT_ID}"
         CMEK_STATE_KEY=""
         CMEK_US_KEYRING=""
@@ -424,16 +436,18 @@ discover_infrastructure() {
 }
 
 ensure_prerequisites() {
+    echo ""
     echo -e "${BLUE}--- Ensuring Prerequisites ---${NC}"
     
     # Defaults
     ENVIRONMENT=${ENVIRONMENT:-"prod"}
+    normalize_environment
     
     # 1. State Key Creation (if missing)
     if [[ -z "$CMEK_STATE_KEY" ]]; then
-        echo -e "${YELLOW}CMEK State Key not found. Creating...${NC}"
+        echo -e "${YELLOW}Searching for CMEK State Key in the US multi-region...${NC}"
         
-        KEYRING_NAME="${ENVIRONMENT}-${TENANT}-keyring"
+        KEYRING_NAME="${CAP_ENV}-${TENANT}-keyring"
         KEY_NAME="gcs"
         LOCATION="us"
         
@@ -463,10 +477,10 @@ ensure_prerequisites() {
         fi
         
         CMEK_STATE_KEY="${FULL_KEY_NAME}"
-        echo -e "Created/Selected State Key: ${GREEN}${CMEK_STATE_KEY}${NC}"
+        echo -e "Using CMEK State Key: ${GREEN}${CMEK_STATE_KEY}${NC}"
         
         # Grant Permissions
-        echo "Granting permissions on State Key..."
+        echo -e "${YELLOW}Granting permissions on CMEK State Key...${NC}"
         CURRENT_USER=$(gcloud config get-value account 2>/dev/null)
         
         # User
@@ -483,15 +497,52 @@ ensure_prerequisites() {
         
         BUCKET_PROJECT_NUMBER=$(gcloud projects describe "${BUCKET_PROJECT}" --format="value(projectNumber)")
         STORAGE_SA="service-${BUCKET_PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com"
+               if gcloud kms keys add-iam-policy-binding "${CMEK_STATE_KEY}" \
+             --member="serviceAccount:${STORAGE_SA}" \
+             --role="roles/cloudkms.cryptoKeyEncrypterDecrypter" --quiet &>/dev/null; then
+             echo -e "${GREEN}Granted Storage SA (${STORAGE_SA}) access to CMEK State Key.${NC}"
+        else
+             echo -e "${YELLOW}Warning: Could not grant Storage SA access. Check permissions.${NC}"
+        fi
+    fi
+    
+    # 2. State Bucket Creation (Greenfield only)
+    echo -e "${YELLOW}Searching for Terraform State Bucket...${NC}"
+    if [[ "$IS_BROWNFIELD" == "false" && "$IS_CUSTOM" == "false" ]]; then
+         # Ensure BUCKET_NAME is set from STATE_BUCKET if not already
+        if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
+            BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+        fi
         
-        gcloud kms keys add-iam-policy-binding "${CMEK_STATE_KEY}" \
-            --member="serviceAccount:${STORAGE_SA}" \
-            --role="roles/cloudkms.cryptoKeyEncrypterDecrypter" --quiet
+        # Use CMEK_STATE_KEY if available (derived above)
+        KMS_KEY_ID="${CMEK_STATE_KEY}"
+
+        if ! gcloud storage buckets describe "gs://${BUCKET_NAME}" &>/dev/null; then
+            echo "Creating state bucket gs://${BUCKET_NAME}..."
+            
+            # Grant Storage Service Agent access to CMEK if used (Double Check / Re-grant just in case)
+            if [[ -n "$KMS_KEY_ID" ]]; then
+                PROJECT_NUMBER=$(gcloud projects describe "${PROJECT_ID}" --format="value(projectNumber)")
+                STORAGE_SA="service-${PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com"
+                
+                echo "Ensuring Storage Service Agent (${STORAGE_SA}) has access to ${KMS_KEY_ID}..."
+                gcloud kms keys add-iam-policy-binding "${KMS_KEY_ID}" \
+                    --member="serviceAccount:${STORAGE_SA}" \
+                    --role="roles/cloudkms.cryptoKeyEncrypterDecrypter" \
+                    --project="${CMEK_PROJECT_ID}" &>/dev/null || echo "Warning: Failed to grant IAM binding on key."
+                
+                gcloud storage buckets create "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" --location "us" --uniform-bucket-level-access --default-encryption-key="${KMS_KEY_ID}"
+            else
+                gcloud storage buckets create "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" --location "us" --uniform-bucket-level-access
+            fi
+        else
+            echo -e "Using Terraform State Bucket: ${GREEN}${BUCKET_NAME}${NC}"
+        fi
     fi
 
     # 2. State Bucket Creation (if missing)
     if [[ -z "$STATE_BUCKET" ]]; then
-        echo -e "${YELLOW}State Bucket not found. Creating...${NC}"
+        echo -e "${YELLOW}Terraform State Bucket not found. Creating...${NC}"
         
         if [[ -n "$TENANT_IAC_PROJECT" ]]; then
              BUCKET_PROJECT="${TENANT_IAC_PROJECT}"
@@ -525,8 +576,10 @@ ensure_prerequisites() {
         fi
         
         STATE_BUCKET="${NEW_BUCKET_NAME}"
-        echo -e "Created State Bucket: ${GREEN}${STATE_BUCKET}${NC}"
+        echo -e "Using Terraform State Bucket: ${GREEN}${STATE_BUCKET}${NC}"
     fi
+
+    echo -e "${GREEN}Prerequisites met successfully${NC}"
     
     return 0
 }
@@ -622,7 +675,214 @@ check_org_policies() {
     return 0
 }
 
+configure_access_policies() {
+    echo -e "${BLUE}--- Configure Access Policies ---${NC}"
+    
+    # Initialize Defaults
+    CREATE_IP_BASED_ACCESS="true"
+    CREATE_US_ACCESS="true"
+    CREATE_TIME_ACCESS="true"
+    CREATE_EXPIRE_ACCESS="true"
+    CREATE_LENIENT_DEVICE_ACCESS="true"
+    CREATE_MODERATE_DEVICE_ACCESS="true"
+    CREATE_STRICT_DEVICE_ACCESS="true"
+    ENABLE_CEP_BOOL="false"
+    
+    # Existing Access Levels Check
+    echo "Checking for existing Access Levels in Policy ${ACCESS_POLICY_NUMBER}..."
+    EXISTING_LEVELS=$(gcloud access-context-manager levels list --policy="${ACCESS_POLICY_NUMBER}" --format="value(name)" || echo "")
+    
+    # 1. IP Based Access
+    echo ""
+    echo -e "--- IP Based Access ---"
+    EXISTING_IP_ACCESS=$(echo "$EXISTING_LEVELS" | grep -E "(/|^)ip_based_access$" || true)
+    
+    if [[ -n "$EXISTING_IP_ACCESS" ]]; then
+        # Check if managed by Terraform
+        if [[ "$MANAGED_ACCESS_LEVELS" == *"ip_based_access"* ]]; then
+             echo -e "${GREEN}Found existing MANAGED Access Level 'ip_based_access'. Preserving/Updating.${NC}"
+             CREATE_IP_BASED_ACCESS="true"
+             # Still offer to add IPs
+             read -p "Do you want to add additional IP ranges? (y/N): " ADD_IPS
+        else
+             echo -e "${YELLOW}Access Level 'ip_based_access' already exists (Unmanaged).${NC}"
+             echo "Current Configuration:"
+             gcloud access-context-manager levels describe ip_based_access --policy="${ACCESS_POLICY_NUMBER}" --format="value(basic.conditions.ipSubnetworks)" 2>/dev/null || echo "Error fetching IPs"
+             
+             read -p "Do you want to add additional IP ranges? (y/N): " ADD_IPS
+             if [[ "$ADD_IPS" == "y" || "$ADD_IPS" == "Y" ]]; then
+                 CREATE_IP_BASED_ACCESS="true"
+             else
+                 echo "Skipping update of 'ip_based_access'."
+                 CREATE_IP_BASED_ACCESS="false"
+             fi
+        fi
+    else
+        echo "Access Level 'ip_based_access' does not exist."
+        CREATE_IP_BASED_ACCESS="true"
+    fi
+    
+    # Prompt for IPs if we are creating or updating
+    ALLOWED_IPS="[]"
+    if [[ "$CREATE_IP_BASED_ACCESS" == "true" ]]; then
+        echo ""
+        echo "Enter IP ranges allowed to access the Load Balancer (CIDR format)."
+        echo "RECOMMENDED: Set this to the IP range of the agency's corporate gateway."
+        read -p "Enter IP Ranges (comma-separated, e.g., 203.0.113.0/24): " IP_RANGES_INPUT
+        
+        if [[ -n "$IP_RANGES_INPUT" ]]; then
+            IFS=',' read -ra IP_ADDRS <<< "$IP_RANGES_INPUT"
+            JSON_IPS=""
+            for ip in "${IP_ADDRS[@]}"; do
+                ip=$(echo "$ip" | xargs)
+                if [[ -n "$JSON_IPS" ]]; then
+                    JSON_IPS="$JSON_IPS, \"$ip\""
+                else
+                    JSON_IPS="\"$ip\""
+                fi
+            done
+            ALLOWED_IPS="[$JSON_IPS]"
+        fi
+    fi
+
+    # 2. US Region Access
+    echo ""
+    echo -e "--- US Region Access ---"
+    if echo "$EXISTING_LEVELS" | grep -qE "(/|^)us$"; then
+        if [[ "$MANAGED_ACCESS_LEVELS" == *"us"* ]]; then
+             echo -e "${GREEN}Found existing MANAGED Access Level 'us'. Preserving.${NC}"
+             CREATE_US_ACCESS="true"
+        else
+             echo -e "${YELLOW}Access Level 'us' already exists (Unmanaged). Skipping.${NC}"
+             CREATE_US_ACCESS="false"
+        fi
+    else
+        read -p "Restrict incoming traffic to only originate from the 'US'? (y/N): " US_CHOICE
+        if [[ "$US_CHOICE" == "y" || "$US_CHOICE" == "Y" ]]; then
+            CREATE_US_ACCESS="true"
+        else
+            CREATE_US_ACCESS="false"
+        fi
+    fi
+
+    # 3. Time Based Access
+    echo ""
+    echo -e "--- Time Based Access ---"
+    if echo "$EXISTING_LEVELS" | grep -qE "(/|^)time$"; then
+        if [[ "$MANAGED_ACCESS_LEVELS" == *"time"* ]]; then
+             echo -e "${GREEN}Found existing MANAGED Access Level 'time'. Preserving.${NC}"
+             CREATE_TIME_ACCESS="true"
+        else
+             echo -e "${YELLOW}Access Level 'time' already exists (Unmanaged). Skipping.${NC}"
+             CREATE_TIME_ACCESS="false"
+        fi
+    else
+        read -p "Restrict incoming traffic based on a specific time schedule (Business Hours)? (y/N): " TIME_CHOICE
+        if [[ "$TIME_CHOICE" == "y" || "$TIME_CHOICE" == "Y" ]]; then
+            CREATE_TIME_ACCESS="true"
+            read -p "Enter Start Day (1=Mon, 7=Sun) [1]: " ACCESS_START_DAY
+            ACCESS_START_DAY=${ACCESS_START_DAY:-1}
+            read -p "Enter End Day (1=Mon, 7=Sun) [5]: " ACCESS_END_DAY
+            ACCESS_END_DAY=${ACCESS_END_DAY:-5}
+            read -p "Enter Start Hour (0-23) [7]: " ACCESS_START_HOUR
+            ACCESS_START_HOUR=${ACCESS_START_HOUR:-7}
+            read -p "Enter End Hour (0-23) [21]: " ACCESS_END_HOUR
+            ACCESS_END_HOUR=${ACCESS_END_HOUR:-21}
+            read -p "Enter Time Zone (e.g. America/New_York) [America/New_York]: " ACCESS_TIME_ZONE
+            ACCESS_TIME_ZONE=${ACCESS_TIME_ZONE:-"America/New_York"}
+        else
+            CREATE_TIME_ACCESS="false"
+        fi
+    fi
+
+    # 4. Expiration Access
+    echo ""
+    echo -e "--- Expiration Access ---"
+    if echo "$EXISTING_LEVELS" | grep -qE "(/|^)expire$"; then
+        if [[ "$MANAGED_ACCESS_LEVELS" == *"expire"* ]]; then
+             echo -e "${GREEN}Found existing MANAGED Access Level 'expire'. Preserving.${NC}"
+             CREATE_EXPIRE_ACCESS="true"
+        else
+             echo -e "${YELLOW}Access Level 'expire' already exists (Unmanaged). Skipping.${NC}"
+             CREATE_EXPIRE_ACCESS="false"
+        fi
+    else
+        read -p "Block incoming traffic after a certain expiration date? (y/N): " EXPIRE_CHOICE
+        if [[ "$EXPIRE_CHOICE" == "y" || "$EXPIRE_CHOICE" == "Y" ]]; then
+            CREATE_EXPIRE_ACCESS="true"
+            read -p "Enter Expiration Timestamp (RFC 3339 format, e.g. 2028-01-01T00:00:00Z) [2028-01-01T00:00:00Z]: " ACCESS_EXPIRATION_TIMESTAMP
+            ACCESS_EXPIRATION_TIMESTAMP=${ACCESS_EXPIRATION_TIMESTAMP:-"2028-01-01T00:00:00Z"}
+        else
+            CREATE_EXPIRE_ACCESS="false"
+        fi
+    fi
+
+    # 5. Chrome Enterprise Premium
+    echo ""
+    echo -e "--- Chrome Enterprise Premium ---"
+    read -p "Enable Chrome Enterprise Premium (Zero Trust) to access device-level attributes? (y/N): " CEP_CHOICE
+    if [[ "$CEP_CHOICE" == "y" || "$CEP_CHOICE" == "Y" ]]; then
+        ENABLE_CEP_BOOL="true"
+        echo -e "${YELLOW}Note: This requires an additional subscription.${NC}"
+        echo -e "Subscribe here: https://console.cloud.google.com/security/cep"
+    else
+        ENABLE_CEP_BOOL="false"
+    fi
+
+    # 6. Derived Device Policies
+    echo ""
+    echo -e "--- Device Policy Access Levels (Lenient / Moderate / Strict) ---"
+    
+    # Lenient Device
+    if echo "$EXISTING_LEVELS" | grep -qE "(/|^)lenient_device$"; then
+        if [[ "$MANAGED_ACCESS_LEVELS" == *"lenient_device"* ]]; then
+             CREATE_LENIENT_DEVICE_ACCESS="true"
+        else
+             CREATE_LENIENT_DEVICE_ACCESS="false"
+        fi
+    else
+        if [[ "$CREATE_US_ACCESS" == "true" || "$CREATE_IP_BASED_ACCESS" == "true" ]]; then
+            CREATE_LENIENT_DEVICE_ACCESS="true"
+        else
+            CREATE_LENIENT_DEVICE_ACCESS="false"
+        fi
+    fi
+    
+    # Moderate Device
+    if echo "$EXISTING_LEVELS" | grep -qE "(/|^)moderate_device$"; then
+        if [[ "$MANAGED_ACCESS_LEVELS" == *"moderate_device"* ]]; then
+             CREATE_MODERATE_DEVICE_ACCESS="true"
+        else
+             CREATE_MODERATE_DEVICE_ACCESS="false"
+        fi
+    else
+        if [[ "$CREATE_US_ACCESS" == "true" || "$CREATE_TIME_ACCESS" == "true" || "$CREATE_EXPIRE_ACCESS" == "true" || "$CREATE_IP_BASED_ACCESS" == "true" ]]; then
+            CREATE_MODERATE_DEVICE_ACCESS="true"
+        else
+            CREATE_MODERATE_DEVICE_ACCESS="false"
+        fi
+    fi
+    
+    # Strict Device
+    if echo "$EXISTING_LEVELS" | grep -qE "(/|^)strict_device$"; then
+        if [[ "$MANAGED_ACCESS_LEVELS" == *"strict_device"* ]]; then
+             CREATE_STRICT_DEVICE_ACCESS="true"
+        else
+             CREATE_STRICT_DEVICE_ACCESS="false"
+        fi
+    else
+        if [[ "$ENABLE_CEP_BOOL" == "true" ]]; then
+            CREATE_STRICT_DEVICE_ACCESS="true"
+        else
+            CREATE_STRICT_DEVICE_ACCESS="false"
+        fi
+    fi
+
+    echo -e "${GREEN}Access Policy Configuration Complete.${NC}"
+}
+
 configure_stage_0() {
+    echo ""
     echo -e "${BLUE}--- Configure Stage 0 (Infrastructure) ---${NC}"
     mkdir -p gemini-stage-0
     
@@ -631,11 +891,20 @@ configure_stage_0() {
         echo -e "${YELLOW}Found existing configuration.${NC}"
         read -p "Reuse existing configuration? (Y/n): " REUSE_CONFIG
         if [[ "$REUSE_CONFIG" != "n" && "$REUSE_CONFIG" != "N" ]]; then
-            echo "Using existing configuration."
+            echo -e "${GREEN}Using existing configuration.${NC}"
+            
+            # Extract CREATE_DS_BOOL from existing tfvars for "Action Required" message logic
+            echo -e "Using configuration to populate important environment variables..."
+            if grep -q "create_data_stores" gemini-stage-0/terraform.tfvars; then
+                EXISTING_DS_BOOL=$(grep "create_data_stores" gemini-stage-0/terraform.tfvars | awk -F'=' '{print $2}' | tr -d ' "')
+                if [[ "$EXISTING_DS_BOOL" == "true" ]]; then
+                    CREATE_DS_BOOL="true"
+                fi
+            fi
             
             # Even when reusing, check if Terraform State dictates we should suppress CMEK variables
             # This handles cases where resources were created, but tfvars still points to "new" logic
-            echo "Verifying CMEK configuration against Terraform State..."
+            echo -e "Checking configuration against existing resources in Terraform State..."
             cd gemini-stage-0
             
             # We need BUCKET_NAME. Try to grab it from deploy vars or tfvars
@@ -659,6 +928,20 @@ configure_stage_0() {
                      if terraform state list | grep -q "google_kms_crypto_key.gemini_enterprise"; then
                          echo -e "${YELLOW}gemini-enterprise Key found in Terraform State. Updating existing config to use managed resource.${NC}"
                          sed -i '' 's/kms_key_id *= *".*"/kms_key_id = ""/' terraform.tfvars 2>/dev/null || sed -i 's/kms_key_id *= *".*"/kms_key_id = ""/' terraform.tfvars
+                     fi
+                     
+                     if terraform state list | grep -q "google_access_context_manager_access_level"; then
+                         echo -e "${YELLOW}Access Levels found in Terraform State. Setting flags to preserve resources.${NC}"
+                         # If we find generic access levels we might want to default everything to true?
+                         # Or just rely on the granular discovery logic below if we don't overwrite them?
+                         # Requirement is to remove 'create_access_policies'.
+                         # The new logic relies on 'configure_access_policies' which is called later.
+                         # If reusing, users might skip 'configure_access_policies' if they say 'Reuse config'.
+                         # If 'terraform.tfvars' exists, it has the granular flags.
+                         # We should ensure granular flags are set to true if they are missing?
+                         # Actually, if reusing config, we trust the tfvars file.
+                         # So we probably don't need to SED replace create_access_policies anymore.
+                         # We might want to remove the SED command that sets it.
                      fi
                 fi
             fi
@@ -686,7 +969,8 @@ configure_stage_0() {
     fi
 
     # 1. Assured Workloads Check
-    echo -e "${BLUE}--- Compliance Regime Selection ---${NC}"
+    echo ""
+    echo -e "${BLUE}--- Compliance Regime (Assured Workloads) ---${NC}"
     echo "1. FedRAMP High (Default)"
     echo "2. IL4"
     echo "3. None"
@@ -738,7 +1022,6 @@ configure_stage_0() {
                     echo ""
                     read -p "Press Enter after you have confirmed the updates have been made..."
                     echo -e "${GREEN}Assured Workload folder ${WORKLOAD_NAME} validated / updated${NC}"
-                    echo ""
                 fi
             fi
         fi
@@ -751,8 +1034,9 @@ configure_stage_0() {
     SHARED_VPC_NETWORK=""
     SHARED_VPC_SUBNET=""
     SHARED_VPC_PROXY_SUBNET=""
-    
-    read -p "Do you want to use an existing Shared VPC? (y/n) [n]: " USE_SHARED_VPC_CHOICE
+    echo ""
+    echo -e "${BLUE}--- Networking ---${NC}"
+    read -p "Do you want to use an existing Shared VPC? (y/N) [N]: " USE_SHARED_VPC_CHOICE
     if [[ "$USE_SHARED_VPC_CHOICE" == "y" || "$USE_SHARED_VPC_CHOICE" == "Y" ]]; then
         USE_SHARED_VPC="true"
         
@@ -846,7 +1130,19 @@ configure_stage_0() {
     fi
     echo -e "Using Region: ${YELLOW}${REGION}${NC}"
 
-    # 4. Domain
+    # 4. Load Balancer Type
+    echo ""
+    echo -e "Select Load Balancer Type:"
+    echo "1) Regional External (Internet facing)"
+    echo "2) Regional Internal (VPN / Interconnect)"
+    read -p "Enter selection [1]: " LB_SEL
+    if [[ "$LB_SEL" == "2" ]]; then
+        DEPLOYMENT_TYPE="internal"
+    else
+        DEPLOYMENT_TYPE="external"
+    fi
+
+    # 5. Domain
     if [[ -z "$DOMAIN" ]]; then
         ORG_DOMAIN=$(gcloud organizations list --filter="name:organizations/${ORG_ID}" --format="value(displayName)" 2>/dev/null)
         DOMAIN=${ORG_DOMAIN}
@@ -858,8 +1154,9 @@ configure_stage_0() {
         echo -e "Using Domain: ${YELLOW}${DOMAIN}${NC}"
     fi
 
-    # 5. Identity Provider
+    # 6. Identity Provider
     echo ""
+    echo -e "${BLUE}--- Identity and Access ---${NC}"
     echo "Select Gemini Enterprise Identity Provider:"
     echo "----------------------------------------------------------------"
     echo "1) GSUITE (Default)"
@@ -883,10 +1180,12 @@ configure_stage_0() {
         ACL_IDP_TYPE="THIRD_PARTY"
         
         # Auto-discover Workforce Pools
+        echo ""
         echo "Discovering Workforce Identity Pools..."
         POOLS_JSON=$(gcloud iam workforce-pools list --organization="${ORG_ID}" --location="global" --format="json" 2>/dev/null)
         
         if [[ -n "$POOLS_JSON" && "$POOLS_JSON" != "[]" ]]; then
+            echo ""
             echo "Available Workforce Pools:"
             echo "$POOLS_JSON" | jq -r '.[] | "\(.name) (\(.displayName))"' | nl -w2 -s") "
             
@@ -906,6 +1205,7 @@ configure_stage_0() {
         fi
         
         # Auto-discover Providers
+        echo ""
         echo "Discovering Providers in ${ACL_POOL_NAME}..."
         PROVIDERS_JSON=$(gcloud iam workforce-pools providers list --workforce-pool="${ACL_POOL_NAME}" --location="global" --format="json" 2>/dev/null)
         
@@ -944,7 +1244,7 @@ configure_stage_0() {
         read -p "Press Enter after you have confirmed the attribute mapping is correct..."
     fi
 
-    # 6. Groups
+    # 7. Groups
     if [[ "$ACL_IDP_TYPE" == "GSUITE" ]]; then
         DEFAULT_ADMIN="gcp-gemini-enterprise-admins@${DOMAIN}"
         DEFAULT_USER="gcp-gemini-enterprise-users@${DOMAIN}"
@@ -958,25 +1258,30 @@ configure_stage_0() {
         [[ "$USER_GROUP" != *":"* ]] && USER_GROUP="group:${USER_GROUP}"
     else
         echo ""
-        echo -e "${YELLOW}For Workforce Identity, please enter the full Principal Set.${NC}"
-        echo "This allows you to map groups or attributes from your IdP to IAM roles."
+        echo -e "${YELLOW}For Workforce Identity, please enter the full Principal / Principal Set.${NC}"
+        echo "This allows you to map groups, users, or attributes from your IdP to IAM roles."
         echo ""
         echo "Examples:"
-        echo " - All users in a specific IdP group:"
-        echo "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/group/GROUP_ID"
+        echo " - Single user in a workforce identity pool:"
+        echo -e "   principal://iam.googleapis.com/locations/global/workforcePools/${ACL_POOL_NAME}/subject/${YELLOW}SUBJECT_ATTRIBUTE_VALUE${NC}"
+        echo ""
+        echo " - All users in a workforce identity pool group:"
+        echo -e "   principalSet://iam.googleapis.com/locations/global/workforcePools/${ACL_POOL_NAME}/group/${YELLOW}GROUP_ID${NC}"
         echo ""
         echo " - All users with a specific attribute (e.g., department=engineering):"
-        echo "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/attribute.department/engineering"
+        echo -e "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/${YELLOW}attribute.department${NC}/${YELLOW}engineering${NC}"
         echo ""
         echo " - All users in the pool (Use with caution):"
-        echo "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/*"
+        echo -e "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/${YELLOW}*${NC}"
         echo ""
         
-        read -p "Enter Admin Principal Set: " ADMIN_GROUP
-        read -p "Enter User Principal Set: " USER_GROUP
+        read -p "Enter Admin Principal/Principal Set: " ADMIN_GROUP
+        read -p "Enter User Principal/Principal Set: " USER_GROUP
     fi
 
-    # 7. Access Policy
+    # 8. Access Policy
+    echo ""
+    echo -e "${BLUE}--- Access Policies ---${NC}"
     echo "Discovering Access Policy..."
     ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1)
     if [ -z "$ACCESS_POLICY_NUMBER" ]; then
@@ -991,58 +1296,60 @@ configure_stage_0() {
         echo -e "${RED}Error: Access Policy Number is required.${NC}"
         return 1
     fi
-
-    echo "Checking for existing Access Levels in Policy ${ACCESS_POLICY_NUMBER}..."
-    EXISTING_LEVELS=$(gcloud access-context-manager levels list --policy="${ACCESS_POLICY_NUMBER}" --format="value(name)" || echo "")
     
-    # Check if key levels exist
-    LEVELS_TO_CHECK=("ip_based_access" "us" "time" "expire" "lenient_device" "moderate_device" "strict_device")
-    ALL_EXIST=true
-    ANY_EXIST=false
+    # Pre-check Terraform State for managed Access Levels
+    # This requires determining BUCKET_NAME and running terraform init early
+    echo "Checking Terraform State for managed resources..."
+    cd gemini-stage-0
     
-    for level in "${LEVELS_TO_CHECK[@]}"; do
-        # Check if level exists (either as full path or just short name)
-        if echo "$EXISTING_LEVELS" | grep -qE "(/|^)${level}$"; then
-            ANY_EXIST=true
+    # Resolve Bucket Name Logic (Duplicates logic from deploy_stage_0/configure_stage_0 reuse block)
+    # If using existing tfvars, use it. If not, use derived STATE_BUCKET.
+    TEMP_BUCKET_NAME="${BUCKET_NAME}"
+    if [[ -z "$TEMP_BUCKET_NAME" ]]; then
+         if [[ -f "terraform.tfvars" ]]; then
+             TEMP_BUCKET_NAME=$(grep 'terraform_state_bucket' terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+             TEMP_BUCKET_NAME=$(echo "$TEMP_BUCKET_NAME" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+         fi
+    fi
+    # If still empty, fall back to global STATE_BUCKET
+    if [[ -z "$TEMP_BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
+        TEMP_BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+    fi
+    
+    MANAGED_ACCESS_LEVELS=""
+    if [[ -n "$TEMP_BUCKET_NAME" ]]; then
+        echo "Initializing Terraform (Read-Only) to check state in ${TEMP_BUCKET_NAME}..."
+        # We suppress output to keep UI clean, but allow errors to show if critical
+        if terraform init -migrate-state -backend-config="bucket=${TEMP_BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-0" &>/dev/null; then
+             MANAGED_ACCESS_LEVELS=$(terraform state list | grep "google_access_context_manager_access_level" || true)
+             if [[ -n "$MANAGED_ACCESS_LEVELS" ]]; then
+                 echo -e "${GREEN}Found managed Access Levels in state.${NC}"
+             fi
         else
-            ALL_EXIST=false
+             echo -e "${YELLOW}Warning: Could not initialize Terraform state check. Proceeding as fresh deployment.${NC}"
         fi
-    done
-    
-    CREATE_ACCESS_POLICIES="true"
-    if [[ "$ALL_EXIST" == "true" ]]; then
-        echo -e "${GREEN}All required Access Levels already exist. Skipping creation.${NC}"
-        CREATE_ACCESS_POLICIES="false"
-    elif [[ "$ANY_EXIST" == "true" ]]; then
-        echo -e "${YELLOW}Some Access Levels exist but not all. Terraform may conflict.${NC}"
-        echo -e "${YELLOW}Setting CREATE_ACCESS_POLICIES to false to avoid collisions, but this might result in missing levels.${NC}"
-        # Strategy choice: If ANY exist, we likely shouldn't try to create them blindly with Terraform 
-        # unless we were doing imports. The user requested: "set it to false if the ... already exist"
-        # I will strictly follow: if they exist, don't create.
-        CREATE_ACCESS_POLICIES="false"
     else
-        echo -e "${GREEN}No existing Access Levels found. Will create new ones.${NC}"
-        CREATE_ACCESS_POLICIES="true"
+        echo "State bucket not determined. Skipping managed resource check."
     fi
+    cd ..
 
-    # 8. Deployment Type (LB)
+    configure_access_policies
+
+    # Cloud Armor WAF Information
     echo ""
-    echo -e "${YELLOW}Select Load Balancer Type:${NC}"
-    echo "1) Regional External (Internet facing)"
-    echo "2) Regional Internal"
-    read -p "Enter selection [1]: " LB_SEL
-    if [[ "$LB_SEL" == "2" ]]; then
-        DEPLOYMENT_TYPE="internal"
-    else
-        DEPLOYMENT_TYPE="external"
-    fi
+    echo -e "${BLUE}--- Cloud Armor (WAF) ---${NC}"
+    echo -e "${YELLOW}Cloud Armor will act as a Web Application Firewall (WAF) for your Gemini Enterprise application.${NC}"
+    echo -e "It will be deployed with predefined rules and sensitivity levels."
+    echo ""
+    echo -e "Please review the configuration in: ${BLUE}blueprints/fedramp-high/gemini-enterprise/gemini-stage-0/data/cloudarmor.yaml${NC}"
+    echo -e "For more information on predefined WAF rules, visit: ${BLUE}https://docs.cloud.google.com/armor/docs/waf-rules${NC}"
+    echo ""
+    read -p "Press Enter to acknowledge and continue..."
 
-    # 9. Chrome Enterprise Premium
-    read -p "Enable Chrome Enterprise Premium (Zero Trust)? (y/N): " CEP_CHOICE
-    ENABLE_CEP_BOOL="false"
-    [[ "$CEP_CHOICE" == "y" || "$CEP_CHOICE" == "Y" ]] && ENABLE_CEP_BOOL="true"
-
-    # 10. Data Stores
+    # 9. Data Stores
+    echo ""
+    echo -e "${BLUE}--- Data Stores (Cloud Storage / BigQuery) ---${NC}"
+    echo -e "${YELLOW}--- NOTE: Data Stores can be created and associated with a Gemini Enterprise application at a later time. ---${NC}"
     read -p "Create Data Stores? (y/N): " DS_CHOICE
     CREATE_DS_BOOL="false"
     GCS_DATA_STORES="[]"
@@ -1064,41 +1371,16 @@ configure_stage_0() {
         fi
     fi
 
-    # 11. Allowed IP Ranges
+    # 10. Organization Policy Check
     echo ""
-    echo -e "${BLUE}--- Allowed IP Ranges ---${NC}"
-    echo "Enter IP ranges allowed to access the Load Balancer (CIDR format)."
-    echo "RECOMMENDED: Set this to the IP range of the agency's corporate gateway to ensure that only authorized network traffic can reach the Load Balancer."
-    echo "Leaving this empty will only enforce a US geolocation-based access policy."
-    read -p "Enter IP Ranges (comma-separated, e.g., 203.0.113.0/24,192.168.1.0/24): " IP_RANGES_INPUT
-    
-    ALLOWED_IPS="[]"
-    if [[ -n "$IP_RANGES_INPUT" ]]; then
-        # Convert comma-separated string to JSON array
-        # 1. Replace commas with spaces to iterate
-        # 2. Wrap each in quotes
-        # 3. Join with commas
-        IFS=',' read -ra IP_ADDRS <<< "$IP_RANGES_INPUT"
-        JSON_IPS=""
-        for ip in "${IP_ADDRS[@]}"; do
-            ip=$(echo "$ip" | xargs) # trim whitespace
-            if [[ -n "$JSON_IPS" ]]; then
-                JSON_IPS="$JSON_IPS, \"$ip\""
-            else
-                JSON_IPS="\"$ip\""
-            fi
-        done
-        ALLOWED_IPS="[$JSON_IPS]"
-    fi
-
-    # Prerequisites Check
-    echo ""
+    echo -e "${BLUE}--- Organization Policies (Project-Level) ---${NC}"
     check_org_policies
     if [[ $? -ne 0 ]]; then
         return 1
     fi
 
     echo ""
+    echo -e "${BLUE}--- Manual Steps ---${NC}"
     echo -e "${YELLOW}IMPORTANT: Before proceeding, ensure you have completed the following manual prerequisites:${NC}"
     echo "1. OAuth Consent Screen: Configured as Internal."
     echo -e "   Link: ${BLUE}https://console.cloud.google.com/auth/branding?orgonly=true&project=${PROJECT_ID}&supportedpurview=organizationId${NC}"
@@ -1156,7 +1438,8 @@ configure_stage_0() {
     fi
 
     # Initialize Terraform early to check state
-    echo "Initializing Terraform to check state..."
+    echo ""
+    echo -e "${BLUE}--- Existing Terraform State Check ---${NC}"
     cd gemini-stage-0
     # Ensure BUCKET_NAME is set for backend init
     if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
@@ -1166,14 +1449,13 @@ configure_stage_0() {
 
     # Check if KeyRing is in state
     if terraform state list | grep -q "google_kms_key_ring.created"; then
-        echo -e "${YELLOW}KeyRing found in Terraform State. Will use managed resource instead of data source.${NC}"
+        echo -e "${YELLOW}CMEK Keyring found in Terraform State. Will use managed resource instead of data source.${NC}"
         CMEK_US_KEYRING=""
     fi
 
-    # Check if Key is in state
-    if terraform state list | grep -q "google_kms_crypto_key.gemini_enterprise"; then
-        echo -e "${YELLOW}gemini-enterprise Key found in Terraform State. Will use managed resource instead of data source.${NC}"
-        CMEK_US_RESOURCES_KEY=""
+    # Check if Key is in state (only if not explicitly provided by user)
+    if [[ -z "$CMEK_US_RESOURCES_KEY" ]] && terraform state list | grep -q "google_kms_crypto_key.gemini_enterprise"; then
+        echo -e "${YELLOW}gemini-enterprise Crypto Key found in Terraform State. Will use managed resource instead of data source.${NC}"
     fi
     cd ..
 
@@ -1214,7 +1496,40 @@ EOF
     fi
 
     # Add Access Policy Creation Flag
-    echo "create_access_policies = ${CREATE_ACCESS_POLICIES}" >> gemini-stage-0/terraform.tfvars
+    # Add Access Policy Creation Flags
+    cat >> gemini-stage-0/terraform.tfvars <<EOF
+create_ip_based_access          = ${CREATE_IP_BASED_ACCESS}
+create_us_access                = ${CREATE_US_ACCESS}
+create_time_access              = ${CREATE_TIME_ACCESS}
+create_expire_access            = ${CREATE_EXPIRE_ACCESS}
+create_lenient_device_access    = ${CREATE_LENIENT_DEVICE_ACCESS}
+create_moderate_device_access   = ${CREATE_MODERATE_DEVICE_ACCESS}
+create_strict_device_access     = ${CREATE_STRICT_DEVICE_ACCESS}
+enable_chrome_enterprise_premium = ${ENABLE_CEP_BOOL}
+EOF
+    
+    # Add Time variables if set
+    if [[ -n "$ACCESS_START_DAY" ]]; then
+         echo "access_start_day = ${ACCESS_START_DAY}" >> gemini-stage-0/terraform.tfvars
+    fi
+    if [[ -n "$ACCESS_END_DAY" ]]; then
+         echo "access_end_day = ${ACCESS_END_DAY}" >> gemini-stage-0/terraform.tfvars
+    fi
+    if [[ -n "$ACCESS_START_HOUR" ]]; then
+         echo "access_start_hour = ${ACCESS_START_HOUR}" >> gemini-stage-0/terraform.tfvars
+    fi
+    if [[ -n "$ACCESS_END_HOUR" ]]; then
+         echo "access_end_hour = ${ACCESS_END_HOUR}" >> gemini-stage-0/terraform.tfvars
+    fi
+    if [[ -n "$ACCESS_TIME_ZONE" ]]; then
+         echo "access_time_zone = \"${ACCESS_TIME_ZONE}\"" >> gemini-stage-0/terraform.tfvars
+    fi
+    if [[ -n "$ACCESS_EXPIRATION_TIMESTAMP" ]]; then
+         echo "access_expiration_timestamp = \"${ACCESS_EXPIRATION_TIMESTAMP}\"" >> gemini-stage-0/terraform.tfvars
+    fi
+    
+    # Add Allowed IPs
+    echo "allowed_ip_ranges = ${ALLOWED_IPS}" >> gemini-stage-0/terraform.tfvars
 
     echo -e "${GREEN}Configuration generated in gemini-stage-0/terraform.tfvars${NC}"
 
@@ -1222,36 +1537,9 @@ EOF
 }
 
 deploy_stage_0() {
+    echo ""
     echo -e "${BLUE}--- Deploying Stage 0 ---${NC}"
     
-    # Ensure BUCKET_NAME is set from STATE_BUCKET if not already
-    if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
-        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
-    fi
-    
-    # Ensure bucket exists if Greenfield
-    if [[ "$IS_BROWNFIELD" == "false" ]]; then
-        if ! gcloud storage buckets describe "gs://${BUCKET_NAME}" &>/dev/null; then
-            echo "Creating state bucket gs://${BUCKET_NAME}..."
-            
-            # Grant Storage Service Agent access to CMEK if used
-            if [[ -n "$KMS_KEY_ID" ]]; then
-                PROJECT_NUMBER=$(gcloud projects describe "${PROJECT_ID}" --format="value(projectNumber)")
-                STORAGE_SA="service-${PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com"
-                
-                echo "Granting access to Storage Service Agent (${STORAGE_SA})..."
-                gcloud kms keys add-iam-policy-binding "${KMS_KEY_ID}" \
-                    --member="serviceAccount:${STORAGE_SA}" \
-                    --role="roles/cloudkms.cryptoKeyEncrypterDecrypter" \
-                    --project="${PROJECT_ID}" &>/dev/null || echo "Warning: Failed to grant IAM binding on key."
-                
-                gcloud storage buckets create "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" --location "us" --uniform-bucket-level-access --default-encryption-key="${KMS_KEY_ID}"
-            else
-                gcloud storage buckets create "gs://${BUCKET_NAME}" --project "${PROJECT_ID}" --location "us" --uniform-bucket-level-access
-            fi
-        fi
-    fi
-
     cd gemini-stage-0
     rm -f backend.tf
     
@@ -1263,6 +1551,7 @@ deploy_stage_0() {
         return 1
     fi
     
+    echo ""
     echo "Applying Terraform..."
     if ! terraform apply -var-file="terraform.tfvars"; then
         echo -e "${RED}Terraform Apply failed! Please try resolving the error and running the Step again.${NC}"
@@ -1274,6 +1563,18 @@ deploy_stage_0() {
     GEMINI_IP=$(terraform output -raw gemini_enterprise_ip 2>/dev/null || echo "N/A")
     cd ..
     echo -e "${GREEN}Stage 0 Deployment Complete!${NC}"
+
+    if [[ "$CREATE_DS_BOOL" == "true" ]]; then
+        echo ""
+        echo -e "${YELLOW}ACTION REQUIRED: Populate the created Data Stores with data.${NC}"
+        echo ""
+        echo -e "${BLUE}GCS${NC}: Upload your documents to the GCS bucket(s) created by Terraform (see output above \`gcs_data_store_to_bucket\`)."
+        echo -e "${BLUE}BigQuery${NC}: Populate the BigQuery table(s) created by Terraform (see output above \`bq_data_store_to_dataset_table\`)"
+        echo ""
+        echo -e "After uploading documents into the bucket / table, navigate to ${YELLOW}Helper Functions${NC} > ${YELLOW}Populate Data Stores${NC}"
+        echo -e "to import the data into the Gemini Enterprise Data Stores and begin the indexing process."
+        read -p "Press Enter to continue..."
+    fi
     
     echo ""
     echo -e "${YELLOW}IMPORTANT NEXT STEPS:${NC}"
@@ -1301,6 +1602,7 @@ ensure_gem4gov_installed() {
 }
 
 configure_gem4gov() {
+    echo ""
     echo -e "${BLUE}--- Configure Gemini Enterprise App (gem4gov) ---${NC}"
     
     if ! ensure_gem4gov_installed; then
@@ -1359,6 +1661,7 @@ configure_gem4gov() {
 
 
     echo "Running: $CMD"
+    echo ""
     export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
     export GOOGLE_CLOUD_QUOTA_PROJECT="${PROJECT_ID}"
     $CMD
@@ -1371,8 +1674,6 @@ configure_gem4gov() {
     echo -e "2. Setup DNS A Record that points the desired Gemini Enterprise subdomain (i.e. gemini.yourdomain.com) to the provisioned Load Balancer IP address (${GEMINI_IP})."
     echo -e "3. Provision an SSL Certificate and upload it to Google Cloud Certificate Manager (${YELLOW}Helper Functions > Upload SSL Certificate${NC})."
     echo -e "4. From the Main Menu select ${BLUE}Step 3 - Configure & Deploy Load Balancer / Access Policies (gemini-stage-1)${NC}."
-    echo ""
-    echo -e "${GREEN}NOTE: Please wait approximately 10 minutes before using your Gemini Enterprise application as it finishes provisioning.${NC}"
     pause
 }
 
@@ -1526,17 +1827,113 @@ replace_gemini_app() {
     deploy_stage_1
 }
 
+import_documents_helper() {
+    echo ""
+    echo -e "${BLUE}--- Import Documents into Data Store ---${NC}"
+
+    if ! ensure_gem4gov_installed; then
+        return 1
+    fi
+    
+    # Ensure Project ID is set
+    if [[ -z "$PROJECT_ID" ]]; then
+        echo -e "${RED}Project ID is required. Please select a project first.${NC}"
+        return 1
+    fi
+
+    # Ensure BUCKET_NAME is set from STATE_BUCKET if not already
+    # This covers the case where the user navigates directly to this helper function
+    if [[ -z "$BUCKET_NAME" && -n "$STATE_BUCKET" ]]; then
+        BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\/ //' | sed 's/\/$//')
+    fi
+
+    echo "Retrieving state from gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate..."
+    STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null || echo "{}")
+
+    # Parse GCS Data Stores
+    # Output: gcs_data_store_to_bucket = { "ds-id": "bucket-name" }
+    GCS_DS_MAP=$(echo "$STATE_CONTENT" | jq -r '.outputs.gcs_data_store_to_bucket.value // {}')
+
+    # Parse BigQuery Data Stores
+    # Output: bq_data_store_to_dataset_table = { "ds-id": { "dataset_id": "...", "table_id": "..." } }
+    BQ_DS_MAP=$(echo "$STATE_CONTENT" | jq -r '.outputs.bq_data_store_to_dataset_table.value // {}')
+
+    echo ""
+    echo "Available Data Stores:"
+    
+    # Create arrays to store options
+    DS_IDS=()
+    DS_TYPES=()
+    DS_SOURCES=()
+    
+    COUNT=0
+    
+    # List GCS Data Stores
+    for key in $(echo "$GCS_DS_MAP" | jq -r 'keys[]'); do
+        BUCKET=$(echo "$GCS_DS_MAP" | jq -r --arg k "$key" '.[$k]')
+        COUNT=$((COUNT+1))
+        echo "${COUNT}. [GCS] ${key} (Bucket: ${BUCKET})"
+        DS_IDS+=("$key")
+        DS_TYPES+=("gcs")
+        DS_SOURCES+=("$BUCKET") # Store bucket name for display/verification if needed
+    done
+
+    # List BigQuery Data Stores
+    for key in $(echo "$BQ_DS_MAP" | jq -r 'keys[]'); do
+        DATASET=$(echo "$BQ_DS_MAP" | jq -r --arg k "$key" '.[$k].dataset_id')
+        TABLE=$(echo "$BQ_DS_MAP" | jq -r --arg k "$key" '.[$k].table_id')
+        COUNT=$((COUNT+1))
+        echo "${COUNT}. [BigQuery] ${key} (Table: ${DATASET}.${TABLE})"
+        DS_IDS+=("$key")
+        DS_TYPES+=("bigquery")
+        DS_SOURCES+=("${DATASET}.${TABLE}")
+    done
+
+    if [[ "$COUNT" -eq 0 ]]; then
+        echo -e "${YELLOW}No data stores found in Stage 0 state.${NC}"
+        pause
+        return 0
+    fi
+
+    echo ""
+    read -p "Select a Data Store to import into [1-${COUNT}]: " SELECTION
+
+    if [[ ! "$SELECTION" =~ ^[0-9]+$ ]] || [[ "$SELECTION" -lt 1 ]] || [[ "$SELECTION" -gt "$COUNT" ]]; then
+        echo -e "${RED}Invalid selection.${NC}"
+        pause
+        return 1
+    fi
+
+    # valid selection (0-indexed array)
+    INDEX=$((SELECTION-1))
+    SELECTED_ID="${DS_IDS[$INDEX]}"
+    SELECTED_TYPE="${DS_TYPES[$INDEX]}"
+    
+    echo -e "${GREEN}Selected: ${SELECTED_ID} (${SELECTED_TYPE})${NC}"
+    echo ""
+
+    CMD="gem4gov datastore import --project-id ${PROJECT_ID} --data-store-id ${SELECTED_ID} --source-type ${SELECTED_TYPE}"
+    
+    echo "Running: $CMD"
+    export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
+    export GOOGLE_CLOUD_QUOTA_PROJECT="${PROJECT_ID}"
+    $CMD
+    
+    pause
+}
+
 helper_menu() {
     while true; do
         clear
         print_header
         echo -e "${BLUE}--- Helper Functions ---${NC}"
-        echo "1. Update Gemini Enterprise App Compliance (gem4gov-cli)"
+        echo "1. Update Gemini Enterprise App Compliance"
         echo "2. Replace Gemini Enterprise Application / Load Balancer Routing"
-        echo "3. Upload SSL Certificate"
-        echo "4. Back to Main Menu"
+        echo "3. Import Documents to Gemini Enterprise Data Store (Cloud Storage / BigQuery)"
+        echo "4. Upload SSL Certificate"
+        echo "5. Back to Main Menu"
         echo "-----------------------------------"
-        read -p "Select an option [1-4]: " OPTION
+        read -p "Select an option [1-5]: " OPTION
 
         case $OPTION in
             1)
@@ -1545,10 +1942,13 @@ helper_menu() {
             2)
                 replace_gemini_app
                 ;;
-            3)
-                upload_ssl_certificate
+            3)  
+                import_documents_helper
                 ;;
             4)
+                upload_ssl_certificate
+                ;;
+            5)
                 return 0
                 ;;
             *)
@@ -1562,7 +1962,8 @@ helper_menu() {
 # --- Stage 1 Functions ---
 
 configure_stage_1() {
-    echo -e "${BLUE}--- Configure Stage 1 (Networking) ---${NC}"
+    echo ""
+    echo -e "${BLUE}--- Configure Stage 1 (Load Balancer / Access Policies) ---${NC}"
     mkdir -p gemini-stage-1
     
     if [[ -f "gemini-stage-1/terraform.tfvars" ]]; then
@@ -1623,6 +2024,7 @@ configure_stage_1() {
     fi
     
     # Auto-discover SSL Certificates
+    echo ""
     echo "Discovering SSL Certificates in Region ${REGION}..."
     CERTS_JSON=$(gcloud compute ssl-certificates list --filter="region:(${REGION})" --format="json" 2>/dev/null)
     
@@ -1640,7 +2042,7 @@ configure_stage_1() {
         read -p "Enter SSL Certificate Name (must exist in GCP): " SSL_CERT_NAME
     fi
 
-    read -p "Enter Gemini Widget Config ID (from gem4gov step): " GEMINI_CONFIG_ID
+    read -p "Enter Gemini Widget Config ID (from Step 2 output): " GEMINI_CONFIG_ID
     
     cat > gemini-stage-1/terraform.tfvars <<EOF
 stage_0_state_bucket = "${BUCKET_NAME}"
@@ -1660,6 +2062,7 @@ EOF
 }
 
 deploy_stage_1() {
+    echo ""
     echo -e "${BLUE}--- Deploying Stage 1 ---${NC}"
     
     cd gemini-stage-1
@@ -1673,6 +2076,7 @@ deploy_stage_1() {
         return 1
     fi
     
+    echo ""
     echo "Applying Terraform..."
     if ! terraform apply -var-file="terraform.tfvars"; then
         echo -e "${RED}Terraform Apply failed! Please try resolving the error and running the Step again.${NC}"
@@ -1701,7 +2105,7 @@ deploy_stage_1() {
         BACKEND_SERVICE_NAME="${PREFIX}-backend-service"
 
         echo ""
-        echo -e "${BLUE}Step 1: Create an OAuth Client${NC}"
+        echo -e "${YELLOW}Step 1: Create an OAuth Client${NC}"
         echo -e "1. Navigate to APIs & Services > Credentials: ${BLUE}https://console.cloud.google.com/apis/credentials?project=${PROJECT_ID}${NC}"
         echo "2. Click 'Create Credentials' > 'OAuth client ID'."
         echo "3. Application type: 'Web application'."
@@ -1712,15 +2116,15 @@ deploy_stage_1() {
         read -p "Press Enter after you have created the client..."
 
         echo ""
-        echo -e "${BLUE}Step 2: Update Redirect URI${NC}"
+        echo -e "${YELLOW}Step 2: Update Redirect URI${NC}"
         echo "1. Edit the newly created OAuth Client."
-        echo -e "2. Add the following Authorized redirect URI (replace [CLIENT_ID] with the actual ID you just copied): ${YELLOW}https://iap.googleapis.com/v1/oauth/clientIds/[CLIENT_ID]:handleRedirect${NC}"
+        echo -e "2. Add the following Authorized redirect URI (replace [CLIENT_ID] with the actual ID you just copied): ${BLUE}https://iap.googleapis.com/v1/oauth/clientIds/[CLIENT_ID]:handleRedirect${NC}"
         echo "3. Save the changes."
         echo -e "${NC}"
         read -p "Press Enter after you have updated the redirect URI..."
 
         echo ""
-        echo -e "${BLUE}Step 3: Configure IAP for Workforce Identity${NC}"
+        echo -e "${YELLOW}Step 3: Configure IAP for Workforce Identity${NC}"
         echo -e "1. Navigate to IAP: ${BLUE}https://console.cloud.google.com/security/iap?project=${PROJECT_ID}${NC}"
         echo -e "2. Locate the Backend Service: ${GREEN}${BACKEND_SERVICE_NAME}${NC}"
         echo "3. Select the \"Settings\" in the 3-dots menu next to the backend service resource."
@@ -1735,7 +2139,7 @@ deploy_stage_1() {
     fi
     
     echo ""
-    echo -e "Welcome to your ${BLUE}G${RED}o${YELLOW}o${BLUE}g${GREEN}l${RED}e${NC} Cloud Gemini Enterprise App! Access your app at https://${GEMINI_DOMAIN}"
+    echo -e "Welcome to your ${BLUE}G${RED}o${YELLOW}o${BLUE}g${GREEN}l${RED}e${NC} Cloud Gemini Enterprise App! Access your app at ${BLUE}https://${GEMINI_DOMAIN}${NC}"
     pause
 }
 
