@@ -55,47 +55,4 @@ echo 'terraform {
          "${SCRIPT_DIR}"/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
          "${SCRIPT_DIR}"/fast/stages-aw/3-security/mock-versions.tf
 
-echo '{
-    "automation": {
-        "federated_identity_pool": null,
-        "federated_identity_providers": {},
-        "outputs_bucket": "tflint-prod-iac-core-outputs-0",
-        "project_id": "tflint-prod-iac-core-0",
-        "project_number": "1234567890123",
-        "service_accounts": {
-            "bootstrap": "tflint-prod-bootstrap-0@tflint-prod-iac-core-0.iam.gserviceaccount.com",
-            "bootstrap-r": "tflint-prod-bootstrap-0r@tflint-prod-iac-core-0.iam.gserviceaccount.com",
-            "resman": "tflint-prod-resman-0@tflint-prod-iac-core-0.iam.gserviceaccount.com",
-            "resman-r": "tflint-prod-resman-0r@tflint-prod-iac-core-0.iam.gserviceaccount.com"
-        }
-    },
-    "custom_roles": {
-        "gcve_network_admin": "organizations/123456789012/roles/gcveNetworkAdmin",
-        "organization_admin_viewer": "organizations/123456789012/roles/organizationAdminViewer",
-        "organization_iam_admin": "organizations/123456789012/roles/organizationIamAdmin",
-        "service_project_network_admin": "organizations/123456789012/roles/serviceProjectNetworkAdmin",
-        "storage_viewer": "organizations/123456789012/roles/storageViewer",
-        "tag_viewer": "organizations/123456789012/roles/tagViewer",
-        "tenant_network_admin": "organizations/123456789012/roles/tenantNetworkAdmin"
-    },
-    "logging": {
-        "project_id": "tflint-prod-audit-logs-0",
-        "project_number": "1234567890123",
-        "writer_identities": {
-            "audit-logs": "serviceAccount:service-org-123456789012@gcp-sa-logging.iam.gserviceaccount.com",
-            "vpc-sc": "serviceAccount:service-org-123456789012@gcp-sa-logging.iam.gserviceaccount.com",
-            "workspace-audit-logs": "serviceAccount:service-org-123456789012@gcp-sa-logging.iam.gserviceaccount.com"
-        }
-    },
-    "org_policy_tags": {
-        "key_id": "tagKeys/123456789012345",
-        "key_name": "org-policies",
-        "values": {
-            "allowed-policy-member-domains-all": "tagValues/123456789012345"
-        }
-    }
-}' | tee "${SCRIPT_DIR}"/fast/stages-aw/0-bootstrap/mock-versions.tf \
-         "${SCRIPT_DIR}"/fast/stages-aw/1-resman/mock-versions.tf \
-         "${SCRIPT_DIR}"/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
-         "${SCRIPT_DIR}"/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
-         "${SCRIPT_DIR}"/fast/stages-aw/3-security/mock-versions.tf
+

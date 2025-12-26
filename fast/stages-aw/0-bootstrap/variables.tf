@@ -333,24 +333,11 @@ variable "regime_mapping" {
   }
 }
 
-variable "workforce_identity_providers" {
-  description = "Workforce Identity Federation pools."
-  type = map(object({
-    attribute_condition = optional(string)
-    issuer              = string
-    display_name        = string
-    description         = string
-    disabled            = optional(bool, false)
-    saml = optional(object({
-      idp_metadata_xml = string
-    }), null)
-  }))
-  default  = {}
-  nullable = false
-}
 
-variable "workload_identity_providers" {
-  description = "Workload Identity Federation pools. The `cicd_repositories` variable references keys here."
+
+
+variable "federated_identity_providers" {
+  description = "Workload Identity Federation providers."
   type = map(object({
     attribute_condition = optional(string)
     issuer              = string
@@ -359,13 +346,20 @@ variable "workload_identity_providers" {
       audiences  = optional(list(string), [])
       jwks_json  = optional(string)
     }), {})
+    attribute_mapping = optional(map(string))
+    audiences         = optional(list(string))
   }))
   default  = {}
   nullable = false
-  # TODO: fix validation
-  # validation {
-  #   condition     = var.federated_identity_providers.custom_settings == null
-  #   error_message = "Custom settings cannot be null."
-  # }
 }
 
+variable "workforce_identity_pool" {
+  description = "Workforce Identity Federation pool configuration."
+  type = object({
+    display_name     = optional(string)
+    description      = optional(string)
+    disabled         = optional(bool, false)
+    session_duration = optional(string)
+  })
+  default = null
+}

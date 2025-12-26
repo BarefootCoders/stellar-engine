@@ -90,11 +90,14 @@ for tfvars_file in *.tfvars.json; do
     
     # If service account is found, disable/enable it
     if [ "$service_account" != "null" ] && [ -n "$service_account" ]; then
-      # echo "$ACTION service account: $service_account"
+      # Extract project ID from service account email (format: name@project-id.iam.gserviceaccount.com)
+      project_id=$(echo "$service_account" | sed -E 's/.*@(.*)\.iam\.gserviceaccount\.com/\1/')
+      
+      # echo "$ACTION service account: $service_account in project: $project_id"
       if [ "$ACTION" == "disable" ]; then
-        gcloud iam service-accounts disable "$service_account" --quiet
+        gcloud iam service-accounts disable "$service_account" --project="$project_id" --quiet
       elif [ "$ACTION" == "enable" ]; then
-        gcloud iam service-accounts enable "$service_account" --quiet
+        gcloud iam service-accounts enable "$service_account" --project="$project_id" --quiet
       else
         echo "Unknown action: $ACTION"
         exit 1

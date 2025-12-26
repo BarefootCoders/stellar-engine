@@ -123,13 +123,14 @@ module "tenant-core-sa" {
 }
 
 module "tenant-core-gcs" {
-  source     = "../../../modules/gcs"
-  for_each   = local.tenant_envs
-  project_id = var.automation.project_id
-  name       = lower("tn-${each.key}-0")
-  prefix     = var.prefix
-  versioning = true
-  location   = local.gcs_locations[each.value.tenant]
+  source        = "../../../modules/gcs"
+  for_each      = local.tenant_envs
+  project_id    = var.automation.project_id
+  name          = lower("tn-${each.key}-0")
+  prefix        = var.prefix
+  versioning    = true
+  force_destroy = true
+  location      = local.gcs_locations[each.value.tenant]
   storage_class = (
     length(split("-", local.gcs_locations[each.value.tenant])) < 2
     ? "MULTI_REGIONAL"
@@ -206,9 +207,10 @@ module "tenant-self-iac-gcs-outputs" {
     ? "MULTI_REGIONAL"
     : "REGIONAL"
   )
-  name       = "${each.key}-iac-outputs-0"
-  prefix     = var.prefix
-  versioning = true
+  name          = "${each.key}-iac-outputs-0"
+  prefix        = var.prefix
+  versioning    = true
+  force_destroy = true
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
@@ -230,6 +232,7 @@ module "tenant-self-iac-gcs-states" {
   name           = "${each.key}-iac-0"
   prefix         = var.prefix
   versioning     = true
+  force_destroy  = true
   encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
   depends_on     = [module.tenant-project-keys, google_kms_crypto_key_iam_member.tenant_kms]
 }
