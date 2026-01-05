@@ -1263,10 +1263,10 @@ configure_stage_0() {
         echo ""
         echo "Examples:"
         echo " - Single user in a workforce identity pool:"
-        echo -e "   principal://iam.googleapis.com/locations/global/workforcePools/${ACL_POOL_NAME}/subject/${YELLOW}SUBJECT_ATTRIBUTE_VALUE${NC}"
+        echo -e "   principal://iam.googleapis.com/${ACL_POOL_NAME}/subject/${YELLOW}SUBJECT_ATTRIBUTE_VALUE${NC}"
         echo ""
         echo " - All users in a workforce identity pool group:"
-        echo -e "   principalSet://iam.googleapis.com/locations/global/workforcePools/${ACL_POOL_NAME}/group/${YELLOW}GROUP_ID${NC}"
+        echo -e "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/group/${YELLOW}GROUP_ID${NC}"
         echo ""
         echo " - All users with a specific attribute (e.g., department=engineering):"
         echo -e "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/${YELLOW}attribute.department${NC}/${YELLOW}engineering${NC}"
@@ -1495,7 +1495,33 @@ bq_data_store_configs = ${BQ_DATA_STORES}
 EOF
     fi
 
-    # Add Access Policy Creation Flag
+    # Construct Access Level Lists
+    LENIENT_LIST=()
+    MODERATE_LIST=()
+    
+    PREFIX_PATH="accessPolicies/${ACCESS_POLICY_NUMBER}/accessLevels"
+    
+    if [[ "$CREATE_US_ACCESS" == "true" ]]; then
+        LENIENT_LIST+=("\"${PREFIX_PATH}/us\"")
+        MODERATE_LIST+=("\"${PREFIX_PATH}/us\"")
+    fi
+    
+    if [[ "$CREATE_IP_BASED_ACCESS" == "true" ]]; then
+         LENIENT_LIST+=("\"${PREFIX_PATH}/ip_based_access\"")
+         MODERATE_LIST+=("\"${PREFIX_PATH}/ip_based_access\"")
+    fi
+    
+    if [[ "$CREATE_TIME_ACCESS" == "true" ]]; then
+        MODERATE_LIST+=("\"${PREFIX_PATH}/time\"")
+    fi
+    
+    if [[ "$CREATE_EXPIRE_ACCESS" == "true" ]]; then
+        MODERATE_LIST+=("\"${PREFIX_PATH}/expire\"")
+    fi
+    
+    LENIENT_STR="[$(IFS=,; echo "${LENIENT_LIST[*]}")]"
+    MODERATE_STR="[$(IFS=,; echo "${MODERATE_LIST[*]}")]"
+
     # Add Access Policy Creation Flags
     cat >> gemini-stage-0/terraform.tfvars <<EOF
 create_ip_based_access          = ${CREATE_IP_BASED_ACCESS}
@@ -1506,6 +1532,8 @@ create_lenient_device_access    = ${CREATE_LENIENT_DEVICE_ACCESS}
 create_moderate_device_access   = ${CREATE_MODERATE_DEVICE_ACCESS}
 create_strict_device_access     = ${CREATE_STRICT_DEVICE_ACCESS}
 enable_chrome_enterprise_premium = ${ENABLE_CEP_BOOL}
+lenient_device_access_levels    = ${LENIENT_STR}
+moderate_device_access_levels   = ${MODERATE_STR}
 EOF
     
     # Add Time variables if set

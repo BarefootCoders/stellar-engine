@@ -1108,7 +1108,7 @@ def configure_idp_for_widget(credentials, project_id, engine_id, workforce_pool_
         
         url = (
             f"https://us-discoveryengine.googleapis.com/v1alpha/projects/{project_id}/locations/us/collections/default_collection/"
-            f"engines/{engine_id}/widgetConfigs/default_search_widget_config?updateMask=accessSettings.workforceIdentityPoolProvider"
+            f"engines/{engine_id}/widgetConfigs/default_search_widget_config?updateMask=accessSettings"
         )
         
         headers = {
@@ -1119,6 +1119,7 @@ def configure_idp_for_widget(credentials, project_id, engine_id, workforce_pool_
         
         data = {
             "accessSettings": {
+                "enableWebApp": True,
                 "workforceIdentityPoolProvider": workforce_identity_pool_provider
             }
         }
@@ -1254,38 +1255,67 @@ def configure_gemini_enterprise_for_fedramp_high(credentials, project_id, engine
         click.echo(f"Engine {engine_id} configured for FedRAMP High.")
     except Exception as e:
         click.echo(f"An error occurred while configuring the engine for FedRAMP High: {e}")
-        click.echo(click.style("Exiting Onboarding process...", fg="red"))
-        exit()
+        # Do not exit, as this may not be a critical failure.
 
     # Default Search Widget: Disable User Event Collection
     disable_user_event_collection(credentials, project_id, engine_id)
 
     # Assistant: Disable Grounding with Google Search / Location Context
     assistant_name = f"projects/{project_id}/locations/us/collections/default_collection/engines/{engine_id}/assistants/default_assistant"
-    assistant_patch_body = {
-        "generationConfig": {
-            "defaultLanguage": "en"
-        },
-        "webGroundingType": "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
-        "defaultWebGroundingToggleOff": False,
-        "enableEndUserAgentCreation": False,
-        "disableLocationContext": True
-    }
-    assistant_update_mask = "generationConfig.defaultLanguage,webGroundingType,defaultWebGroundingToggleOff,enableEndUserAgentCreation,disableLocationContext"
-
-    assistant_request = service.projects().locations().collections().engines().assistants().patch(
-        name=assistant_name,
-        body=assistant_patch_body,
-        updateMask=assistant_update_mask
-    )
-
+    
+    # Get access token
     try:
-        assistant_response = assistant_request.execute()
-        click.echo(f"Default assistant for engine {engine_id} configured for FedRAMP High.")
-    except Exception as e:
-        click.echo(f"An error occurred while configuring the default assistant for FedRAMP High: {e}")
-        click.echo(click.style("Exiting Onboarding process...", fg="red"))
-        exit()
+        token_process = subprocess.run(['gcloud', 'auth', 'print-access-token'], check=True, capture_output=True, text=True)
+        access_token = token_process.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Error getting access token not critical, but noted: {e}")
+        # We might not be able to proceed with curl if token fails, but let's try to continue or just return
+        # If we can't get a token, we can't do the rest.
+        # But user said "gracefully log... but continue". 
+        # Continuing without a token will just fail the next step. 
+        # I'll let it fail naturally or just return from this function logic?
+        # Actually proper "continue" means try the next steps. 
+        # If token fails, curl calls WILL fail. 
+        pass
+        access_token = ""
+
+    if access_token:
+        url = f"https://us-discoveryengine.googleapis.com/v1alpha/{assistant_name}?updateMask=generationConfig.defaultLanguage,webGroundingType,defaultWebGroundingToggleOff,enableEndUserAgentCreation,disableLocationContext"
+
+        assistant_patch_body = {
+            "generationConfig": {
+                "defaultLanguage": "en"
+            },
+            "webGroundingType": "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
+            "defaultWebGroundingToggleOff": False,
+            "enableEndUserAgentCreation": False,
+            "disableLocationContext": True
+        }
+
+        # Use subprocess to run the curl command
+        curl_command = [
+            'curl', '-X', 'PATCH',
+            '-H', f"Authorization: Bearer {access_token}",
+            '-H', f"x-goog-user-project: {project_id}",
+            '-H', "Content-Type: application/json",
+            '-d', json.dumps(assistant_patch_body),
+            url
+        ]
+
+        try:
+            result = subprocess.run(curl_command, capture_output=True, text=True)
+            
+            if result.returncode == 0 and "error" not in result.stdout.lower():
+                 click.echo(f"Default assistant for engine {engine_id} configured for FedRAMP High.")
+            else:
+                 click.echo(f"An error occurred while configuring the default assistant for FedRAMP High:")
+                 click.echo(result.stderr)
+                 click.echo(result.stdout)
+                 # Do not exit
+
+        except Exception as e:
+            click.echo(f"An error occurred while configuring the default assistant for FedRAMP High: {e}")
+            # Do not exit
 
     # Project: Disable Implicit Model Caching
     try:
@@ -1350,6 +1380,18 @@ def configure_gemini_enterprise_for_il4(credentials, project_id, engine_id):
 
     # Assistant: Disable Grounding with Google Search / Location Context
     assistant_name = f"projects/{project_id}/locations/us/collections/default_collection/engines/{engine_id}/assistants/default_assistant"
+    
+    # Get access token
+    try:
+        token_process = subprocess.run(['gcloud', 'auth', 'print-access-token'], check=True, capture_output=True, text=True)
+        access_token = token_process.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Error getting access token: {e}")
+        click.echo(click.style("Exiting Onboarding process...", fg="red"))
+        exit()
+
+    url = f"https://us-discoveryengine.googleapis.com/v1alpha/{assistant_name}?updateMask=generationConfig.defaultLanguage,webGroundingType,defaultWebGroundingToggleOff,enableEndUserAgentCreation,disableLocationContext"
+
     assistant_patch_body = {
         "generationConfig": {
             "defaultLanguage": "en"
@@ -1359,19 +1401,31 @@ def configure_gemini_enterprise_for_il4(credentials, project_id, engine_id):
         "enableEndUserAgentCreation": False,
         "disableLocationContext": True
     }
-    assistant_update_mask = "generationConfig.defaultLanguage,webGroundingType,defaultWebGroundingToggleOff,enableEndUserAgentCreation,disableLocationContext"
 
-    assistant_request = service.projects().locations().collections().engines().assistants().patch(
-        name=assistant_name,
-        body=assistant_patch_body,
-        updateMask=assistant_update_mask
-    )
+    # Use subprocess to run the curl command
+    curl_command = [
+        'curl', '-X', 'PATCH',
+        '-H', f"Authorization: Bearer {access_token}",
+        '-H', f"x-goog-user-project: {project_id}",
+        '-H', "Content-Type: application/json",
+        '-d', json.dumps(assistant_patch_body),
+        url
+    ]
 
     try:
-        assistant_response = assistant_request.execute()
-        click.echo(f"Default assistant for engine {engine_id} configured for FedRAMP High.")
+        result = subprocess.run(curl_command, capture_output=True, text=True)
+        
+        if result.returncode == 0 and "error" not in result.stdout.lower():
+             click.echo(f"Default assistant for engine {engine_id} configured for IL4.")
+        else:
+             click.echo(f"An error occurred while configuring the default assistant for IL4:")
+             click.echo(result.stderr)
+             click.echo(result.stdout)
+             click.echo(click.style("Exiting Onboarding process...", fg="red"))
+             exit()
+
     except Exception as e:
-        click.echo(f"An error occurred while configuring the default assistant for FedRAMP High: {e}")
+        click.echo(f"An error occurred while configuring the default assistant for IL4: {e}")
         click.echo(click.style("Exiting Onboarding process...", fg="red"))
         exit()
 

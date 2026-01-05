@@ -12,7 +12,7 @@
 2.  [Architecture & Diagrams](#2-architecture--diagrams)
 3.  [IAM Permissions & Prerequisites](#3-iam-permissions--prerequisites)
 4.  [Stellar Engine Integration (Brownfield)](#4-stellar-engine-integration-brownfield)
-5.  [Internal Deployment Guide](#5-internal-deployment-guide)
+5.  [Internal Ingress Deployment Guide](#5-internal-deployment-guide)
 6.  [Stage 0: Infrastructure Foundation](#6-stage-0-infrastructure-foundation)
 7.  [The gem4gov CLI Tool](#7-the-gem4gov-cli-tool)
 8.  [Stage 1: Application Frontend](#8-stage-1-application-frontend)
@@ -26,11 +26,11 @@ This blueprint deploys a secure and compliant environment for hosting Gemini Ent
 
 **This blueprint supports both EXTERNAL and INTERNAL load balancer deployments, configurable via the `deployment_type` variable in `gemini-stage-0/terraform.tfvars`.**
 
-It is designed to be highly automated via the `deploy.sh` script, which intelligently handles the differences between a "Greenfield" (fresh) deployment and a "Brownfield" (Stellar Engine) integration.
+It is designed to be **fully automated** via the `deploy.sh` script, which serves as the central management interface for the entire lifecycle of the application—from initial infrastructure provisioning to application updates and certificate management.
 
 ### Overall Goal
 
-The primary goal is to provide a turnkey solution for setting up Gemini Enterprise, enabling government customers and other regulated entities to utilize its AI-powered search and assistant capabilities while adhering to strict security and compliance mandates.
+The primary goal is to provide a turnkey ("Push Button") solution for setting up Gemini Enterprise, enabling government customers and other regulated entities to utilize its AI-powered search and assistant capabilities while adhering to strict security and compliance mandates.
 
 ### Architecture Overview
 
@@ -39,74 +39,46 @@ The blueprint establishes a robust infrastructure including:
 1.  **Networking:**
     - **Greenfield:** Deploys a dedicated Virtual Private Cloud (VPC) with private subnets to isolate the environment.
     - **Brownfield (Stellar Engine):** Automatically discovers and attaches to the existing Shared VPC and subnets provided by the Stellar Engine Host Project.
-    - The IP range for the internal load balancer (Greenfield) can be customized via the `internal_lb_subnet_range` variable.
-2.  **Data Storage:** CMEK-encrypted Google Cloud Storage (GCS) buckets and BigQuery datasets to securely store data for Discovery Engine. (Uses a dedicated key separate from the Terraform state key).
-3.  **Discovery Engine:** Configuration of Discovery Engine data stores, and connectors for GCS and BigQuery (Optional). (Uses a dedicated key separate from the Terraform state key).
-4.  **Load Balancing:** A Regional HTTPS Load Balancer (either INTERNAL_MANAGED or EXTERNAL_MANAGED based on `deployment_type`) to securely expose the Gemini Enterprise application.
-5.  **Security Controls:**
-    - **Identity-Aware Proxy (IAP):** Enforces fine-grained access control based on user identity and context. Supports both **Google Identity** and **Workforce Identity Federation** for external IdPs.
-    - **Access Context Manager:** Defines and enforces granular access policies based on attributes like user identity, time of day, geo-location, and device security status (requires Chrome Enterprise Premium subscription).
-    - **Chrome Enterprise Premium (Zero Trust):** Optional integration to enforce strict device-based access policies (e.g., Corporate Owned, Encrypted, Screen Lock) for a Zero Trust security posture.
-    - **Cloud Armor:** Provides WAF capabilities and DDoS protection, initially configured to only allow traffic from the US (Applicable for EXTERNAL deployments).
-    - **CMEK (Customer-managed encryption key):** Ensures data at rest in GCS, BigQuery, and Discovery Engine is encrypted with customer-managed keys.
-    - **IAM:** Least privilege IAM roles and service accounts.
-    - **Org Policies:** Enforces organizational constraints to maintain compliance.
-
-### Remote Terraform State Management
-
-This blueprint utilizes a **remote GCS backend** for Terraform state storage to ensure state persistence, collaboration, and security.
-
-- **State Bucket:** A GCS bucket named `${PREFIX}-gemini-enterprise-tf-state-${PROJECT_ID}` is automatically created (Greenfield) or discovered (Brownfield) by the `deploy.sh` script.
-- **Encryption (CMEK):**
-  - **State File:** The state bucket is encrypted with a Customer-Managed Encryption Key (CMEK). In Greenfield, this key is created by `deploy.sh`. In Brownfield, it uses the existing Tenant `iac-core` key.
-  - **Resources (Greenfield):** The Terraform configuration (Stage 0) creates a **separate, dedicated CMEK key** for encrypting application resources (Discovery Engine, GCS, BigQuery) to ensure separation of duties from the state encryption key.
-  - **Resources (Brownfield):** Application resources use the same Tenant `iac-core` key as the state bucket, adhering to the Stellar Engine key management model.
-- **Access Control:** The `deploy.sh` script automatically grants the `roles/cloudkms.cryptoKeyEncrypterDecrypter` role to the user running the deployment.
-- **Flexibility:** Because the state is remote, you can run Stage 1 from a different machine or session than Stage 0, provided you have the necessary credentials and KMS permissions.
+    - **Load Balancing:**
+        - **Regional External LB:** Equipped with Cloud Armor (WAF) and Identity Aware Proxy (IAP) for zero-trust, hardened external access.
+        - **Regional Internal LB:** Limits access to traffic from the VPC/VPN/Interconnect.
+2.  **Data Storage:** CMEK-encrypted Google Cloud Storage (GCS) buckets and BigQuery datasets to securely store data for Discovery Engine.
+3.  **Discovery Engine:** Configuration of Discovery Engine data stores, and connectors for GCS and BigQuery.
+4.  **Security Controls:**
+    - **Identity-Aware Proxy (IAP):** Enforces fine-grained access control based on user identity and context (Supports Google Identity & Workforce Identity).
+    - **Access Context Manager:** Defines granular access policies (Time, Location, Device).
+    - **Chrome Enterprise Premium (Zero Trust):** Optional integration for strict device-based access policies.
+    - **Cloud Armor:** WAF capabilities and DDoS protection (US-only geo-fencing).
+    - **CMEK (Customer-managed encryption key):** Ensures data at rest is encrypted with customer-managed keys.
+    - **IAM & Org Policies:** Least privilege roles and automated policy validation.
 
 ### Deployment Automation (`deploy.sh`)
 
-The `deploy.sh` script is the central orchestrator for this blueprint. It abstracts away the complexity of Terraform variable management and ensures consistent configuration across stages.
+The `deploy.sh` script is the recommended way to interact with this blueprint. It handles:
+
+1.  **Interactive Configuration:** Guides you through every step, including Project selection, Authentication, and Deployment Topology (Greenfield vs. Brownfield).
+2.  **Automated Discovery:**
+    -   **Context Awareness:** Automatically detects if you are in a "Bootstrap" or "Stellar Engine" environment.
+    -   **Resource Discovery:** Finds existing constraints, keys, networks, and subnets to prevent misconfiguration.
+3.  **Variable Generation:** Auto-generates `terraform.tfvars` files for both stages, eliminating manual copy-pasting errors.
+4.  **Lifecycle Management:** Contains a **"Helper Functions"** menu for post-deployment tasks:
+    -   **Update App Compliance:** Ensure an existing Gemini Enterprise application meets the most recent compliance standards and includes any recently authorized features
+    -   **Replace App / Routing:** Seamlessly swap the backend Gemini App while maintaining the Load Balancer.
+    -   **Import Documents:** Interactive utility to ingest data into GCS/BigQuery Data Stores.
+    -   **Upload SSL Certificate:** Validates and uploads PEM certificates to GCP Certificate Manager.
 
 #### 1. Intelligent Context Detection
 
-- **Greenfield:** Prompts the user for a new `prefix` and creates a fresh environment with its own VPC, Subnets, and Keys.
+- **Greenfield:** Prompts for a new `prefix` and creates a fresh environment with its own VPC, Subnets, and Keys.
 - **Brownfield (Stellar Engine):** Automatically detects the environment context based on the Project ID.
-  - **Prefix Derivation:** Extracts the `sedev` (or similar) prefix from the project ID (e.g., `sedev-test-nate-main-0`).
-  - **Tenant Discovery:** Locates the corresponding "Tenant IaC Project" (e.g., `sedev-test-nate-iac-core-0`).
-  - **State Bucket Reuse:** Identifies and reuses the existing Terraform state bucket provisioned by the Stellar Engine core pipeline, ensuring state consolidation.
-  - **Key Discovery:** Scans the Tenant IaC Project for the `gcs` HSM CMEK in the `us-east4` region (or configured region) to use for state encryption, and the `default` HSM CMEK for encrypting sensitive data of the application's resources.`
+  - **Prefix & Tenant Derivation:** Extracts `sedev`, `g4g`, etc., directly from the Project ID.
+  - **State Bucket Reuse:** Identifies and reuses the existing Terraform state bucket provisioned by the Stellar Engine core pipeline.
+  - **Key Inheritance:** Reuses the Tenant's existing `iac-core` KMS keyring for encryption, ensuring proper separation of duties while maintaining compliance.
 
-#### 2. Variable Auto-Generation
+#### 2. Network Integration
 
-The script generates a `terraform.tfvars` file for each stage, populating it with discovered or prompted values.
-
-- **Shared VPC Discovery:** In Brownfield mode, it queries the Shared VPC Host Project to find usable subnets (Private and Proxy) of the tenant project, and automatically populates `network_project_id`, `shared_vpc_network_name`, `shared_vpc_subnet_name`, and `shared_vpc_proxy_subnet_name`.
-- **Identity Provider Config:** Helps configure `acl_idp_type` (GSUITE vs. THIRD_PARTY) and discovers Workforce Identity Pools if needeed.
-
-**Key Autogenerated Variables:**
-
-| Variable                       | Description                                          | Source                                                                 |
-| :----------------------------- | :--------------------------------------------------- | :--------------------------------------------------------------------- |
-| `network_project_id`           | Project ID of the Shared VPC Host.                   | Discovered via `gcloud compute shared-vpc`                             |
-| `shared_vpc_network_name`      | Name of the Shared VPC Network.                      | Discovered via `gcloud compute networks`                               |
-| `shared_vpc_subnet_name`       | Name of the private subnet for the application.      | Discovered via `gcloud compute networks subnets`                       |
-| `shared_vpc_proxy_subnet_name` | Name of the proxy-only subnet for the Load Balancer. | Discovered via `gcloud compute networks subnets`                       |
-| `kms_key_id`                   | The CMEK key ID for encryption.                      | Discovered in Tenant IaC Project (Brownfield) or Created (Greenfield). |
-| `access_policy_number`         | The numeric ID of the Access Policy.                 | Discovered via `gcloud access-context-manager`                         |
-| `terraform_state_bucket`       | The GCS bucket for remote state.                     | Discovered (Brownfield) or Created (Greenfield).                       |
-
-#### 3. Key Management Strategy
-
-- **Terraform State:** Always encrypted with a CMEK key. In Greenfield, this key is created (`<prefix>-state-key`). In Brownfield, it uses the existing Tenant `gcs` key.
-- **Application Resources:**
-  - **Greenfield:** Creates a **separate, dedicated CMEK key** (`google_kms_crypto_key.resources`) for encrypting Discovery Engine Data Stores, GCS Buckets, and BigQuery Datasets. This separation allows for granular rotation and access policies.
-  - **Brownfield:** Reuses the **Tenant Key** for application resources. This aligns with the Stellar Engine philosophy of centralized key management per tenant.
-
-#### 4. Networking Logic
-
-- **Greenfield:** The script signals Terraform to create a new VPC (`gemini-enterprise-vpc`) and subnets.
-- **Brownfield:** The script signals Terraform to use `data` sources to attach to the pre-existing Shared VPC subnets discovered during the initialization phase.
+- **Greenfield:** Signals Terraform to create a new `gemini-enterprise-vpc`.
+- **Brownfield:** Automatically discovers Shared VPC Host Projects, scans for usable subnets (Private and Proxy), and configures Stage 0 to attach to them.
 
 ---
 
@@ -225,27 +197,33 @@ The deployment process involves interacting with Google Cloud resources across m
 
 ### 1. Deployment Script Prerequisites (`deploy.sh`)
 
-The script itself performs pre-flight checks and state management. It now automatically checks for critical Organization Policies (e.g., `compute.restrictLoadBalancerCreationForTypes`, `compute.disableInternetNetworkEndpointGroup`) to ensure deployment success.
+The script itself performs pre-flight checks (`check_dependencies`) and state management. It now automatically checks for critical Organization Policies (e.g., `compute.restrictLoadBalancerCreationForTypes`, `compute.disableInternetNetworkEndpointGroup`) to ensure deployment success.
+
+**Required Tools (Checked by script):**
+
+- `gcloud`
+- `terraform`
+- `pip3` / `python3`
+- `jq` (essential for parsing JSON outputs)
 
 **Required Roles:**
 
-- `roles/storage.admin` (or `roles/storage.objectAdmin` + `roles/storage.legacyBucketReader`) on the State Bucket.
+- `roles/storage.admin` (or `roles/storage.objectAdmin`) on the State Bucket.
 - `roles/browser` (or `roles/viewer`) on the Target Project.
-- `roles/orgpolicy.policyViewer` (Recommended to allow the script to validate policies).
+- `roles/orgpolicy.policyViewer` (Recommended: allows the script to validate policies).
+- `roles/cloudkms.cryptoKeyEncrypterDecrypter` (or Admin) on the CMEK Key (if reusing existing encryption).
 
 **Specific Permissions:**
 
 - `storage.buckets.get`
-- `storage.objects.get`
-- `storage.objects.create`
-- `storage.objects.delete`
+- `storage.objects.get/create/delete`
 - `resourcemanager.projects.get`
-- `serviceusage.services.list` (to check enabled APIs)
-- `orgpolicy.policies.list` (for policy validation)
+- `serviceusage.services.list`
+- `orgpolicy.policies.list`
 
 ### 2. Shared VPC Discovery
 
-If you are using a Shared VPC, the deployment user needs permissions to discover and use resources in the **Host Project**.
+If you are using a Shared VPC (Brownfield / Custom), the deployment user needs permissions to discover and use resources in the **Host Project**.
 
 **Required Roles on Host Project:**
 
@@ -376,60 +354,41 @@ This section details how the Gemini Enterprise deployment script (`deploy.sh`) i
 
 When "Brownfield - Stellar Engine Integration" is selected, the script automates the configuration process by:
 
-1.  **Deriving** the Stellar Engine prefix directly from the selected Project ID (e.g., `sedev` from `sedev-test-nate-main-0`).
-2.  **Connecting** to the Stellar Engine "Outputs" bucket (`gs://<prefix>-prod-iac-core-outputs-0`).
-3.  **Reading** the JSON state files generated by the Stellar Engine core pipeline.
-4.  **Extracting** critical infrastructure values (Domain, Groups, KMS Keys).
-5.  **Validating** the target Project ID against the Stellar Engine tenant list.
-6.  **Reusing** the Tenant's existing Terraform state bucket.
+1.  **Prefix Extraction:** Derives the Stellar Engine prefix directly from the Project ID (e.g., extracts `sedev` from `sedev-test-nate-main-0`).
+2.  **Tenant Context:** Identifies the Environment (`test`, `dev`, `prod`) and Tenant ID (`nate`, `g4g`) to locate the correct "IaC" project.
+3.  **State Bucket Reuse:** Discovers the existing **Tenant IaC Core State Bucket** (`<prefix>-<env>-<tenant>-iac-0`) and reuses it for Gemini Enterprise state.
+    -   *Crucial:* This ensures that Gemini Enterprise state lives alongside the rest of the tenant's infrastructure state.
+4.  **CMEK Inheritance:**
+    -   **State Key:** Discovers the key protecting the State Bucket.
+    -   **Resource Key:** Scans the Tenant IaC Project for the `gcs` and `gemini-enterprise` (or `default`) keys in the `us` or `us-east4` keyrings.
+    -   *Benefit:* No need to create new keys; leverages the tenant's existing crypto-boundary.
 
-### Data Sources
+### Dynamic Discovery Logic
 
-The integration relies on the **Stellar Engine Outputs Bucket**, typically named:
-`gs://<prefix>-prod-iac-core-outputs-0`
+The `discover_infrastructure` function in `deploy.sh` performs the following:
 
-#### 1. Global Configuration
+1.  **Derive IaC Project:** `<prefix>-<env>-<tenant>-iac-core-0`
+2.  **Locate State Bucket:** Checks `gs://${PREFIX}-${ENVIRONMENT}-${TENANT}-iac-0`.
+3.  **Find Keys:**
+    -   Checks US Multi-Region Keyring: `projects/.../locations/us/keyRings/${Environment}-${Tenant}-keyring`
+    -   Checks Regional Keyring (fallback): `projects/.../locations/${REGION}/keyRings/${Environment}-${Tenant}-keyring`
 
-**Source File:** `tfvars/0-globals.auto.tfvars.json`
+### Network Integration (Shared VPC)
 
-| Gemini Variable | Stellar JSON Path                    | Description                                                    |
-| :-------------- | :----------------------------------- | :------------------------------------------------------------- |
-| `domain`        | `.organization.domain`               | The Google Cloud Organization domain.                          |
-| `prefix`        | `.prefix`                            | The global resource prefix (e.g., `sedev`).                    |
-| `region`        | `.locations.gcs`                     | The primary region for resources (mapped from GCS location).   |
-| `admin_group`   | `.groups["gcp-organization-admins"]` | Mapped to Gemini Admin Group. Fallback: `gcp-security-admins`. |
-| `user_group`    | `.groups["gcp-devops"]`              | Mapped to Gemini User Group. Fallback: `gcp-support`.          |
+- **Automated:** If the Project ID indicates a Stellar Engine environment, the script assumes a Shared VPC architecture.
+- **Discovery:** It queries the **Host Project** (typically `<prefix>-<env>-net-host`) for subnets shared with the Tenant Project.
+- **Selection:**
+    -   **Private Subnet:** Selects the first available PRIVATE subnet.
+    -   **Proxy Subnet:** Selects the designated `REGIONAL_MANAGED_PROXY` subnet for the Internal Load Balancer.
 
-#### 2. Resource Management
-
-**Source File:** `tfvars/1-resman.auto.tfvars.json`
-
-| Purpose        | Stellar JSON Path  | Description                                                                                                                           |
-| :------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| **Validation** | `.tenant_accounts` | Used to verify that the user-selected `PROJECT_ID` exists as a valid "Main Project" for a tenant in the Stellar Engine configuration. |
-
-#### 3. Security & Keys
-
-**Discovery Logic:**
-
-The script dynamically discovers the CMEK key by inspecting the **Tenant IaC Project** (`<prefix>-<env>-<tenant>-iac-core-0`).
-
-1.  **Target Project:** It lists Key Rings in the Tenant IaC Project (defaulting to `us-east4`).
-2.  **Key Search:** It looks for a key named `default` within those Key Rings.
-3.  **Result:** If found, it uses this key (`KMS_KEY_ID`) for all encryption operations. If not found, it attempts to create a new key in the main project.
-
-### Dynamic Discovery
-
-In addition to reading static JSON files, the script performs dynamic discovery for resources that are not explicitly exported or require real-time validation.
-
-#### Tenant State Bucket
-
-Instead of creating a new bucket, the script attempts to reuse the **Tenant's IaC Core State Bucket**.
-
-1.  **Derive IaC Project:** `<prefix>-<env>-<tenant>-iac-core-0` (Derived from the selected Main Project ID).
-2.  **Discover Bucket:** Lists buckets in that project and looks for one ending in `-iac-0` or containing `tf-state`.
-3.  **Result:** Sets `backend-config="bucket=..."` to this existing bucket.
-
+**Result:** The script generates `gemini-stage-0/terraform.tfvars` with:
+```hcl
+use_shared_vpc = true
+network_project_id = "sedev-test-net-host"
+shared_vpc_network_name = "test-spoke-0"
+shared_vpc_subnet_name = "test-spoke-0"
+shared_vpc_proxy_subnet_name = "test-spoke-0-proxy"
+```
 #### Access Policy
 
 **Command:** `gcloud access-context-manager policies list`
@@ -460,13 +419,13 @@ The deployment logic now intelligently handles network configuration based on th
 
 ---
 
-## 5. Internal Deployment Guide
+## 5. Internal Ingress Deployment Guide
 
 This section outlines the deployment of the Gemini Enterprise application on Google Cloud Platform, specifically for **internal-only access** from on-premise networks or other VPCs connected via Cloud VPN or Interconnect. This guide uses the main `gemini-stage-0` and `gemini-stage-1` directories, with specific variable settings.
 
 ### Deployment Overview
 
-This deployment uses a Regional _Internal_ HTTP(S) Load Balancer (ILB) by setting `deployment_type = "internal"` in the `terraform.tfvars` files for both stages. The application will NOT be accessible from the public internet.
+This deployment uses a Regional _Internal_ HTTP(S) Load Balancer (ILB) by setting `deployment_type = "internal"` in the `terraform.tfvars` file in `gemini-stage-0`. The application will NOT be accessible from the public internet.
 
 **Key Components:**
 
@@ -493,37 +452,29 @@ This deployment uses a Regional _Internal_ HTTP(S) Load Balancer (ILB) by settin
 
 ### Deployment Steps
 
+
+
 1.  **Run `deploy.sh`:**
+    -   Select **Option 1 (Deploy Stage 0)**.
+    -   Select **Deployment Type:** "Brownfield" (if in Stellar) or "Greenfield".
+    -   **When prompted for Usage Type:** Select **"2) Regional Internal (VPN / Interconnect)"**.
+    -   **IP Ranges:** Enter the CIDR ranges of your on-premise network allowed to access the ILB.
+    -   The script will generate the correct `terraform.tfvars` with `deployment_type = "internal"` and apply the changes.
 
-    - Execute `./deploy.sh` from the root of the repository.
-    - **Select Deployment Type:** Choose between **Brownfield (Stellar Engine Integration)** or **Greenfield (New GCP Project)** based on your environment.
-    - **Select Option 1:** Choose **Deploy Stage 0 (Foundation)**.
-    - **Select Internal Deployment:** When prompted for the deployment type, select **Regional Internal Application Load Balancer**.
-    - **Configure Data Stores:** The script will prompt you to add BigQuery or GCS data stores.
-    - **Configure IP Ranges:** You will be prompted to enter allowed IP ranges for the load balancer (default: `10.0.0.0/8`).
-    - The script will automatically prompt for other necessary details (Project ID, Identity Provider, etc.) and generate the `gemini-stage-0/terraform.tfvars` file for you.
+2.  **Create App & Certificate:**
+    -   Run `deploy.sh` -> **Helper Functions** -> **Upload SSL Certificate**.
+        -   Upload your internal certificate (PEM format).
+    -   Run `deploy.sh` -> **Step 2 (Create Gemini Enterprise App)**.
+        -   Creates the engine and provides the `gemini_config_id`.
 
-2.  **Apply Stage 0:**
+3.  **Deploy Stage 1:**
+    -   Run `deploy.sh` -> **Step 3 (Deploy Stage 1)**.
+    -   **Reuse Configuration:** Select **Yes**.
+    -   Enter the `gemini_config_id` and the name of the certificate you uploaded.
 
-    - The script will proceed to initialize and apply the Stage 0 Terraform configuration.
-    - This sets up the network (or connects to Shared VPC), provisions KMS keys, and configures Discovery Engine.
-
-3.  **Provision Gemini Enterprise & Certificate:**
-
-    - **Run `gem4gov`:** You can use the `deploy.sh` script (Option 4: Create Gemini Enterprise App) or run `gem4gov onboard` manually to provision the Gemini Enterprise application instance. This will provide you with a `gemini_config_id` (Widget Config ID).
-    - **Acquire SSL Certificate:** Obtain a valid SSL certificate for the internal domain you intend to use (e.g., `gemini.internal.corp`).
-    - **Configure DNS:** Point the 'A' record on your internal domain registrar or DNS server to the internal IP address reserved in Stage 0. You can find this IP in the Stage 0 outputs (`gemini_enterprise_ip`).
-
-4.  **Deploy Stage 1:**
-
-    - Run `./deploy.sh` again.
-    - Select **Option 2 (Deploy Stage 1)**.
-    - **Reuse Configuration:** The script will detect the existing Stage 0 state and ask to reuse it. Select **Yes**.
-    - **Provide Details:** When prompted, enter the `gemini_config_id` (from `gem4gov`) and the `ssl_certificate_name` (of the cert you uploaded/created).
-    - The script will apply Stage 1, setting up the Internal Load Balancer and IAP.
-
-5.  **Verification:**
-    - After Stage 1 completes, verify access from an on-premise machine using the internal domain name.
+4.  **Verification:**
+    -   Configure your internal DNS (split-horizon) to point `gemini.yourdomain.internal` to the **Gemini Enterprise IP** (Output from Stage 0).
+    -   Access the URL from your on-premise network.
 
 ### DNS Configuration (Split-Horizon DNS)
 
@@ -946,48 +897,29 @@ The blueprint sets up the following key components:
 
 ### Deployment Steps
 
-**Recommended:** Use the interactive `deploy.sh` script at the root of the repository. It automates the creation of `terraform.tfvars` and handles:
+**Recommended:** Use the interactive `deploy.sh` script at the root of the repository.
 
-- Identity Provider selection (GSUITE vs. THIRD_PARTY).
-- Chrome Enterprise Premium configuration.
-- Data Store setup.
+1.  **Run `deploy.sh`**: Select **Option 1**.
+2.  **Follow Prompts**:
+    -   **Context:** Script detects Project/Tenant/Environment.
+    -   **Access Policies:** Configure Time, Location, and Device trust levels.
+    -   **Data Stores:** Interactively add GCS Buckets or BigQuery Datasets.
+    -   **Compliance:** Select FedRAMP High (Default) or IL4.
+3.  **Apply**: The script runs `terraform init` and `apply` automatically.
 
-**Manual Method:**
+### Post-Deployment (Data Ingestion)
 
-1.  Navigate to `blueprints/fedramp-high/gemini-enterprise/gemini-stage-0/`.
-2.  Create a `terraform.tfvars` file based on the `terraform.tfvars.sample` sample, filling in all required values.
-    - **Note:** If using Workforce Identity Federation, set `acl_idp_type = "THIRD_PARTY"` and provide `acl_workforce_pool_name` and `acl_workforce_provider_id`.
-3.  Initialize Terraform: `terraform init`
-4.  Review the plan: `terraform plan`
-5.  Apply the configuration: `terraform apply`
-6.  Complete the "Manual Steps After Apply".
+After Stage 0 completes, you must populate your created Data Stores.
 
-### Manual Steps After Apply
+1.  **Upload Data:** Upload your PDF/HTML/DOCX files to the created GCS buckets or populate your BigQuery tables.
+2.  **Import Data:**
+    -   Run `deploy.sh`.
+    -   Select **Helper Functions (Option 4)**.
+    -   Select **3. Import Documents to Gemini Enterprise Data Store**.
+    -   Choose the Data Store from the list.
+    -   The script will trigger the import job.
 
-1.  **Populate Data Stores:**
-
-    - **GCS:** Upload your documents to the GCS bucket(s) created by Terraform (see output above `gcs_data_store_to_bucket`).
-    - **BigQuery:** Populate the BigQuery table(s) created by Terraform (see output above `bq_data_store_to_dataset_table`)
-
-2.  **Import Data to Discovery Engine:**
-
-    - **GCS:** Manually trigger data import from GCS to the Discovery Engine data stores. Example for one Data Store:
-
-      ```bash
-      # Obtain the Data Store ID from Terraform outputs gcs_discovery_engine_data_stores
-      DATA_STORE_ID="<e.g., company-docs-gcs-data-store>"
-      BUCKET_NAME="<e.g., your-gcp-project-id-company-docs-data>"
-      PROJECT_ID=$(gcloud config get-value project)
-      GEOLOCATION="us" # Match var.geolocation
-
-      gcloud discovery-engine data-stores import $DATA_STORE_ID \
-        --project=$PROJECT_ID \
-        --location=$GEOLOCATION \
-        --gcs-source=gs://${BUCKET_NAME}/* \
-        --data-schema=content
-      ```
-
-    - **BigQuery:** The Data Connector will periodically refresh data. Check the status in the console.
+**Note:** For BigQuery Web Connectors, the sync is typically automatic based on the schedule, but the initial import can be triggered to speed up indexing.
 
 3.  **Proceed to gemini-stage-1:** Once this stage is fully applied and manual steps are completed, you will run the `gem4gov` CLI to create the application engine, and then deploy the `gemini-stage-1` blueprint to configure the main load balancer frontend & routing rules to your customer instance.
 

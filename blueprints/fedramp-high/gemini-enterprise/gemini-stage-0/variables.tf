@@ -269,8 +269,21 @@ variable "bq_data_store_configs" {
   default = []
 }
 
+
 variable "internal_lb_subnet_range" {
   description = "The IP CIDR range for the internal load balancer subnet."
   type        = string
   default     = "10.10.10.0/24"
+}
+
+variable "lenient_device_access_levels" {
+  description = "List of Access Levels to include in the Lenient Device Policy."
+  type        = list(string)
+  default     = []
+}
+
+variable "moderate_device_access_levels" {
+  description = "List of Access Levels to include in the Moderate Device Policy."
+  type        = list(string)
+  default     = []
 }

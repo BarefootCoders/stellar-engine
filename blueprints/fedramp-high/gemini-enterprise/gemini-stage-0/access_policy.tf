@@ -75,7 +75,7 @@ resource "google_access_context_manager_access_level" "lenient_device" {
   title  = "Lenient Device Policy"
   basic {
     conditions {
-      required_access_levels = ["accessPolicies/${var.access_policy_number}/accessLevels/us"]
+      required_access_levels = var.lenient_device_access_levels
     }
   }
   depends_on = [google_access_context_manager_access_level.us]
@@ -89,7 +89,7 @@ resource "google_access_context_manager_access_level" "moderate_device" {
   title  = "Moderate Device Policy"
   basic {
     conditions {
-      required_access_levels = ["accessPolicies/${var.access_policy_number}/accessLevels/us", "accessPolicies/${var.access_policy_number}/accessLevels/time", "accessPolicies/${var.access_policy_number}/accessLevels/expire"]
+      required_access_levels = var.moderate_device_access_levels
     }
   }
   depends_on = [
