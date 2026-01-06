@@ -105,7 +105,7 @@ wait_for_project_deletion() {
     
     log_info "Project $project_id state: $state - waiting..."
     sleep 5
-    ((wait_count++)) || true
+    ((wait_count++))
   done
 
   log_warn "Project $project_id still exists after waiting"
@@ -124,36 +124,43 @@ clean_folder_recursive() {
   if [[ -n "$projects" ]]; then
       log_info "Found projects in folder $folder_id: $(echo "$projects" | tr '\n' ' ')"
       local pids=()
+      local log_files=()
       for project in $projects; do
+        local log_file=$(mktemp)
+        log_files+=("$log_file")
         (
-          # Remove liens
-          gcloud_safe alpha resource-manager liens list --project="$project" --format="value(name)" 2>/dev/null | while read -r lien; do
-            if [[ -n "$lien" ]]; then
-              log_info "Removing lien $lien from project $project"
-              gcloud_safe alpha resource-manager liens delete "$lien" || true
-            fi
-          done
-          # Unlink billing
-          gcloud_safe billing projects unlink "$project" 2>/dev/null || true
-          # Delete project
-          if ! gcloud_safe projects delete "$project" --quiet; then
-            log_warn "Failed to delete project $project - checking if already deleted..."
-            if gcloud projects describe "$project" >/dev/null 2>&1; then
-                log_error "Project $project still exists and could not be deleted"
+          {
+            # Remove liens
+            gcloud_safe alpha resource-manager liens list --project="$project" --format="value(name)" 2>/dev/null | while read -r lien; do
+              if [[ -n "$lien" ]]; then
+                log_info "Removing lien $lien from project $project"
+                gcloud_safe alpha resource-manager liens delete "$lien" || true
+              fi
+            done
+            # Unlink billing
+            gcloud_safe billing projects unlink "$project" 2>/dev/null || true
+            # Delete project
+            if ! gcloud_safe projects delete "$project" --quiet; then
+              log_warn "Failed to delete project $project - checking if already deleted..."
+              if gcloud projects describe "$project" >/dev/null 2>&1; then
+                  log_error "Project $project still exists and could not be deleted"
+              else
+                  log_info "Project $project appears to be deleted already"
+              fi
             else
-                log_info "Project $project appears to be deleted already"
+                wait_for_project_deletion "$project"
             fi
-          else
-              wait_for_project_deletion "$project"
-          fi
+          } > "$log_file" 2>&1
         ) &
         pids+=($!)
       done
       
       # Wait for all project deletions to complete
       log_info "Waiting for parallel project deletions in $folder_id..."
-      for pid in "${pids[@]}"; do
-        wait "$pid"
+      for i in "${!pids[@]}"; do
+        wait "${pids[$i]}"
+        cat "${log_files[$i]}"
+        rm -f "${log_files[$i]}"
       done
   else
       log_info "No projects found in folder $folder_id"
@@ -166,15 +173,20 @@ clean_folder_recursive() {
   if [[ -n "$subfolders" ]]; then
       log_info "Found subfolders in folder $folder_id: $(echo "$subfolders" | tr '\n' ' ')"
       local folder_pids=()
+      local folder_log_files=()
       for subfolder in $subfolders; do
         local subfolder_id=${subfolder##*/}
-        ( clean_folder_recursive "$subfolder_id" ) &
+        local log_file=$(mktemp)
+        folder_log_files+=("$log_file")
+        ( clean_folder_recursive "$subfolder_id" > "$log_file" 2>&1 ) &
         folder_pids+=($!)
       done
       
       log_info "Waiting for subfolder cleanups in $folder_id..."
-      for pid in "${folder_pids[@]}"; do
-        wait "$pid"
+      for i in "${!folder_pids[@]}"; do
+        wait "${folder_pids[$i]}"
+        cat "${folder_log_files[$i]}"
+        rm -f "${folder_log_files[$i]}"
       done
   else
       log_info "No subfolders found in folder $folder_id"
@@ -499,7 +511,7 @@ if [[ "${skip_stage_3:-}" != "true" ]] && promptUser "Stage 3 - Security"; then
   fi
   
   if promptUser "Would you like to run terraform destroy?"; then
-    if ! terraform destroy; then
+    if ! terraform destroy -auto-approve; then
       log_error "Terraform destroy failed, but continuing with cleanup"
     fi
   fi
@@ -592,7 +604,7 @@ if [[ "${skip_stage_2:-}" != "true" ]] && promptUser "Stage 2 - Networking"; the
       while [[ $attempt -le $max_attempts ]] && [[ "$destroy_success" == "false" ]]; do
         log_info "Terraform destroy attempt $attempt/$max_attempts"
 
-        if terraform destroy; then
+        if terraform destroy -auto-approve; then
           destroy_success=true
           log_info "Terraform destroy completed successfully"
         else
@@ -615,7 +627,7 @@ if [[ "${skip_stage_2:-}" != "true" ]] && promptUser "Stage 2 - Networking"; the
           else
             log_error "Terraform destroy failed after $max_attempts attempts"
             if promptUser "Would you like to try one more manual attempt?"; then
-              terraform destroy && destroy_success=true
+              terraform destroy -auto-approve && destroy_success=true
             fi
             break
           fi
@@ -739,13 +751,16 @@ if [[ "${skip_stage_2:-}" != "true" ]] && promptUser "Stage 2 - Networking"; the
   fi
   
   if promptUser "Would you like to remove billing account admin permissions for the ${PREFIX}-prod-resman-net-0@${PREFIX}-prod-iac-core-0.iam.gserviceaccount.com?"; then
-    gcloud billing accounts remove-iam-policy-binding "${BILLING_ACCOUNT}" --member=serviceAccount:"${PREFIX}"-prod-resman-net-0@"${PREFIX}"-prod-iac-core-0.iam.gserviceaccount.com --role=roles/billing.admin
+    if ! gcloud billing accounts remove-iam-policy-binding "${BILLING_ACCOUNT}" --member=serviceAccount:"${PREFIX}"-prod-resman-net-0@"${PREFIX}"-prod-iac-core-0.iam.gserviceaccount.com --role=roles/billing.admin; then
+        log_warn "Failed to remove billing permissions (likely already removed), continuing..."
+    fi
   fi
   mark_stage_complete "STAGE_2"
 fi
 
 ########### Stage 1 - Resman ############
-echo -e "\n#######################################################"
+echo
+echo "#######################################################"
 echo "#######################################################"
 echo "#######################################################"
 
@@ -776,7 +791,7 @@ if [[ "${skip_stage_1:-}" != "true" ]] && promptUser "Stage 1 - Resource Manager
 
     destroy_success=false
     if promptUser "Would you like to run terraform destroy?"; then
-        if ! terraform destroy -lock=false; then
+        if ! terraform destroy -lock=false -auto-approve; then
              log_warn "Terraform destroy failed (likely due to non-empty buckets). Proceeding to cleanup..."
         else
              destroy_success=true
@@ -826,7 +841,7 @@ if [[ "${skip_stage_1:-}" != "true" ]] && promptUser "Stage 1 - Resource Manager
 
     if [[ "$buckets_deleted" == "true" ]]; then
         log_info "Buckets were deleted manually. Re-running terraform destroy to clean up state..."
-        if terraform destroy -lock=false; then
+        if terraform destroy -lock=false -auto-approve; then
              destroy_success=true
         else
              log_warn "Second terraform destroy failed, but buckets are gone."
@@ -836,7 +851,7 @@ if [[ "${skip_stage_1:-}" != "true" ]] && promptUser "Stage 1 - Resource Manager
     if promptUser "If you received an error for TagValues, would you like to delete all child tags?"; then
       read -r -p "Please enter the TagValue from the above error - numbers only" TAG
       gcloud resource-manager tags values delete tagValues/"${TAG}"
-      terraform destroy
+      terraform destroy -auto-approve
     fi
 
     if promptUser "Would you like to delete your .terraform dir and related files?"; then
@@ -928,9 +943,10 @@ if promptUser "Stage 0 - Bootstrap"; then
             
             # Remove backend config
             # Assuming backend block is standard format: backend "gcs" { ... }
-            sed -i '/backend "gcs"/,/}/d' 0-bootstrap-providers.tf
+            sed -i.bak '/backend "gcs"/,/}/d' 0-bootstrap-providers.tf
+            rm -f 0-bootstrap-providers.tf.bak
             
-            if terraform init -migrate-state; then
+            if terraform init -migrate-state -force-copy; then
                 log_info "Successfully migrated state back to local"
                 rm -f 0-bootstrap-providers.tf.bak
                 use_remote_backend=false
@@ -1056,7 +1072,8 @@ if promptUser "Stage 0 - Bootstrap"; then
     # CRITICAL: Strip impersonation from providers.tf since the service account is likely deleted
     if [[ -f "0-bootstrap-providers.tf" ]]; then
         log_info "Removing impersonation from 0-bootstrap-providers.tf to avoid 'Account disabled' errors..."
-        sed -i '/impersonate_service_account/d' 0-bootstrap-providers.tf
+        sed -i.bak '/impersonate_service_account/d' 0-bootstrap-providers.tf
+        rm -f 0-bootstrap-providers.tf.bak
 
         # NEW: Check for GCS backend and pull state to ensure destruction works even if bucket is deleted
         # NEW: Check for GCS backend and pull state to ensure destruction works even if bucket is deleted
@@ -1065,9 +1082,12 @@ if promptUser "Stage 0 - Bootstrap"; then
              if terraform state pull > terraform.tfstate 2>/dev/null; then
                  log_info "State pulled successfully. Switching to local backend..."
                  # Create local backend config
-                 cat > 0-bootstrap-providers.tf <<EOF
+cat > 0-bootstrap-providers.tf <<EOF
 terraform {
   backend "local" {}
+}
+provider "google" {
+  user_project_override = true
 }
 EOF
                  # Re-initialize to apply the backend change
@@ -1085,14 +1105,23 @@ EOF
 terraform {
   backend "local" {}
 }
+provider "google" {
+  user_project_override = true
+}
 EOF
              log_info "Running terraform init -reconfigure (verbose)..."
              terraform init -reconfigure || log_warn "Init failed"
         fi
     fi
+
+
+    # CRITICAL: Ensure ADC has a quota project set (required for Org Policy API)
+    if [[ -n "${BOOTSTRAP_PROJECT_ID:-}" ]]; then
+        log_info "Setting quota project to ${BOOTSTRAP_PROJECT_ID} for ADC to avoid 'SERVICE_DISABLED' errors..."
+        gcloud auth application-default set-quota-project "${BOOTSTRAP_PROJECT_ID}" >/dev/null 2>&1 || log_warn "Failed to set quota project, you may need to set it manually if errors occur"
     fi
 
-    if ! terraform destroy -var bootstrap_user="$current_account"; then
+    if ! terraform destroy -auto-approve -var bootstrap_user="$current_account"; then
          log_warn "Terraform destroy failed. Proceeding to cleanup..."
     fi
 
@@ -1126,16 +1155,12 @@ EOF
 
     if [[ "$buckets_deleted" == "true" ]]; then
         log_info "Buckets were deleted manually. Re-running terraform destroy..."
-        terraform destroy -var bootstrap_user="$current_account" || log_warn "Second destroy failed"
+        terraform destroy -auto-approve -var bootstrap_user="$current_account" || log_warn "Second destroy failed"
     fi
 
-    # CRITICAL: Ensure ADC has a quota project set (required for Org Policy API)
-    if [[ -n "${BOOTSTRAP_PROJECT_ID:-}" ]]; then
-        log_info "Setting quota project to ${BOOTSTRAP_PROJECT_ID} for ADC to avoid 'SERVICE_DISABLED' errors..."
-        gcloud auth application-default set-quota-project "${BOOTSTRAP_PROJECT_ID}" >/dev/null 2>&1 || log_warn "Failed to set quota project, you may need to set it manually if errors occur"
-    fi
 
-    if ! terraform destroy -var bootstrap_user="$current_account"; then
+
+    if ! terraform destroy -auto-approve -var bootstrap_user="$current_account"; then
       log_warn "Terraform destroy failed even with restored permissions, analyzing issues..."
 
       # Check for specific error patterns and handle them properly
@@ -1146,7 +1171,7 @@ EOF
         log_warn "Backend initialization required - attempting to reconfigure..."
         if terraform init -reconfigure; then
           log_info "Terraform init -reconfigure successful, retrying destroy..."
-          if terraform destroy -var bootstrap_user="$current_account"; then
+          if terraform destroy -auto-approve -var bootstrap_user="$current_account"; then
              log_info "Terraform destroy succeeded after reconfigure"
              return 0
           fi
@@ -1367,7 +1392,7 @@ EOF
       fi
 
       # Retry destroy after handling permission issues
-      if ! terraform destroy -var bootstrap_user="$current_account"; then
+      if ! terraform destroy -auto-approve -var bootstrap_user="$current_account"; then
         log_error "Terraform destroy still failing after permission fixes"
         log_error "This indicates either:"
         log_error "  1. Insufficient organization-level permissions"
@@ -1381,12 +1406,14 @@ EOF
           terraform state rm 'module.automation-project.google_project.project[0]' 2>/dev/null || true
 
           log_info "Attempting final terraform destroy of remaining resources..."
-          terraform destroy -var bootstrap_user="$current_account" || log_warn "Some resources may require manual cleanup"
+          terraform destroy -auto-approve -var bootstrap_user="$current_account" || log_warn "Some resources may require manual cleanup"
         fi
       else
         log_info "Terraform destroy succeeded after permission restoration"
       fi
     fi
+    fi
+
 
   # CRITICAL: Final Assured Workloads cleanup AFTER terraform destroy (AUTOMATIC - NO PROMPT)
   log_info "=========================================="
@@ -1643,7 +1670,8 @@ EOF
     if [[ -n "$remaining" ]]; then
       count=$(echo "$remaining" | wc -l)
       remaining_count=$((remaining_count + count))
-      log_warn "Region $region still has $count workload(s): $(echo "$remaining" | tr '\n' ', ' | sed 's/,$//')"
+      formatted_remaining=$(echo "$remaining" | tr '\n' ' ')
+      log_warn "Region $region still has $count workload(s): $formatted_remaining"
     fi
   done
 
@@ -1651,6 +1679,24 @@ EOF
     log_info "✓ All Assured Workloads successfully deleted!"
   else
     log_warn "$remaining_count workload(s) remain (likely 30-day folder retention)"
+  fi
+  echo
+
+  # Custom Constraint Cleanup
+  log_info "Checking for remaining custom constraints..."
+  constraints=$(gcloud org-policies list-custom-constraints --organization="${ORGANIZATION_ID}" --format="value(name)" 2>/dev/null | grep "custom.*${PREFIX}" || echo "")
+
+  if [[ -n "$constraints" ]]; then
+      formatted_constraints=$(echo "$constraints" | tr '\n' ' ')
+      log_warn "Found remaining custom constraints: $formatted_constraints"
+      if promptUser "Would you like to delete these custom constraints?"; then
+          for constraint in $constraints; do
+              log_info "Deleting custom constraint: $constraint"
+              gcloud org-policies delete-custom-constraint "$constraint" --organization="${ORGANIZATION_ID}" --quiet
+          done
+      fi
+  else
+      log_info "No custom constraints found with prefix ${PREFIX}"
   fi
   echo
 
@@ -1751,7 +1797,7 @@ EOF
   if promptUser "Did you receive any errors deleting projects or Assured Workloads resources?"; then
     "${SCRIPT_DIR}"/../fast/stages-aw/0-bootstrap/setIAM.sh "${DEPLOYER_EMAIL_ADDRESS}" "${ORGANIZATION_ID}"
     sleep 60
-    terraform destroy
+    terraform destroy -auto-approve
   fi
 
 

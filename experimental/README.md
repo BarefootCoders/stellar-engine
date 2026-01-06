@@ -4,6 +4,10 @@ This directory contains a suite of powerful automation scripts designed to strea
 
 ## Core Scripts
 
+### `common-functions.sh`
+A shared library providing consistent logging, error handling, and utility functions across all scripts.
+
+
 ### `deploy.sh`
 The main entry point for deploying the Stellar Engine environment.
 - **Interactive Configuration**: Guides you through setting up your `config.env`.
@@ -18,6 +22,8 @@ A safe and reliable script for tearing down the environment.
 - **Reverse State Migration**: Handles the complex logic of reverting Terraform backend configurations to ensure clean destruction.
 - **State Pull Safety Net**: Automatically pulls remote state to local if the GCS backend is detected but the bucket might be at risk, ensuring destruction can proceed even if the bucket is deleted.
 - **Final Sweep**: Optionally performs a deep clean of all local Terraform state (`terraform.tfstate`, `.terraform/`) and configuration (`*-providers.tf`, `*.auto.tfvars.json`) across all stages to ensure a pristine environment for redeployment.
+- **Parallel Execution**: Utilizes parallel processing to delete projects and folders simultaneously, significantly reducing destruction time.
+- **Portability**: Compatible with both GNU/Linux and macOS (BSD) environments.
 - **Safety Checks**: Verifies prefixes and prompts for confirmation before destructive actions.
 
 ## Utilities

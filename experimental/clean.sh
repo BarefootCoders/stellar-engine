@@ -65,7 +65,7 @@ fi
 log_info "Scanning for tags with prefix: ${PREFIX}"
 parent_tag_name=$(gcloud resource-manager tags keys list \
   --parent=organizations/"${ORGANIZATION_ID}" \
-  --format="value(name)" 2>/dev/null | grep "${PREFIX}" || echo "")
+  --format="value(name)" 2>/dev/null | grep "/${PREFIX}-" || echo "")
 
 if [[ -n "$parent_tag_name" ]]; then
   child_tag_name=$(gcloud resource-manager tags values list \
@@ -121,6 +121,20 @@ fi
 
 # Org Policies (Generic) - SKIPPED
 # log_warn "Skipping generic Org Policy deletion to protect shared resources."
+
+# Custom Constraints
+log_info "Scanning for custom constraints with prefix: ${PREFIX}"
+# Only deleting constraints that explicitly match the prefix to avoid affecting other deployments.
+constraints=$(gcloud org-policies list-custom-constraints --organization="${ORGANIZATION_ID}" --format="value(name)" 2>/dev/null | grep "custom.*${PREFIX}" || echo "")
+
+if [[ -n "$constraints" ]]; then
+    for constraint in $constraints; do
+        log_info "Deleting custom constraint: $constraint"
+        gcloud org-policies delete-custom-constraint "$constraint" --organization="${ORGANIZATION_ID}" --quiet
+    done
+else
+    log_info "No custom constraints found with prefix ${PREFIX}"
+fi
 
 # Local State Cleanup
 echo

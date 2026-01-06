@@ -73,7 +73,28 @@ resource "google_project" "project" {
       condition     = var.skip_delete == null
       error_message = "skip_delete is deprecated. Use deletion_policy."
     }
+    ignore_changes = [auto_create_network]
   }
+}
+
+resource "null_resource" "delete_default_network" {
+  count = var.auto_create_network ? 0 : 1
+  triggers = {
+    project_id = local.project.project_id
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      if gcloud compute networks describe default --project ${local.project.project_id} --format=json >/dev/null 2>&1; then
+        for rule in $(gcloud compute firewall-rules list --project ${local.project.project_id} --filter="network=default" --format="value(name)"); do
+          gcloud compute firewall-rules delete "$rule" --project ${local.project.project_id} --quiet
+        done
+        gcloud compute networks delete default --project ${local.project.project_id} --quiet
+      fi
+    EOT
+  }
+
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_project_service" "project_services" {
