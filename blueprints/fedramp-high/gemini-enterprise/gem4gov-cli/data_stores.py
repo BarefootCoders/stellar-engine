@@ -44,7 +44,7 @@ def validate_data_store(credentials, project_id, data_store_id):
         acl_enabled = data_store.get('aclEnabled', False)
         content_config = data_store.get('contentConfig', None)
 
-        if industry_vertical == 'GENERIC' and kms_key_name != None:
+        if industry_vertical == 'GENERIC':
             valid_response = {
                 "valid": True,
                 "name": name,
@@ -141,15 +141,12 @@ def create_gcs_data_store(credentials, project_id, data_store_id, display_name):
                     "includeAncestorHeadings": True,
                     "chunkSize": 500
                 }
-            }
+            },
         },
-        "languageInfo": {
-            "languageCode": "en-US"
-        }
     }
 
-    request = service.projects().locations().dataStores().create(
-        parent=f'projects/{project_id}/locations/us',
+    request = service.projects().locations().collections().dataStores().create(
+        parent=f"projects/{project_id}/locations/us/collections/default_collection",
         body=data_store,
         dataStoreId=data_store_id
     )
