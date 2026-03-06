@@ -94,7 +94,7 @@ resource "google_spanner_database" "spanner_databases" {
   name                     = each.key
   ddl                      = each.value.ddl
   enable_drop_protection   = each.value.enable_drop_protection
-  deletion_protection      = false
+  deletion_protection      = coalesce(each.value.deletion_protection, true)
   version_retention_period = each.value.version_retention_period
   dynamic "encryption_config" {
     for_each = each.value.kms_key_name == null ? [] : [""]

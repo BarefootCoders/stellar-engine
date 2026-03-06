@@ -55,7 +55,7 @@ locals {
         "roles/cloudsupport.admin",
         "roles/compute.osAdminLogin",
         "roles/compute.osLoginExternalUser",
-        "roles/owner",
+        "roles/iam.organizationRoleAdmin",
         "roles/resourcemanager.folderAdmin",
         "roles/resourcemanager.organizationAdmin",
         "roles/resourcemanager.projectCreator",
@@ -179,7 +179,8 @@ locals {
     "user:${var.bootstrap_user}" = {
       authoritative = [
         "roles/logging.admin",
-        "roles/owner",
+        "roles/iam.organizationRoleAdmin",
+        "roles/resourcemanager.folderAdmin",
         "roles/resourcemanager.organizationAdmin",
         "roles/resourcemanager.projectCreator",
         "roles/resourcemanager.tagAdmin"

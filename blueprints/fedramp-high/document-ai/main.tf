@@ -29,6 +29,7 @@ resource "google_document_ai_processor" "processor" {
   location     = "us"
   display_name = var.name
   type         = var.type
+  kms_key_name = var.kms_key_name
 
   depends_on = [
     google_project_service.documentai,
@@ -55,6 +56,7 @@ module "input_bucket" {
   location                    = var.region
   force_destroy               = true
   uniform_bucket_level_access = true
+  encryption_key              = var.kms_key_name
 }
 
 module "output_bucket" {
@@ -65,6 +67,7 @@ module "output_bucket" {
   location                    = var.region
   force_destroy               = true
   uniform_bucket_level_access = true
+  encryption_key              = var.kms_key_name
 }
 
 module "workflows" {
@@ -76,6 +79,7 @@ module "workflows" {
   description         = "Document AI example workflow."
   file                = var.file
   service_account     = google_service_account.workflow_sa.email
+  kms_key_self_link   = var.kms_key_name
   env_vars = {
     project_id    = var.main_project_id
     input_bucket  = module.input_bucket.url

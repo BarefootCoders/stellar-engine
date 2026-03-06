@@ -94,9 +94,9 @@ compute.requireOsLogin:
 # to create Compute Engine VM instances. Shielded VM features add verifiable
 # integrity and exfiltration resistance to your VMs.
 # SHOULD HAVE, at folder or project level
-# compute.requireShieldedVm:
-#   rules:
-#   - enforce: true
+compute.requireShieldedVm:
+  rules:
+  - enforce: true
 
 
 # The deny list of this list constraint defines the set of services that require

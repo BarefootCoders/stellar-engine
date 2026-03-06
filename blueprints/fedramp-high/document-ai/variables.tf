@@ -44,3 +44,8 @@ variable "type" {
   type        = string
   default     = "OCR_PROCESSOR"
 }
+
+variable "kms_key_name" {
+  description = "KMS customer managed encryption key (CMEK) name."
+  type        = string
+}

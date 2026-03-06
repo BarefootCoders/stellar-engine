@@ -32,6 +32,9 @@ resource "google_compute_firewall" "allow-admins" {
   project       = var.project_id
   source_ranges = local.default_rules.admin_ranges
   allow { protocol = "all" }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
+  }
 }
 
 resource "google_compute_firewall" "allow-tag-http" {
@@ -45,6 +48,9 @@ resource "google_compute_firewall" "allow-tag-http" {
   allow {
     protocol = "tcp"
     ports    = ["80"]
+  }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
   }
 }
 
@@ -60,6 +66,9 @@ resource "google_compute_firewall" "allow-tag-https" {
     protocol = "tcp"
     ports    = ["443"]
   }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
+  }
 }
 
 resource "google_compute_firewall" "allow-tag-ssh" {
@@ -73,5 +82,8 @@ resource "google_compute_firewall" "allow-tag-ssh" {
   allow {
     protocol = "tcp"
     ports    = ["22"]
+  }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
   }
 }

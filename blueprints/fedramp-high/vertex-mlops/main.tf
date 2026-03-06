@@ -199,7 +199,6 @@ resource "google_project_iam_member" "shared_vpc" {
   member  = module.project.service_agents.notebooks.iam_email
 }
 
-//add iam bindings to compute service account running notebooks
 resource "google_project_iam_member" "service_permissions" {
   for_each = toset([
     "roles/notebooks.runner",
@@ -211,7 +210,7 @@ resource "google_project_iam_member" "service_permissions" {
   ])
   project = module.project.project_id
   role    = each.key
-  member  = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
+  member  = module.service-account-notebook.iam_email
 }
 
 resource "google_project_iam_custom_role" "storage_role" {

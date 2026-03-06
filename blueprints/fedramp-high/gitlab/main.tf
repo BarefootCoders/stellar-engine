@@ -104,7 +104,22 @@ module "compute-vm" {
   zone          = "${var.zone}-a"
   instance_type = "n1-standard-8"
   tags          = ["gitlab"]
+  snapshot_schedules = {
+    daily-backup = {
+      schedule = {
+        daily = {
+          days_in_cycle = 1
+          start_time    = "04:00"
+        }
+      }
+      retention_policy = {
+        max_retention_days = 14
+      }
+    }
+  }
+
   boot_disk = {
+    snapshot_schedule = ["daily-backup"]
     initialize_params = {
       image = "projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20241219"
       size  = 40

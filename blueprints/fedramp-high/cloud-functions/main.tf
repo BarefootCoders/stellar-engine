@@ -16,6 +16,13 @@ data "google_project" "current" {
   project_id = var.main_project_id
 }
 
+module "service-account-runner" {
+  source       = "../../../modules/iam-service-account"
+  name         = "cf-runner-sa"
+  project_id   = var.main_project_id
+  display_name = "Cloud Functions Runner Service Account"
+}
+
 resource "google_project_service" "cloud_functions_apis" {
   for_each = toset([
     "artifactregistry.googleapis.com",
@@ -35,13 +42,13 @@ resource "google_project_service" "cloud_functions_apis" {
 resource "google_project_iam_member" "cloud_build" {
   project = var.main_project_id
   role    = "roles/cloudbuild.builds.builder"
-  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  member  = module.service-account-runner.iam_email
 }
 
 resource "google_project_iam_member" "cloud_invoker" {
   project = var.main_project_id
   role    = "roles/run.invoker"
-  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  member  = module.service-account-runner.iam_email
 }
 
 resource "google_kms_crypto_key_iam_binding" "cloud_storage" {
@@ -59,19 +66,19 @@ resource "google_kms_crypto_key_iam_binding" "cloud_storage" {
 resource "google_project_iam_member" "artifactregistry_createOnPushWriter" {
   project = var.main_project_id
   role    = "roles/artifactregistry.createOnPushWriter"
-  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  member  = module.service-account-runner.iam_email
 }
 
 resource "google_project_iam_member" "logging_logWriter" {
   project = var.main_project_id
   role    = "roles/logging.logWriter"
-  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  member  = module.service-account-runner.iam_email
 }
 
 resource "google_project_iam_member" "storage_objectUser" {
   project = var.main_project_id
   role    = "roles/storage.objectUser"
-  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  member  = module.service-account-runner.iam_email
 }
 
 resource "null_resource" "cloud_function_deploy" {
@@ -100,7 +107,8 @@ resource "null_resource" "cloud_function_deploy" {
         --ingress-settings="internal-and-gclb" \
         --binary-authorization default \
         --docker-repository="${module.registry-docker.id}" \
-        --kms-key="${var.kms_key_name}"
+        --kms-key="${var.kms_key_name}" \
+        --service-account="${module.service-account-runner.email}"
     EOT
   }
 }
@@ -114,7 +122,7 @@ module "bucket" {
   encryption_key = var.kms_key_name
   iam = {
     "roles/storage.objectUser" = [
-      "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
+      module.service-account-runner.iam_email,
       "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
     ]

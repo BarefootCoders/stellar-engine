@@ -74,6 +74,9 @@ resource "google_compute_firewall" "dataproc" {
   allow {
     protocol = "icmp"
   }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
+  }
   source_ranges = ["10.128.0.0/9"]
 }
 

@@ -139,7 +139,7 @@ resource "google_compute_firewall" "custom-rules" {
   priority = each.value.priority
 
   dynamic "log_config" {
-    for_each = each.value.enable_logging == null ? [] : [""]
+    for_each = [""]
     content {
       metadata = (
         try(each.value.enable_logging.include_metadata, null) == true

@@ -86,6 +86,10 @@ resource "google_workbench_instance" "playground" {
       network = local.vpc
       subnet  = local.subnet
     }
+
+    service_accounts {
+      email = module.service-account-notebook.email
+    }
   }
 
   disable_proxy_access = false

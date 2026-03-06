@@ -169,6 +169,9 @@ resource "google_compute_firewall" "allow_gke_nodes_to_master" {
     protocol = "udp"
     ports    = ["10250", "443"]
   }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
+  }
 }
 
 # --- IAM Propagation Delay ---
@@ -229,6 +232,10 @@ module "cluster" {
     shielded_nodes       = true
     dataplane_v2         = true
     binary_authorization = true
+    database_encryption = {
+      state    = "ENCRYPTED"
+      key_name = data.google_kms_crypto_key.existing_kms_key.id
+    }
   }
 
   depends_on = [
@@ -273,7 +280,22 @@ module "bastion_vm" {
   service_account = {
     scopes = ["cloud-platform"]
   }
+  snapshot_schedules = {
+    daily-backup = {
+      schedule = {
+        daily = {
+          days_in_cycle = 1
+          start_time    = "04:00"
+        }
+      }
+      retention_policy = {
+        max_retention_days = 14
+      }
+    }
+  }
+
   boot_disk = {
+    snapshot_schedule = ["daily-backup"]
     initialize_params = {
       image = var.bastion_vm_image
     }

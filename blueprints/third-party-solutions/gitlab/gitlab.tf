@@ -68,7 +68,22 @@ module "gitlab-instance" {
   zone          = var.gitlab_instance_config.zone
   name          = var.gitlab_instance_config.name
   instance_type = var.gitlab_instance_config.instance_type
+  snapshot_schedules = {
+    daily-backup = {
+      schedule = {
+        daily = {
+          days_in_cycle = 1
+          start_time    = "04:00"
+        }
+      }
+      retention_policy = {
+        max_retention_days = 14
+      }
+    }
+  }
+
   boot_disk = {
+    snapshot_schedule = ["daily-backup"]
     initialize_params = {
       image = "projects/cos-cloud/global/images/family/cos-stable"
       size  = var.gitlab_instance_config.boot_disk.size
@@ -77,9 +92,10 @@ module "gitlab-instance" {
   }
   attached_disks = [
     {
-      name = "data"
-      size = var.gitlab_instance_config.data_disk.size
-      type = var.gitlab_instance_config.data_disk.type
+      name              = "data"
+      size              = var.gitlab_instance_config.data_disk.size
+      type              = var.gitlab_instance_config.data_disk.type
+      snapshot_schedule = ["daily-backup"]
       options = {
         replica_zone = var.gitlab_instance_config.replica_zone
       }

@@ -177,6 +177,10 @@ module "cluster" {
     enable_shielded_nodes = true
     dataplane_v2          = true
     binary_authorization  = true
+    database_encryption = {
+      state    = "ENCRYPTED"
+      key_name = module.kms.keys.default.id
+    }
   }
   private_cluster_config = {
     enable_private_endpoint = var.gke_cluster_enable_private_endpoint
@@ -218,7 +222,22 @@ module "compute-vm" {
   service_account = {
     scopes = ["cloud-platform"]
   }
+  snapshot_schedules = {
+    daily-backup = {
+      schedule = {
+        daily = {
+          days_in_cycle = 1
+          start_time    = "04:00"
+        }
+      }
+      retention_policy = {
+        max_retention_days = 14
+      }
+    }
+  }
+
   boot_disk = {
+    snapshot_schedule = ["daily-backup"]
     initialize_params = {
       image = "projects/cos-cloud/global/images/cos-105-17412-495-45"
     }
@@ -246,6 +265,9 @@ resource "google_compute_firewall" "allow-iap" {
     protocol = "TCP"
     ports    = ["22"]
   }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
+  }
   target_tags = ["allow-iap"]
   depends_on  = [module.vpc]
 }
@@ -260,6 +282,9 @@ resource "google_compute_firewall" "allow-local-connect" {
   allow {
     protocol = "TCP"
     ports    = ["22"]
+  }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
   }
   target_tags = ["allow-local-connect"]
   depends_on  = [module.vpc]

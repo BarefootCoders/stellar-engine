@@ -77,13 +77,11 @@
 # Cloud resources must be reconfigured or recreated manually to ensure enforcement.
 # COULD HAVE
 
-# gcp.restrictNonCmekServices:
-#   rules:
-#   - deny:
-#       values:
-#         - bigquery.googleapis.com
-#         - composer.googleapis.com
-#         - <more apis>
+gcp.restrictNonCmekServices:
+  rules:
+  - deny:
+      values:
+        - documentai.googleapis.com
 
 # Utilize our custom constraint to prevent users from creating KMS keys without
 # the proper rotation period.

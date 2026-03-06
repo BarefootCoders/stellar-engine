@@ -75,11 +75,11 @@ compute.disableVpcInternalIpv6:
 # ].
 # COULD HAVE
 # TODO: Resolve issue in 2-networking-a-fedramp-high and uncomment out below
-# compute.requireVpcFlowLogs:
-#   rules:
-#     - allow:
-#         values:
-#           - COMPREHENSIVE
+compute.requireVpcFlowLogs:
+  rules:
+    - allow:
+        values:
+          - COMPREHENSIVE
 
 # This list constraint defines the type of protocol forwarding rule objects
 # with target instance that a user can create. When this constraint is enforced,
@@ -107,11 +107,11 @@ compute.restrictProtocolForwardingCreationForTypes:
 #   under:projects/PROJECT_ID,
 # or projects/PROJECT_ID/global/networks/NETWORK_NAME.
 # SHOULD HAVE
-# compute.restrictVpcPeering:
-#   rules:
-#   - allow:
-#       values:
-#         - under:${root_node}
+compute.restrictVpcPeering:
+  rules:
+  - allow:
+      values:
+        - under:${root_node}
 
 # This list constraint defines the set of valid IP-v4 addresses that can be
 # configured as VPN peer IPs. By default, any IP can be a VPN peer IP for a

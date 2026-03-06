@@ -83,17 +83,32 @@ module "compute-engine-vm" {
     email = google_service_account.compute.email
   }
 
-  # Persistent Disk Attached to the Compute Engine with KMS
+  snapshot_schedules = {
+    daily-backup = {
+      schedule = {
+        daily = {
+          days_in_cycle = 1
+          start_time    = "04:00"
+        }
+      }
+      retention_policy = {
+        max_retention_days = 14
+      }
+    }
+  }
+
   attached_disks = [
     {
       auto_delete       = var.auto_delete
       size              = 20
       name              = "data-disk"
+      snapshot_schedule = ["daily-backup"]
       kms_key_self_link = data.google_kms_crypto_key.default.id
     }
   ]
 
   boot_disk = {
+    snapshot_schedule = ["daily-backup"]
     initialize_params = {
       image = "cos-cloud/cos-stable"
     }

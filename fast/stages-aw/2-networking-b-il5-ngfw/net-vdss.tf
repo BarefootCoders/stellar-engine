@@ -20,6 +20,7 @@ module "vdss-host-project" {
   source          = "../../../modules/project"
   billing_account = var.billing_account.id
   name            = "net-vdss-host"
+  lien_reason     = "Protected by default as a core project."
   parent          = var.folder_ids.networking
   prefix          = var.prefix
   services = [

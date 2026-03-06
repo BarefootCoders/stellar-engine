@@ -34,6 +34,7 @@ module "env-spoke-projects" {
   for_each        = var.envs_folders
   billing_account = var.billing_account.id
   name            = lower("${each.key}-net-host")
+  lien_reason     = "Protected by default as a core project."
   parent          = var.folder_ids.networking
   prefix          = var.prefix
   services = concat([
@@ -206,7 +207,7 @@ module "env-dns-peer-landing-root" {
 
 resource "google_compute_subnetwork_iam_member" "allow-admin-principals" {
   for_each   = local.tenant_subnets_map_of_maps
-  project    = each.value.project
+  project    = module.env-spoke-projects[each.value.env].project_id
   region     = each.value.region
   subnetwork = module.env-spoke-vpc[each.value.env].subnet_ids["${each.value.region}/default-${each.value.region}"]
   role       = "roles/compute.networkUser"

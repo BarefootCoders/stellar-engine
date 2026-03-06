@@ -83,7 +83,22 @@ module "compute-engine-vm" {
     email = google_service_account.consumer.email
   }
 
+  snapshot_schedules = {
+    daily-backup = {
+      schedule = {
+        daily = {
+          days_in_cycle = 1
+          start_time    = "04:00"
+        }
+      }
+      retention_policy = {
+        max_retention_days = 14
+      }
+    }
+  }
+
   boot_disk = {
+    snapshot_schedule = ["daily-backup"]
     initialize_params = {
       auto_delete       = true
       size              = 20

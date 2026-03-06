@@ -173,6 +173,9 @@ resource "google_compute_firewall" "allow-app" {
     protocol = "tcp"
     ports    = ["8080"]
   }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
+  }
 
   target_tags = ["${var.prefix}-ids"]
   source_ranges = [

@@ -97,21 +97,27 @@ locals {
 
   # Some of the org policies require templating to construct, they have been moved to data/custom-org-policies
   # load org policy yaml files from a subdirectory
-  _org_policies_raw = merge([
-    for f in try(fileset("./data/custom-org-policies/", "*_policy.yaml"), []) :
-    yamldecode(templatefile("./data/custom-org-policies/${f}", {
-      # NOTE:
-      # If there are more variables need to be substituted, put them
-      # into a separate yaml file or map, use the following line to
-      # loop throught them. For list values use yamlencode() function.
-      # for k, v in local.common_settings : k => v
-      organization_id : var.organization.id
-      domain_name : var.organization.domain
-      customer_id : var.organization.customer_id
-      drs_tag_name : local.drs_tag_name
-      allowed_domains : var.org_policies_config.constraints.allowed_policy_member_domains
-      }
-  ))]...)
+  _org_policies_raw = merge(concat(
+    [
+      for f in try(fileset("./data/org-policies/", "*_policy.yaml"), []) :
+      yamldecode(file("./data/org-policies/${f}"))
+    ],
+    [
+      for f in try(fileset("./data/custom-org-policies/", "*_policy.yaml"), []) :
+      yamldecode(templatefile("./data/custom-org-policies/${f}", {
+        # NOTE:
+        # If there are more variables need to be substituted, put them
+        # into a separate yaml file or map, use the following line to
+        # loop throught them. For list values use yamlencode() function.
+        # for k, v in local.common_settings : k => v
+        organization_id : var.organization.id
+        domain_name : var.organization.domain
+        customer_id : var.organization.customer_id
+        drs_tag_name : local.drs_tag_name
+        allowed_domains : var.org_policies_config.constraints.allowed_policy_member_domains
+      }))
+    ]
+  )...)
   # formalize the policies
   org_policies = {
     for k, v in local._org_policies_raw :

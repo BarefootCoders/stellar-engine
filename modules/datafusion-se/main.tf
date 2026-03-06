@@ -25,6 +25,9 @@ resource "google_compute_firewall" "default" {
     protocol = "tcp"
     ports    = ["22"]
   }
+  log_config {
+    metadata = "INCLUDE_ALL_METADATA"
+  }
 }
 
 resource "google_compute_network_attachment" "psc" {
