@@ -121,7 +121,7 @@ module "compute-vm" {
   boot_disk = {
     snapshot_schedule = ["daily-backup"]
     initialize_params = {
-      image = "projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20241219"
+      image = var.compute_image
       size  = 40
     }
   }

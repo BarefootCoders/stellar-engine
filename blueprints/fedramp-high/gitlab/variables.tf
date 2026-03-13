@@ -102,3 +102,9 @@ variable "zone" {
   type        = string
   default     = "us-east4-a"
 }
+
+variable "compute_image" {
+  description = "The image used to provision the compute instance."
+  type        = string
+  default     = "projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20241219"
+}

@@ -231,7 +231,7 @@ module "compute-vm" {
         }
       }
       retention_policy = {
-        max_retention_days = 14
+        max_retention_days = var.snapshot_max_retention_days
       }
     }
   }
