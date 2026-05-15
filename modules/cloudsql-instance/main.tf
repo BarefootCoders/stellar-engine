@@ -216,7 +216,7 @@ resource "google_sql_database_instance" "replicas" {
   master_instance_name = google_sql_database_instance.primary.name
 
   settings {
-    tier                        = var.tier
+    tier                        = coalesce(each.value.tier, var.tier)
     edition                     = var.edition
     deletion_protection_enabled = var.gcp_deletion_protection
     retain_backups_on_delete    = var.backup_configuration.retain_backups_on_delete

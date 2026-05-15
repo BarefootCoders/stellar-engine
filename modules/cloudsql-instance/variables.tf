@@ -241,10 +241,11 @@ variable "region" {
 }
 
 variable "replicas" {
-  description = "Map of NAME=> {REGION, KMS_KEY} for additional read replicas. Set to null to disable replica creation."
+  description = "Map of NAME=> {REGION, KMS_KEY, TIER} for additional read replicas. Tier defaults to the primary instance tier when unset. Set to null to disable replica creation."
   type = map(object({
     region              = string
     encryption_key_name = optional(string)
+    tier                = optional(string)
   }))
   default  = {}
   nullable = false
@@ -289,6 +290,7 @@ variable "terraform_deletion_protection" {
 variable "tier" {
   description = "The machine type to use for the instances."
   type        = string
+  nullable    = false
 }
 
 variable "time_zone" {
